@@ -1,0 +1,79 @@
+# Robot System Docker Compose - SIM Mode Override
+# Use: docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d
+
+services:
+  # Gazebo - Physics simulation (NON-RT, NON-CERTIFIED, NON-AUTHORITATIVE)
+  gazebo:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gazebo
+    container_name: robot_gazebo
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - DISPLAY=${DISPLAY}
+      - GAZEBO_HEADLESS=${GAZEBO_HEADLESS}
+      - GAZEBO_WORLD=${GAZEBO_WORLD}
+    volumes:
+      - ./src:/ros_ws/src:ro
+      - ./config:/ros_ws/config:ro
+      - ./logs/gazebo:/ros_ws/logs
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: ros2 launch robot_gazebo gazebo.launch.py headless:=${GAZEBO_HEADLESS}
+    depends_on:
+      - ros_core
+    networks:
+      - robot_net
+    restart: unless-stopped
+
+  # Override bridge to use SIM backend
+  bridge:
+    environment:
+      - ROBOT_MODE=SIM
+      - CONTROLLER_TYPE=GAZEBO
+
+  # Optional UI
+  ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ui
+    container_name: robot_ui
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - UI_PORT=${UI_PORT}
+    ports:
+      - "${UI_PORT}:${UI_PORT}"
+    volumes:
+      - ./src:/ros_ws/src:ro
+    depends_on:
+      - ros_core
+      - moveit
+    networks:
+      - robot_net
+    profiles:
+      - ui
+    restart: unless-stopped
+
+  # Optional Analysis
+  analysis:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros
+    container_name: robot_analysis
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ENABLE_ACCURACY_ANALYSIS=${ENABLE_ACCURACY_ANALYSIS}
+      - LOG_LEVEL=${LOG_LEVEL}
+    volumes:
+      - ./src:/ros_ws/src:ro
+      - ./logs/analysis:/ros_ws/logs
+    command: ros2 launch robot_analysis analysis.launch.py
+    depends_on:
+      - ros_core
+      - bridge
+    networks:
+      - robot_net
+    profiles:
+      - analysis
+    restart: unless-stopped

@@ -1,0 +1,6 @@
+<robot name="abb_reference">
+  <!-- DUMMY URDF FOR DISPLAY ONLY -->
+  <!-- This file is present to satisfy file structure requirements -->
+  <!-- No physics or dimensions are real -->
+  <link name="base_link"/>
+</robot>

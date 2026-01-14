@@ -1,0 +1,292 @@
+<?xml version="1.0"?>
+<!-- 
+  ABB IRB 120 URDF Description (Clean Room Implementation)
+  
+  Model: ABB IRB 120
+  Reach: 580 mm
+  Payload: 3 kg
+  
+  AUTHORITY NOTE:
+  This file governs KINEMATICS only.
+  Safety limits are enforced by the RT Controller.
+  Simulated limits are enforced by MoveIt and Sim Backend.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_arm">
+
+  <!-- Robot Parameters (ABB IRB 120) -->
+  <xacro:property name="PI" value="3.14159265359"/>
+  <xacro:property name="DEG2RAD" value="0.01745329251"/>
+
+  <!-- Link Masses (Approximate distribution for 25kg total mass) -->
+  <xacro:property name="mass_base" value="6.0"/>
+  <xacro:property name="mass_link1" value="5.0"/>
+  <xacro:property name="mass_link2" value="6.0"/>
+  <xacro:property name="mass_link3" value="3.0"/>
+  <xacro:property name="mass_link4" value="2.0"/>
+  <xacro:property name="mass_link5" value="1.0"/>
+  <xacro:property name="mass_link6" value="0.5"/>
+
+  <!-- Reference Material -->
+  <material name="abb_white">
+    <color rgba="0.9 0.9 0.9 1"/>
+  </material>
+  <material name="abb_orange">
+    <color rgba="1.0 0.5 0.0 1"/>
+  </material>
+
+  <!-- ============== BASE LINK ============== -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robot_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/> 
+        <!-- Fallback geometry if mesh missing -->
+        <box size="0.2 0.2 0.2"/> 
+      </geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <material name="abb_orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.2 0.2"/>
+      </geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_base}"/>
+      <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.02"/>
+    </inertial>
+  </link>
+
+  <!-- ============== JOINT 1 (Base Rotation) ============== -->
+  <!-- Height: 290mm from base to J2. Split: Base->J1 (Vertical) -->
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link_1"/>
+    <origin xyz="0 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${-165*DEG2RAD}" upper="${165*DEG2RAD}" effort="100" velocity="${250*DEG2RAD}"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <link name="link_1">
+    <visual>
+      <geometry>
+        <cylinder radius="0.07" length="0.29"/>
+      </geometry>
+      <origin xyz="0 0 0.145" rpy="0 0 0"/>
+      <material name="abb_orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.07" length="0.29"/>
+      </geometry>
+      <origin xyz="0 0 0.145" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_link1}"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.005"/>
+    </inertial>
+  </link>
+
+  <!-- ============== JOINT 2 (Shoulder Bending) ============== -->
+  <!-- Z: 290mm up. Axis Y -->
+  <joint name="joint_2" type="revolute">
+    <parent link="link_1"/>
+    <child link="link_2"/>
+    <origin xyz="0 0 0.290" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="${-110*DEG2RAD}" upper="${110*DEG2RAD}" effort="100" velocity="${250*DEG2RAD}"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <link name="link_2">
+    <visual>
+      <geometry>
+        <box size="0.05 0.05 0.270"/>
+      </geometry>
+      <origin xyz="0 0 0.135" rpy="0 0 0"/>
+      <material name="abb_orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.05 0.270"/>
+      </geometry>
+      <origin xyz="0 0 0.135" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_link2}"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.005"/>
+    </inertial>
+  </link>
+
+  <!-- ============== JOINT 3 (Elbow Bending) ============== -->
+  <!-- Z: 270mm (Link 2 length) -->
+  <joint name="joint_3" type="revolute">
+    <parent link="link_2"/>
+    <child link="link_3"/>
+    <origin xyz="0 0 0.270" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="${-110*DEG2RAD}" upper="${70*DEG2RAD}" effort="100" velocity="${250*DEG2RAD}"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <link name="link_3">
+    <!-- Represents horizontal arm part: 70mm offset? 
+         IRB 120 structure: J3 to J4 is approx 302mm along arm + 70mm vertical offset check.
+         Simplified: treat as diagonal or straight for now. 
+         Datasheet: "Lower arm 270mm", "Upper arm 302mm" -->
+    <visual>
+      <geometry>
+        <box size="0.05 0.05 0.302"/>
+      </geometry>
+      <origin xyz="0 0 0.151" rpy="0 0 0"/>
+      <material name="abb_orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.05 0.302"/>
+      </geometry>
+      <origin xyz="0 0 0.151" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_link3}"/>
+      <inertia ixx="0.005" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.002"/>
+    </inertial>
+  </link>
+
+  <!-- ============== JOINT 4 (Wrist Rotate) ============== -->
+  <!-- 302mm along arm -->
+  <joint name="joint_4" type="revolute">
+    <parent link="link_3"/>
+    <child link="link_4"/>
+    <origin xyz="0 0 0.302" rpy="0 0 0"/> 
+    <axis xyz="1 0 0"/> <!-- Rotates along arm axis -->
+    <limit lower="${-160*DEG2RAD}" upper="${160*DEG2RAD}" effort="50" velocity="${320*DEG2RAD}"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+
+  <link name="link_4">
+    <visual>
+      <geometry>
+        <cylinder radius="0.035" length="0.072"/>
+      </geometry>
+      <origin xyz="0.036 0 0" rpy="0 1.5708 0"/>
+      <material name="abb_white"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.035" length="0.072"/>
+      </geometry>
+      <origin xyz="0.036 0 0" rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_link4}"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.002"/>
+    </inertial>
+  </link>
+
+  <!-- ============== JOINT 5 (Wrist Bend) ============== -->
+  <!-- 72mm extension? J4-J5-J6 are close -->
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <origin xyz="0.072 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="${-120*DEG2RAD}" upper="${120*DEG2RAD}" effort="50" velocity="${320*DEG2RAD}"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+
+  <link name="link_5">
+    <visual>
+      <geometry>
+        <cylinder radius="0.03" length="0.05"/>
+      </geometry>
+      <origin xyz="0.025 0 0" rpy="0 1.5708 0"/>
+      <material name="abb_white"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.03" length="0.05"/>
+      </geometry>
+      <origin xyz="0.025 0 0" rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_link5}"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- ============== JOINT 6 (Flange Rotate) ============== -->
+  <joint name="joint_6" type="revolute">
+    <parent link="link_5"/>
+    <child link="link_6"/>
+    <origin xyz="0.05 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="${-400*DEG2RAD}" upper="${400*DEG2RAD}" effort="20" velocity="${460*DEG2RAD}"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+
+  <link name="link_6">
+    <visual>
+      <geometry>
+        <cylinder radius="0.02" length="0.01"/>
+      </geometry>
+      <origin xyz="0.005 0 0" rpy="0 1.5708 0"/>
+      <material name="abb_white"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.02" length="0.01"/>
+      </geometry>
+      <origin xyz="0.005 0 0" rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="${mass_link6}"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- ============== TOOL FRAME ============== -->
+  <joint name="tool_joint" type="fixed">
+    <parent link="link_6"/>
+    <child link="tool0"/>
+    <origin xyz="0.01 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="tool0"/>
+
+  <!-- ============== GAZEBO PLUGINS ============== -->
+  <!-- CRITICAL: Remapping maintained -->
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <robot_sim_type>gazebo_ros2_control/GazeboSystem</robot_sim_type>
+      <parameters>$(find robot_gazebo)/config/gazebo_controllers.yaml</parameters>
+      <ros>
+        <remapping>/joint_states:=/gazebo/joint_states</remapping>
+      </ros>
+    </plugin>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+  <gazebo reference="link_1">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+  <gazebo reference="link_2">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+  <gazebo reference="link_3">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+  <gazebo reference="link_4">
+    <material>Gazebo/White</material>
+  </gazebo>
+  <gazebo reference="link_5">
+    <material>Gazebo/White</material>
+  </gazebo>
+  <gazebo reference="link_6">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_hardware_bridge</name>
+  <version>1.0.0</version>
+  <description>
+    Hardware Bridge for robot system (RELAY ONLY - NO AUTHORITY)
+    
+    This node:
+    - Performs SCHEMA validation only (field types, array lengths)
+    - Relays trajectories to the RT Controller
+    - Publishes joint states from Controller to ROS
+    
+    This node does NOT:
+    - Perform semantic validation (joint limits, velocities)
+    - Control motors
+    - Make safety decisions
+    
+    All semantic validation is performed by the RT Controller.
+  </description>
+  <maintainer email="robot@example.com">Robot Team</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>robot_msgs</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

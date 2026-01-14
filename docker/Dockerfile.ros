@@ -1,0 +1,37 @@
+# ROS 2 Humble Base Image for Robot System
+# This image provides ROS 2 core, MoveIt, and custom packages
+
+FROM ros:humble-ros-base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-colcon-common-extensions \
+    ros-humble-moveit \
+    ros-humble-moveit-ros-planning \
+    ros-humble-moveit-ros-planning-interface \
+    ros-humble-moveit-ros-move-group \
+    ros-humble-controller-manager \
+    ros-humble-joint-state-publisher \
+    ros-humble-robot-state-publisher \
+    ros-humble-xacro \
+    ros-humble-rmw-cyclonedds-cpp \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up workspace
+WORKDIR /ros_ws
+RUN mkdir -p src config logs
+
+# Copy source packages
+COPY src/ /ros_ws/src/
+
+# Build workspace
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# Set up entrypoint
+COPY docker/ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]

@@ -1,0 +1,16 @@
+# Robot Parameters
+# Global system parameters loaded by launch files
+
+robot_name: "robot_arm_01"
+
+# Controller Settings
+controller:
+  watchdog_timeout_ms: 10
+  control_loop_hz: 1000
+  ip: "192.168.1.100"
+  port: 5000
+
+# Safety Limits (Soft limits for software - Hard limits in firmware)
+safety:
+  max_velocity_scaling: 0.1  # Start slow
+  collision_stop_threshold: 0.05
