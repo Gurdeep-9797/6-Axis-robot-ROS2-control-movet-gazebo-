@@ -1,130 +1,133 @@
-# SYSTEM WALKTHROUGH
-## Industrial Robot Control Stack — End-to-End Architecture
+# SYSTEM WALKTHROUGH — Industrial Robot Platform
+
+## Purpose
+
+This document provides a high-level overview of the system architecture and how components interact.
 
 ---
 
-## 1. System Intent
+## Terminology Lock
 
-A **plug-and-play industrial robot software stack** designed to:
-- Preserve real-time safety boundaries
-- Enable SIM ↔ REAL parity
-- Enforce strict authority separation
-- Support deterministic controller integration
-- Enable CI-grade regression testing
-
----
-
-## 2. Phase Summary
-
-| Phase | Description | Outcome |
-|-------|-------------|---------|
-| **1** | Logic Simulator | Authority & flow validated in pure Python |
-| **2** | Gazebo Integration | Physics added, no authority leakage |
-| **3** | ABB IRB 120 URDF | Real industrial kinematics |
-| **4** | MoveIt Adapter | Planner isolated from execution |
-| **5** | *(Next)* Real Controller | Hardware execution |
+| Term | Definition |
+|------|------------|
+| **USER CONTROLLER** | Human interface (Simulator UI, Web UI, Joystick) |
+| **SIMULATOR** | Gazebo. Non-real-time. Visualization + physics ONLY. |
+| **RT CONTROLLER** | ESP32 firmware. Owns GPIO, PWM, PID, Safety. |
+| **ROS DOMAIN** | ROS 2 + MoveIt. Planning, IK, FK. NEVER real-time. |
+| **HARDWARE BRIDGE** | Transport + schema validation ONLY. |
 
 ---
 
-## 3. Final Execution Flow
+## System Goals
+
+- Provide SIM ↔ REAL parity
+- Support deterministic RT Controller integration
+- Enable optional observability without impacting execution
+- Maintain strict authority separation
+
+---
+
+## Phases of Development
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **1** | Logic Simulator | ✅ Complete |
+| **2** | ROS 2 Packages | ✅ Complete |
+| **3** | Docker Infrastructure | ✅ Complete |
+| **4** | SIM Mode Execution | ✅ Working |
+| **5** | ESP32 RT Controller Firmware | ✅ Complete |
+| **6** | REAL Mode Execution | 🔧 Pending HW |
+
+---
+
+## Data Flow (REAL Mode)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      APPLICATION LAYER                       │
-│  ┌─────────────┐                                            │
-│  │   MoveIt    │  (Planner, Action Client)                  │
-│  │  move_group │  NON-REAL-TIME, REQUEST ONLY               │
-│  └──────┬──────┘                                            │
-│         │ FollowJointTrajectory Action                      │
-│         ▼                                                   │
-│  ┌─────────────────┐                                        │
-│  │ MoveIt Adapter  │  (Action → Topic Translator)           │
-│  │ moveit_adapter  │  NO AUTHORITY                          │
-│  └────────┬────────┘                                        │
-│           │ /planned_trajectory                             │
-├───────────┼─────────────────────────────────────────────────┤
-│           │              INTERFACE LAYER                    │
-│           ▼                                                 │
-│  ┌─────────────────┐                                        │
-│  │ Hardware Bridge │  RELAY ONLY, SCHEMA VALIDATION         │
-│  │   bridge_node   │  NO SEMANTIC AUTHORITY                 │
-│  └────────┬────────┘                                        │
-│           │                                                 │
-├───────────┼─────────────────────────────────────────────────┤
-│           │              EXECUTION LAYER                    │
-│           ▼                                                 │
-│  ┌─────────────────┐    ┌─────────────────┐                │
-│  │  SIM Backend    │ OR │  REAL Backend   │                │
-│  │ (Gazebo/FAKE)   │    │ (RT Controller) │                │
-│  └────────┬────────┘    └────────┬────────┘                │
-│           │                      │                          │
-│           ▼                      ▼                          │
-│  ┌─────────────────────────────────────────┐               │
-│  │            /joint_states                 │               │
-│  │     (Bridge Republishes - Single Truth)  │               │
-│  └─────────────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 4. Authority Hierarchy
-
-| Component | Authority Level | Can Move Motors? |
-|-----------|-----------------|------------------|
-| RT Controller | **ABSOLUTE** | ✅ YES (Only) |
-| Hardware Bridge | RELAY | ❌ NO |
-| Gazebo | EMULATED | ❌ NO (Simulation Only) |
-| MoveIt | REQUEST | ❌ NO |
-| UI/Analysis | OBSERVE | ❌ NO |
-
----
-
-## 5. Key Guarantees
-
-| Guarantee | How Enforced |
-|-----------|--------------|
-| No ROS node can move motors | Controller is external to ROS |
-| No simulator can fake truth | Bridge republishes, Gazebo isolated |
-| No UI can bypass authority | UI subscribes only, no publishers |
-| No planning error can execute | Adapter validates ACK before feedback |
-| Faults propagate upstream | ExecutionState.FAULT halts all planning |
-
----
-
-## 6. File Structure
-
-```
-robot_system/
-├── docker/                    # Container definitions
-├── src/
-│   ├── robot_description/     # URDF (ABB IRB 120)
-│   ├── robot_moveit_config/   # MoveIt configuration
-│   ├── robot_hardware_bridge/ # Bridge + Adapter
-│   ├── robot_gazebo/          # Gazebo world + controllers
-│   ├── robot_analysis/        # Passive observers
-│   └── robot_msgs/            # TrajectoryAck, ExecutionState
-├── config/                    # Global parameters
-├── scripts/                   # Helper scripts
-└── logic_simulator/           # Golden reference (Pure Python)
+USER CONTROLLER (UI)
+        │
+        ▼
+ROS 2 Intent Node
+        │
+        ▼
+MoveIt (IK, FK, Planning)
+        │
+        ▼
+JointTrajectory Message
+        │
+        ▼
+HARDWARE BRIDGE (Schema Validation ONLY)
+        │
+        ▼
+RT CONTROLLER (ESP32)
+  ├── Trajectory Interpolation
+  ├── PID Control Loop (50Hz+)
+  ├── Safety Watchdog
+  └── GPIO / PWM Output
+        │
+        ▼
+ENCODERS (Source of Truth)
+        │
+        ▼
+/joint_states → ROS → SIMULATOR (Visual Mirror ONLY)
 ```
 
 ---
 
-## 7. Validation Status
+## Authority Hierarchy
 
-| Test | Status |
-|------|--------|
-| Logic Simulator Authority | ✅ Validated |
-| Gazebo Topic Isolation | ✅ Verified |
-| ABB IRB 120 Kinematics | ✅ Implemented |
-| MoveIt Adapter Flow | ✅ Implemented |
-| End-to-End Execution | ⏳ Blocked (Docker Env) |
+| Level | Component | Authority |
+|-------|-----------|-----------|
+| **L0** | Hardware E-STOP | Ultimate (Cuts Power) |
+| **L1** | RT CONTROLLER | Full Motor Control |
+| **L2** | MoveIt | Intent Generation |
+| **L3** | USER CONTROLLER | Goal Selection |
+
+**Rule:** L(N) cannot override L(N-1).
 
 ---
 
-## 8. Next Steps
+## Ownership Table
 
-1. **Restore Docker Environment**
-2. **Run `verify_phase4.ps1`**
-3. **Phase 5: Real Controller Integration**
+| Function | Owned By |
+|----------|----------|
+| IK / FK | MoveIt (ROS Domain) |
+| PID Control | RT CONTROLLER (ESP32) |
+| Safety | RT CONTROLLER (ESP32) |
+| Position Truth | ENCODERS (via RT CONTROLLER) |
+
+---
+
+## Directory Structure
+
+```
+/src
+  ├── robot_description/        # URDF (Shared)
+  ├── robot_moveit_config/      # MoveIt (IK, FK)
+  ├── robot_hardware_bridge/    # Bridge (Transport)
+  ├── robot_gazebo/             # Simulator config
+  └── robot_analysis/           # Observability
+/firmware
+  └── esp32_robot_controller/   # RT CONTROLLER Code
+/controller
+  └── hardware_map.yaml         # GPIO Mapping
+```
+
+---
+
+## Key Constraints
+
+| Constraint | Rationale |
+|------------|-----------|
+| No ROS node can move motors | RT CONTROLLER is external to ROS |
+| No PID in ROS | PID must be real-time |
+| Simulator non-authoritative in REAL mode | Encoders are truth |
+| Hardware Bridge has no logic | Separation of concerns |
+
+---
+
+## Next Actions
+
+1. Flash ESP32 with firmware
+2. Wire hardware per `docs/ESP32_PCA9685_WIRING_AND_SETUP.md`
+3. Run REAL mode test
+4. Validate encoder feedback in ROS

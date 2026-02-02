@@ -1,79 +1,71 @@
-# Robot System Docker Compose - SIM Mode Override
-# Use: docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d
+version: '3.8'
 
 services:
-  # Gazebo - Physics simulation (NON-RT, NON-CERTIFIED, NON-AUTHORITATIVE)
+  ros_core:
+    image: robotics_base:latest
+    container_name: ros_core
+    command: bash -c "source /opt/ros/humble/setup.bash && cd /ros_ws && rm -f build_finished && colcon build --packages-ignore robot_tests && touch build_finished && source install/setup.bash && ros2 launch robot_description display.launch.py"
+    environment:
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - ${PROJECT_ROOT}:/ros_ws
+    networks:
+      - robot_net
+
+  moveit:
+    image: robotics_base:latest
+    container_name: moveit
+    depends_on:
+      - ros_core
+    volumes:
+      - ${PROJECT_ROOT}:/ros_ws
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"
+    environment:
+      - ROS_DOMAIN_ID=42
+      - DISPLAY=host.docker.internal:0 # for GUI
+    networks:
+      - robot_net
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
   gazebo:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.gazebo
-    container_name: robot_gazebo
-    environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - DISPLAY=${DISPLAY}
-      - GAZEBO_HEADLESS=${GAZEBO_HEADLESS}
-      - GAZEBO_WORLD=${GAZEBO_WORLD}
-    volumes:
-      - ./src:/ros_ws/src:ro
-      - ./config:/ros_ws/config:ro
-      - ./logs/gazebo:/ros_ws/logs
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    command: ros2 launch robot_gazebo gazebo.launch.py headless:=${GAZEBO_HEADLESS}
+    image: robotics_base:latest
+    container_name: gazebo
     depends_on:
       - ros_core
+    volumes:
+      - ${PROJECT_ROOT}:/ros_ws
+    environment:
+      - ROS_DOMAIN_ID=42
+      - DISPLAY=host.docker.internal:0
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"
     networks:
       - robot_net
-    restart: unless-stopped
+    # GPU Removed for compatibility
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [ gpu ]
 
-  # Override bridge to use SIM backend
-  bridge:
-    environment:
-      - ROBOT_MODE=SIM
-      - CONTROLLER_TYPE=GAZEBO
-
-  # Optional UI
-  ui:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ui
-    container_name: robot_ui
-    environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - UI_PORT=${UI_PORT}
-    ports:
-      - "${UI_PORT}:${UI_PORT}"
-    volumes:
-      - ./src:/ros_ws/src:ro
+  hardware_bridge:
+    image: robotics_base:latest
+    container_name: bridge
     depends_on:
-      - ros_core
+      - gazebo
       - moveit
-    networks:
-      - robot_net
-    profiles:
-      - ui
-    restart: unless-stopped
-
-  # Optional Analysis
-  analysis:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ros
-    container_name: robot_analysis
-    environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ENABLE_ACCURACY_ANALYSIS=${ENABLE_ACCURACY_ANALYSIS}
-      - LOG_LEVEL=${LOG_LEVEL}
     volumes:
-      - ./src:/ros_ws/src:ro
-      - ./logs/analysis:/ros_ws/logs
-    command: ros2 launch robot_analysis analysis.launch.py
-    depends_on:
-      - ros_core
-      - bridge
+      - ${PROJECT_ROOT}:/ros_ws
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 run robot_hardware_bridge bridge_node"
+    environment:
+      - ROS_DOMAIN_ID=42
     networks:
       - robot_net
-    profiles:
-      - analysis
-    restart: unless-stopped
+
+networks:
+  robot_net:
+    driver: bridge

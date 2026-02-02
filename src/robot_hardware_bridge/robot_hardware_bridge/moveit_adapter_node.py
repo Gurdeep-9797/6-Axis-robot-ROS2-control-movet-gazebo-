@@ -47,7 +47,7 @@ class MoveItAdapterNode(Node):
         self._action_server = ActionServer(
             self,
             FollowJointTrajectory,
-            '/robot_arm_controller/follow_joint_trajectory',
+            '/bridge_controller/follow_joint_trajectory',
             self.execute_callback,
             callback_group=ReentrantCallbackGroup(),
             goal_callback=self.goal_callback,

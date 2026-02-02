@@ -1,5 +1,5 @@
 """
-Gazebo Launch File
+Gazebo Launch File - FIXED
 
 AUTHORITY: EMULATED (No Real Authority)
 
@@ -16,12 +16,16 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     ExecuteProcess,
+    RegisterEventHandler,
+    TimerAction,
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
+from launch.event_handlers import OnProcessStart
 
 
 def generate_launch_description():
@@ -35,9 +39,9 @@ def generate_launch_description():
     robot_gazebo_pkg = FindPackageShare('robot_gazebo')
     gazebo_ros_pkg = FindPackageShare('gazebo_ros')
     
-    # Robot description
+    # Robot description - FIXED: Use correct URDF file name
     robot_description_path = PathJoinSubstitution([
-        robot_description_pkg, 'urdf', 'robot.urdf.xacro'
+        robot_description_pkg, 'urdf', 'custom_6axis_test.urdf.xacro'
     ])
     
     robot_description = Command(['xacro ', robot_description_path])
@@ -52,7 +56,7 @@ def generate_launch_description():
         robot_gazebo_pkg, 'config', 'gazebo_controllers.yaml'
     ])
     
-    # Gazebo server (with GUI)
+    # Gazebo server
     gazebo_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([gazebo_ros_pkg, 'launch', 'gzserver.launch.py'])
@@ -60,6 +64,7 @@ def generate_launch_description():
         launch_arguments={
             'world': world_path,
             'pause': 'false',
+            'verbose': 'true',
         }.items(),
     )
     
@@ -77,7 +82,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         output='screen',
         parameters=[{
-            'robot_description': robot_description,
+            'robot_description': ParameterValue(robot_description, value_type=str),
             'use_sim_time': use_sim_time,
         }]
     )
@@ -94,20 +99,39 @@ def generate_launch_description():
         output='screen',
     )
     
-    # Joint state broadcaster
-    joint_state_broadcaster_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_state_broadcaster', '-c', '/controller_manager'],
-        output='screen',
+    # FIXED: Add delays for controller spawners to ensure robot and controller_manager are ready
+    # Joint state broadcaster - delay 10 seconds after launch to ensure Gazebo is ready
+    joint_state_broadcaster_spawner = TimerAction(
+        period=10.0,
+        actions=[
+            Node(
+                package='controller_manager',
+                executable='spawner',
+                arguments=[
+                    'joint_state_broadcaster',
+                    '-c', '/controller_manager',
+                    '--controller-manager-timeout', '60',
+                ],
+                output='screen',
+            )
+        ]
     )
     
-    # Robot arm controller
-    robot_arm_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['robot_arm_controller', '-c', '/controller_manager'],
-        output='screen',
+    # Robot arm controller - delay 15 seconds
+    robot_arm_controller_spawner = TimerAction(
+        period=15.0,
+        actions=[
+            Node(
+                package='controller_manager',
+                executable='spawner',
+                arguments=[
+                    'robot_arm_controller',
+                    '-c', '/controller_manager',
+                    '--controller-manager-timeout', '60',
+                ],
+                output='screen',
+            )
+        ]
     )
     
     return LaunchDescription([

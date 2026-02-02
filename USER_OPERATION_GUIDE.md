@@ -8,12 +8,24 @@
 4. [Docker Build & Run](#4-docker-build--run)
 5. [Running SIM Mode](#5-running-sim-mode)
 6. [Running REAL Mode](#6-running-real-mode)
-7. [Using Gazebo as Controller](#7-using-gazebo-as-controller)
+7. [Using Simulator as Development Platform](#7-using-simulator-as-development-platform)
 8. [Optional UI Usage](#8-optional-ui-usage)
 9. [Enabling Analysis Modules](#9-enabling-analysis-modules)
 10. [Logs & Debugging](#10-logs--debugging)
 11. [Deployment & Updates](#11-deployment--updates)
 12. [Quick Reference Commands](#12-quick-reference-commands)
+
+---
+
+## Terminology (CRITICAL)
+
+| Term | Definition |
+|------|------------|
+| **USER CONTROLLER** | What the user interacts with: Simulator UI, Web UI, Desktop UI, Joystick. |
+| **SIMULATOR** | Gazebo or any physics simulator. Non-real-time. Visualization + physics ONLY. |
+| **RT CONTROLLER** | ESP32 (or RT Linux MCU). Owns GPIO, PWM, PID, Safety. The ONLY real-time executor. |
+| **ROS DOMAIN** | ROS 2 + MoveIt. Planning, IK, FK, smoothing. NEVER real-time. |
+| **HARDWARE BRIDGE** | Transport + schema validation ONLY. No logic, no compensation. |
 
 ---
 
@@ -27,7 +39,7 @@
 | Docker Desktop       | 4.0+ with WSL2 backend                  | Container runtime          |
 | VS Code              | Latest                                  | Development IDE            |
 | Git                  | 2.30+                                   | Version control            |
-| X Server (optional)  | VcXsrv or similar                       | GUI forwarding (Gazebo)    |
+| X Server (optional)  | VcXsrv or similar                       | GUI forwarding (Simulator) |
 
 ### 1.2 Install Docker Desktop
 
@@ -88,67 +100,26 @@ D:\robot_system\
 │
 ├── docker/                       # Docker build files
 │   ├── Dockerfile.ros            # ROS 2 base image
-│   ├── Dockerfile.gazebo         # Gazebo simulation
+│   ├── Dockerfile.gazebo         # Simulator image
 │   └── Dockerfile.ui             # Optional UI image
 │
 ├── src/                          # ROS 2 workspace source
 │   ├── robot_description/        # URDF, meshes, configs
-│   │   ├── urdf/
-│   │   │   └── robot.urdf.xacro
-│   │   ├── meshes/
-│   │   └── config/
-│   │       └── joint_limits.yaml
-│   │
-│   ├── robot_moveit_config/      # MoveIt configuration
-│   │   ├── config/
-│   │   │   ├── kinematics.yaml
-│   │   │   ├── joint_limits.yaml
-│   │   │   └── controllers.yaml
-│   │   └── launch/
-│   │       └── move_group.launch.py
-│   │
-│   ├── robot_hardware_bridge/    # Hardware interface node
-│   │   ├── robot_hardware_bridge/
-│   │   │   ├── __init__.py
-│   │   │   ├── bridge_node.py
-│   │   │   ├── real_backend.py
-│   │   │   └── sim_backend.py
-│   │   └── launch/
-│   │       └── bridge.launch.py
-│   │
-│   ├── robot_gazebo/             # Gazebo simulation
-│   │   ├── worlds/
-│   │   ├── launch/
-│   │   └── config/
-│   │
-│   └── robot_analysis/           # Optional analysis tools
-│       ├── robot_analysis/
-│       │   ├── accuracy_node.py
-│       │   └── logger_node.py
-│       └── launch/
+│   ├── robot_moveit_config/      # MoveIt configuration (IK, FK, planning)
+│   ├── robot_hardware_bridge/    # Hardware Bridge node (transport ONLY)
+│   ├── robot_gazebo/             # Simulator config (SIM mode execution)
+│   └── robot_analysis/           # Accuracy comparison nodes
 │
-├── controller/                   # Real-time controller code
-│   ├── firmware/                 # MCU firmware (if applicable)
-│   └── rt_linux/                 # RT Linux code (if applicable)
+├── firmware/                     # RT CONTROLLER code (ESP32)
+│   └── esp32_robot_controller/   # PID, PWM, Encoder, Safety logic
+│
+├── controller/                   # RT CONTROLLER configuration
+│   └── hardware_map.yaml         # GPIO and Servo channel mappings
 │
 ├── config/                       # Shared configuration
-│   ├── robot_params.yaml         # Robot-specific parameters
-│   └── network.yaml              # Network configuration
-│
 ├── logs/                         # Runtime logs (auto-created)
-│   ├── ros/
-│   ├── gazebo/
-│   └── analysis/
-│
 ├── scripts/                      # Helper scripts
-│   ├── start_sim.ps1
-│   ├── start_real.ps1
-│   ├── stop_all.ps1
-│   └── view_logs.ps1
-│
 └── docs/                         # Documentation
-    ├── SYSTEM_LOGIC_AND_FLOW.md
-    └── USER_OPERATION_GUIDE.md
 ```
 
 ---
@@ -165,28 +136,30 @@ All configuration is managed through the `.env` file. **Never edit code to chang
 | `ROBOT_NAME`        | String              | Identifier for this robot instance       |
 | `ROS_DOMAIN_ID`     | 0-232               | ROS 2 domain isolation                   |
 
-### 3.2 Controller Variables
+### 3.2 RT Controller Variables
 
-| Variable            | Values              | Description                              |
-|---------------------|---------------------|------------------------------------------|
-| `CONTROLLER_TYPE`   | `FAKE` / `REAL`     | Controller backend selection             |
-| `CONTROLLER_IP`     | IP address          | Real controller network address          |
-| `CONTROLLER_PORT`   | Port number         | Controller communication port            |
-| `CONTROLLER_PROTO`  | `SERIAL`/`TCP`/`UDP`| Communication protocol                   |
+These variables configure the connection to the **RT Controller** (ESP32 hardware).
 
-### 3.3 UI Variables
+| Variable              | Values              | Description                              |
+|-----------------------|---------------------|------------------------------------------|
+| `RT_CONTROLLER_TYPE`  | `FAKE` / `REAL`     | RT Controller backend selection          |
+| `RT_CONTROLLER_IP`    | IP address          | RT Controller network address            |
+| `RT_CONTROLLER_PORT`  | Port number         | RT Controller communication port         |
+| `RT_CONTROLLER_PROTO` | `SERIAL`/`TCP`/`UDP`| Communication protocol                   |
+
+### 3.3 UI Variables (User Controller)
 
 | Variable            | Values              | Description                              |
 |---------------------|---------------------|------------------------------------------|
 | `ENABLE_UI`         | `true` / `false`    | Enable/disable UI container              |
-| `UI_TYPE`           | `web` / `desktop`   | Type of UI to launch                     |
+| `UI_TYPE`           | `web` / `desktop`   | Type of User Controller UI to launch     |
 | `UI_PORT`           | Port number         | Web UI port (if web type)                |
 
 ### 3.4 Simulation Variables
 
 | Variable            | Values              | Description                              |
 |---------------------|---------------------|------------------------------------------|
-| `GAZEBO_HEADLESS`   | `true` / `false`    | Run Gazebo without GUI                   |
+| `GAZEBO_HEADLESS`   | `true` / `false`    | Run Simulator without GUI                |
 | `GAZEBO_WORLD`      | Filename            | World file to load                       |
 | `SIM_REAL_TIME`     | `true` / `false`    | Attempt real-time simulation             |
 
@@ -211,18 +184,18 @@ ROBOT_MODE=SIM
 ROBOT_NAME=robot_arm_01
 ROS_DOMAIN_ID=42
 
-# Controller Settings
-CONTROLLER_TYPE=FAKE
-CONTROLLER_IP=192.168.1.100
-CONTROLLER_PORT=5000
-CONTROLLER_PROTO=TCP
+# RT Controller Settings (ESP32 Hardware)
+RT_CONTROLLER_TYPE=FAKE
+RT_CONTROLLER_IP=192.168.1.100
+RT_CONTROLLER_PORT=5000
+RT_CONTROLLER_PROTO=TCP
 
-# UI Settings
+# User Controller (UI) Settings
 ENABLE_UI=true
 UI_TYPE=web
 UI_PORT=8080
 
-# Simulation Settings
+# Simulator Settings
 GAZEBO_HEADLESS=false
 GAZEBO_WORLD=default.world
 SIM_REAL_TIME=true
@@ -250,21 +223,7 @@ docker compose build
 
 This builds all images with cached layers. First build takes 10-20 minutes.
 
-### 4.2 Build Specific Image
-
-```powershell
-docker compose build ros_core
-docker compose build gazebo
-docker compose build ui
-```
-
-### 4.3 Force Rebuild (No Cache)
-
-```powershell
-docker compose build --no-cache
-```
-
-### 4.4 Start System
+### 4.2 Start System
 
 **SIM Mode:**
 ```powershell
@@ -276,97 +235,45 @@ docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d
 docker compose -f docker-compose.yml -f docker-compose.real.yml up -d
 ```
 
-### 4.5 Stop System
+### 4.3 Stop System
 
 ```powershell
 docker compose down
-```
-
-### 4.6 View Running Containers
-
-```powershell
-docker compose ps
-```
-
-### 4.7 View Container Logs
-
-```powershell
-# All containers
-docker compose logs -f
-
-# Specific container
-docker compose logs -f ros_core
-docker compose logs -f gazebo
 ```
 
 ---
 
 ## 5. Running SIM Mode
 
-SIM mode uses Gazebo as a physics simulator. No real hardware is required.
+SIM mode uses the **Simulator (Gazebo)** as a physics engine. No real hardware or RT Controller is required.
 
 ### 5.1 Prerequisites
 
 - Docker Desktop running
-- X Server running (for Gazebo GUI)
+- X Server running (for Simulator GUI)
 - `.env` configured with `ROBOT_MODE=SIM`
 
-### 5.2 Start X Server (Windows)
+### 5.2 Start SIM Mode
 
-1. Launch VcXsrv
-2. Select "Multiple windows"
-3. Set display number to 0
-4. Check "Disable access control"
-5. Finish
-
-### 5.3 Start SIM Mode
-
-**Option A: Using Script**
 ```powershell
 .\scripts\start_sim.ps1
 ```
 
-**Option B: Manual**
-```powershell
-# Ensure .env has ROBOT_MODE=SIM
-docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d
-```
-
-### 5.4 Verify SIM Mode Running
+### 5.3 Verify SIM Mode Running
 
 ```powershell
-# Check all containers are running
 docker compose ps
-
-# Expected output:
-# NAME                STATUS
-# robot_ros_core      running
-# robot_moveit        running
-# robot_gazebo        running
-# robot_bridge        running
+# Expected: ros_core, moveit, gazebo, bridge containers running
 ```
 
-### 5.5 Access Gazebo GUI
+### 5.4 Access Simulator GUI
 
-Gazebo window should appear automatically. If not:
+Gazebo (Simulator) window should appear automatically. If not:
 - Verify X Server is running
 - Check DISPLAY environment variable
-- Check container logs: `docker compose logs gazebo`
+- Check logs: `docker compose logs gazebo`
 
-### 5.6 Send Test Motion (SIM)
-
-```powershell
-# Enter ROS container
-docker compose exec ros_core bash
-
-# Inside container, publish test goal
-ros2 topic pub /goal_pose geometry_msgs/Pose "{position: {x: 0.5, y: 0.0, z: 0.5}}" --once
-
-# Exit container
-exit
-```
-
-### 5.7 Stop SIM Mode
+### 5.5 Stop SIM Mode
 
 ```powershell
 docker compose down
@@ -376,11 +283,11 @@ docker compose down
 
 ## 6. Running REAL Mode
 
-REAL mode connects to actual hardware. Ensure safety procedures are followed.
+REAL mode connects to the **RT Controller (ESP32)** which owns motor control. Ensure safety procedures are followed.
 
 ### 6.1 Prerequisites
 
-- Real-time controller powered and connected
+- RT Controller (ESP32) powered and connected
 - Network connectivity verified
 - Emergency stop accessible
 - Clear workspace around robot
@@ -390,67 +297,41 @@ REAL mode connects to actual hardware. Ensure safety procedures are followed.
 
 | Check                               | Status |
 |-------------------------------------|--------|
-| Controller powered                 | ☐      |
+| RT Controller powered               | ☐      |
 | E-STOP not engaged                  | ☐      |
 | Network cable connected             | ☐      |
-| Controller IP reachable             | ☐      |
+| RT Controller IP reachable          | ☐      |
 | Workspace clear of obstructions     | ☐      |
 | Personnel aware robot will move     | ☐      |
 
 ### 6.3 Verify Network Connection
 
 ```powershell
-# Ping controller
+# Ping RT Controller
 ping 192.168.1.100
 ```
 
 ### 6.4 Start REAL Mode
 
-**Option A: Using Script**
 ```powershell
 .\scripts\start_real.ps1
 ```
 
-**Option B: Manual**
-```powershell
-# Ensure .env has ROBOT_MODE=REAL
-docker compose -f docker-compose.yml -f docker-compose.real.yml up -d
-```
-
-### 6.5 Verify Connection to Controller
+### 6.5 Verify Connection to RT Controller
 
 ```powershell
-# Check bridge container logs
 docker compose logs -f robot_bridge
-
-# Look for:
-# "Connected to controller at 192.168.1.100:5000"
-# "Receiving joint states"
+# Look for: "Connected to RT Controller at 192.168.1.100:5000"
 ```
 
-### 6.6 Verify Joint States
-
-```powershell
-docker compose exec ros_core bash
-
-# Inside container
-ros2 topic echo /joint_states
-
-# Should see live encoder data
-exit
-```
-
-### 6.7 Emergency Stop Procedure
+### 6.6 Emergency Stop Procedure
 
 **At any time:**
 1. Press hardware E-STOP button
-2. Robot will halt immediately
-3. To resume:
-   - Clear fault conditions
-   - Release E-STOP
-   - Restart system if necessary
+2. Robot will halt immediately (RT Controller cuts power)
+3. To resume: Clear fault, release E-STOP, restart system
 
-### 6.8 Stop REAL Mode
+### 6.7 Stop REAL Mode
 
 ```powershell
 docker compose down
@@ -458,21 +339,23 @@ docker compose down
 
 ---
 
-## 7. Using Gazebo as Controller
+## 7. Using Simulator as Development Platform
 
-Gazebo can act as a development platform without any UI. The simulation physics replaces the real controller.
+The **Simulator (Gazebo)** can act as a development platform without any UI. The simulation physics replaces the RT Controller for testing purposes.
+
+> **IMPORTANT**: In REAL mode, the Simulator is VISUALIZATION ONLY and NEVER authoritative. This section applies to SIM mode only.
 
 ### 7.1 Configuration
 
 Edit `.env`:
 ```bash
 ROBOT_MODE=SIM
-CONTROLLER_TYPE=FAKE
+RT_CONTROLLER_TYPE=FAKE
 ENABLE_UI=false
 GAZEBO_HEADLESS=false
 ```
 
-### 7.2 Start Gazebo-Only
+### 7.2 Start Simulator-Only
 
 ```powershell
 docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d ros_core moveit gazebo bridge
@@ -482,18 +365,11 @@ docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d ros_core mo
 
 ```powershell
 docker compose exec ros_core bash
-
-# List available topics
 ros2 topic list
-
-# List available services
 ros2 service list
-
-# Send motion command
-ros2 action send_goal /move_group/move moveit_msgs/action/MoveGroup "{...}"
 ```
 
-### 7.4 Headless Gazebo (No GUI)
+### 7.4 Headless Simulator (No GUI)
 
 For CI/CD or remote servers:
 ```bash
@@ -502,9 +378,9 @@ GAZEBO_HEADLESS=true
 
 ---
 
-## 8. Optional UI Usage
+## 8. Optional UI Usage (User Controller)
 
-The UI is entirely optional. System functions without it.
+The **User Controller (UI)** is entirely optional. System functions without it.
 
 ### 8.1 Enable UI
 
@@ -515,17 +391,11 @@ UI_TYPE=web
 UI_PORT=8080
 ```
 
-### 8.2 Start with UI
-
-```powershell
-docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d
-```
-
-### 8.3 Access Web UI
+### 8.2 Access Web UI
 
 Open browser: `http://localhost:8080`
 
-### 8.4 UI Features
+### 8.3 UI Features
 
 | Feature               | Description                              |
 |-----------------------|------------------------------------------|
@@ -536,25 +406,13 @@ Open browser: `http://localhost:8080`
 | Mode Indicator        | Shows SIM/REAL mode                      |
 | Fault Display         | Shows any active faults                  |
 
-### 8.5 Disable UI
+### 8.4 UI Limitations (By Design)
 
-Edit `.env`:
-```bash
-ENABLE_UI=false
-```
-
-Or simply do not start the UI container:
-```powershell
-docker compose up -d ros_core moveit gazebo bridge
-```
-
-### 8.6 UI Limitations (By Design)
-
-The UI cannot:
-- Directly control motors
+The User Controller (UI) cannot:
+- Directly command motors (only RT Controller can)
 - Bypass safety checks
-- Execute without planner validation
-- Override controller decisions
+- Execute without MoveIt validation
+- Override RT Controller decisions
 
 ---
 
@@ -571,62 +429,15 @@ ENABLE_ACCURACY_ANALYSIS=true
 LOG_LEVEL=DEBUG
 ```
 
-### 9.2 Start with Analysis
+### 9.2 Accuracy Comparison
 
-```powershell
-docker compose -f docker-compose.yml -f docker-compose.sim.yml up -d
-```
-
-Analysis container will start automatically if `ENABLE_ANALYSIS=true`.
-
-### 9.3 Accuracy Comparison
-
-When enabled, compares planned vs actual trajectories:
+When enabled, compares planned (MoveIt) vs actual (encoder) trajectories:
 
 ```powershell
 docker compose exec ros_core bash
-
-# View accuracy metrics
 ros2 topic echo /analysis/accuracy_metrics
-
-# Output includes:
-# - position_error_rms
-# - velocity_error_rms
-# - max_deviation
-# - timing_error
+# Output includes: position_error_rms, max_deviation
 ```
-
-### 9.4 View Analysis Logs
-
-```powershell
-# Real-time
-docker compose logs -f analysis
-
-# Or from file
-Get-Content -Wait D:\robot_system\logs\analysis\accuracy.log
-```
-
-### 9.5 Export Analysis Data
-
-```powershell
-docker compose exec analysis bash
-
-# Inside container
-ros2 run robot_analysis export_data --output /logs/analysis/export.csv
-
-exit
-
-# File available at D:\robot_system\logs\analysis\export.csv
-```
-
-### 9.6 Disable Analysis
-
-Edit `.env`:
-```bash
-ENABLE_ANALYSIS=false
-```
-
-System runs faster without analysis overhead.
 
 ---
 
@@ -637,88 +448,38 @@ System runs faster without analysis overhead.
 | Container    | Log Path                          | Contents                    |
 |--------------|-----------------------------------|-----------------------------|
 | ros_core     | `logs/ros/ros_core.log`           | ROS 2 node logs             |
-| moveit       | `logs/ros/moveit.log`             | Planning logs               |
-| gazebo       | `logs/gazebo/gazebo.log`          | Simulation logs             |
+| moveit       | `logs/ros/moveit.log`             | Planning logs (IK/FK)       |
+| gazebo       | `logs/gazebo/gazebo.log`          | Simulator logs              |
 | bridge       | `logs/ros/bridge.log`             | Communication logs          |
 | analysis     | `logs/analysis/`                  | Analysis data               |
 
 ### 10.2 View Live Logs
 
 ```powershell
-# All containers
 docker compose logs -f
-
-# Single container
 docker compose logs -f ros_core
-
-# With timestamps
-docker compose logs -f -t ros_core
 ```
 
-### 10.3 Log Levels
+### 10.3 Debugging Common Issues
 
-Set in `.env`:
-```bash
-LOG_LEVEL=DEBUG   # Maximum verbosity
-LOG_LEVEL=INFO    # Normal operation
-LOG_LEVEL=WARN    # Warnings and errors only
-LOG_LEVEL=ERROR   # Errors only
-```
-
-### 10.4 Debugging Connectivity
-
+**Issue: Simulator window does not appear**
 ```powershell
-docker compose exec ros_core bash
-
-# Check ROS 2 communication
-ros2 node list
-ros2 topic list
-ros2 topic info /joint_states
-
-# Check network
-ping controller_ip
-
-exit
-```
-
-### 10.5 Debugging Common Issues
-
-**Issue: Gazebo window does not appear**
-```powershell
-# Verify X Server running
-# Verify DISPLAY variable in .env
-# Check: docker compose logs gazebo
+# Verify X Server running, check DISPLAY variable
+docker compose logs gazebo
 ```
 
 **Issue: No joint states published**
 ```powershell
-# Check bridge connection
+# Check bridge connection to RT Controller
 docker compose logs bridge
-
-# Verify controller reachable
-docker compose exec bridge ping $CONTROLLER_IP
+docker compose exec bridge ping $RT_CONTROLLER_IP
 ```
 
 **Issue: MoveIt planning fails**
 ```powershell
-# Check collision geometry
+# Check collision geometry and URDF
 docker compose logs moveit
-
-# Verify URDF loaded
 ros2 param get /robot_state_publisher robot_description
-```
-
-### 10.6 Reset Logs
-
-```powershell
-# Stop system
-docker compose down
-
-# Clear logs
-Remove-Item -Recurse -Force D:\robot_system\logs\*
-
-# Restart
-docker compose up -d
 ```
 
 ---
@@ -729,54 +490,18 @@ docker compose up -d
 
 ```powershell
 cd D:\robot_system
-
-# Stop system
 docker compose down
-
-# Pull latest
 git pull origin main
-
-# Rebuild if Dockerfiles changed
 docker compose build
-
-# Restart
 docker compose up -d
 ```
 
-### 11.2 Update Controller Firmware
+### 11.2 Update RT Controller Firmware
 
 1. Stop robot system: `docker compose down`
-2. Follow controller-specific firmware update procedure
-3. Verify controller version matches expectations
+2. Follow ESP32 firmware update procedure (see `docs/ESP32_PCA9685_WIRING_AND_SETUP.md`)
+3. Verify RT Controller version matches expectations
 4. Restart: `docker compose up -d`
-
-### 11.3 Backup Configuration
-
-```powershell
-# Backup .env and configs
-Copy-Item .env .env.backup
-Copy-Item -Recurse config\ config_backup\
-```
-
-### 11.4 Deploy to New Machine
-
-1. Install prerequisites (Section 1)
-2. Clone repository
-3. Copy `.env` from backup or configure new
-4. Build images: `docker compose build`
-5. Start: `docker compose up -d`
-
-### 11.5 Version Management
-
-```powershell
-# Check current version
-git describe --tags
-
-# Switch to specific version
-git checkout v1.2.0
-docker compose build
-docker compose up -d
-```
 
 ---
 
@@ -798,44 +523,12 @@ docker compose up -d
 | View all logs             | `docker compose logs -f`                                     |
 | View specific log         | `docker compose logs -f ros_core`                            |
 | List containers           | `docker compose ps`                                          |
-| Container resources       | `docker stats`                                               |
+| Enter container           | `docker compose exec ros_core bash`                          |
 
-### 12.3 ROS Commands (Inside Container)
-
-```powershell
-docker compose exec ros_core bash
-```
-
-| Action                    | Command                                                      |
-|---------------------------|--------------------------------------------------------------|
-| List nodes                | `ros2 node list`                                             |
-| List topics               | `ros2 topic list`                                            |
-| Echo topic                | `ros2 topic echo /joint_states`                              |
-| List services             | `ros2 service list`                                          |
-| Call service              | `ros2 service call /service_name std_srvs/srv/Trigger`       |
-| Check TF tree             | `ros2 run tf2_tools view_frames`                             |
-
-### 12.4 Troubleshooting Commands
+### 12.3 Troubleshooting
 
 | Issue                     | Command                                                      |
 |---------------------------|--------------------------------------------------------------|
-| Container not starting    | `docker compose logs container_name`                         |
-| Network issues            | `docker compose exec ros_core ping controller_ip`            |
-| Rebuild single container  | `docker compose build container_name`                        |
-| Full reset                | `docker compose down -v && docker compose up -d`             |
-
----
-
-## Support Contacts
-
-For issues not covered in this guide:
-
-- Check `logs/` directory for error details
-- Review `SYSTEM_LOGIC_AND_FLOW.md` for architecture questions
-- Consult controller-specific documentation for hardware issues
-
----
-
-*Document Version: 1.0*
-*Generated for: Plug-and-Play Industrial Robot Platform*
-*Root Directory: D:\robot_system*
+| Check ROS topics          | `docker compose exec ros_core ros2 topic list`               |
+| Check RT Controller ping  | `docker compose exec ros_core ping $RT_CONTROLLER_IP`        |
+| Force rebuild             | `docker compose build --no-cache`                            |

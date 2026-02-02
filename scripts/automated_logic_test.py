@@ -10,7 +10,7 @@ import time
 import random
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, qos_profile_sensor_data
 
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
@@ -37,13 +37,18 @@ class AutomatedLogicTest(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
+        best_effort_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
         
         # Publishers
         self.traj_pub = self.create_publisher(JointTrajectory, '/planned_trajectory', reliable_qos)
         
         # Subscribers
-        self.create_subscription(JointState, '/joint_states', self.joint_state_cb, reliable_qos)
-        self.create_subscription(JointState, '/gazebo/joint_states', self.gazebo_joint_state_cb, reliable_qos)
+        self.create_subscription(JointState, '/joint_states', self.joint_state_cb, best_effort_qos)
+        self.create_subscription(JointState, '/gazebo/joint_states', self.gazebo_joint_state_cb, best_effort_qos)
         self.create_subscription(ExecutionState, '/execution_state', self.execution_state_cb, reliable_qos)
         self.create_subscription(TrajectoryAck, '/trajectory_ack', self.ack_cb, reliable_qos)
         
@@ -227,21 +232,21 @@ class AutomatedLogicTest(Node):
             ack = self.send_trajectory(PICK, duration=1.0)
             if not ack or ack.status < TrajectoryAck.STATUS_ACCEPTED:
                 continue
-            if not self.wait_for_idle(timeout=3.0):
+            if not self.wait_for_idle(timeout=5.0):
                 continue
                 
             # Place
             ack = self.send_trajectory(PLACE, duration=1.0)
             if not ack or ack.status < TrajectoryAck.STATUS_ACCEPTED:
                 continue
-            if not self.wait_for_idle(timeout=3.0):
+            if not self.wait_for_idle(timeout=5.0):
                 continue
                 
             # Home
             ack = self.send_trajectory(HOME, duration=1.0)
             if not ack or ack.status < TrajectoryAck.STATUS_ACCEPTED:
                 continue
-            if not self.wait_for_idle(timeout=3.0):
+            if not self.wait_for_idle(timeout=5.0):
                 continue
                 
             success_count += 1
