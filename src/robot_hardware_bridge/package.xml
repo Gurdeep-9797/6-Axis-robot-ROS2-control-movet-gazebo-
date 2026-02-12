@@ -5,7 +5,11 @@
   <description>
     Hardware Bridge for robot system (RELAY ONLY - NO AUTHORITY)
     
-    This node:
+    This package provides both C++ and Python implementations:
+    - bridge_node_cpp: C++ version for real-time performance
+    - bridge_node: Python version for flexibility
+    
+    The node:
     - Performs SCHEMA validation only (field types, array lengths)
     - Relays trajectories to the RT Controller
     - Publishes joint states from Controller to ROS
@@ -20,15 +24,28 @@
   <maintainer email="robot@example.com">Robot Team</maintainer>
   <license>MIT</license>
 
-  <buildtool_depend>ament_python</buildtool_depend>
+  <!-- Build tools - hybrid C++/Python package -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
+  <!-- C++ dependencies -->
+  <build_depend>rclcpp</build_depend>
+  <exec_depend>rclcpp</exec_depend>
+
+  <!-- Python dependencies -->
   <depend>rclpy</depend>
+
+  <!-- Message dependencies -->
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>robot_msgs</depend>
 
+  <!-- Testing -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

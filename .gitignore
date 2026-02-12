@@ -1,0 +1,78 @@
+# --- C# / .NET Core ---
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+*.autopkg
+*.aprof
+*.d
+*.pdb
+*.dll
+*.exe
+*.cache
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# --- Custom Output ---
+release/
+Release/
+publish/
+Publish/
+
+# --- ROS 2 ---
+build/
+install/
+log/
+COLCON_IGNORE
+ament_code_generator_off
+*.pyc
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.venv/
+env/
+venv/
+
+# --- Visual Studio Code ---
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# --- OS Generated ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# --- Robot Simulator Specific ---
+*.log
+crash.log
+api_error.log
+temp/
+tmp/
+*.stl
+!RobotSimulator/Assets/**/*.stl
+!src/**/*.stl
+!RobotSimulator/Assets/*.stl
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Rider / IntelliJ ---
+.idea/
+*.sln.iml
