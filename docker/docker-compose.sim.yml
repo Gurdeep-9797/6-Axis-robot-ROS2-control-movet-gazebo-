@@ -66,6 +66,19 @@ services:
     networks:
       - robot_net
 
+  rosbridge:
+    image: robotics_base:latest
+    container_name: rosbridge
+    depends_on:
+      - ros_core
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
+    ports:
+      - "9090:9090"
+    environment:
+      - ROS_DOMAIN_ID=42
+    networks:
+      - robot_net
+
 networks:
   robot_net:
     driver: bridge

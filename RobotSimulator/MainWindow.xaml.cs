@@ -124,6 +124,43 @@ namespace RobotSimulator
                     File.WriteAllText(logPath, $"{DateTime.Now}: API Server failed to start.\n{ex}\n");
                     statusText.Text = "API Server Failed to Start (See api_error.log)";
                 }
+
+                // Auto-Connect to ROS if requested
+                var args = Environment.GetCommandLineArgs();
+                if (args.Contains("--auto-connect"))
+                {
+                    statusText.Text = "Auto-Connecting to ROS...";
+                    Task.Run(async () => 
+                    {
+                        // Try for 30 seconds
+                        for(int i=0; i<30; i++)
+                        {
+                            try 
+                            {
+                                bool success = false;
+                                string uri = "ws://localhost:9090";
+                                Dispatcher.Invoke(() => uri = rosUri.Text);
+                                
+                                success = await _moveit.ConnectAsync(uri);
+                                
+                                if (success)
+                                {
+                                    Dispatcher.Invoke(() => 
+                                    {
+                                        statusText.Text = "Connected to ROS";
+                                        rosStatusText.Text = "CONNECTED";
+                                        rosIndicator.Fill = Brushes.LightGreen;
+                                        // Trigger visualization update
+                                        UpdateRobotVisualization();
+                                    });
+                                    break;
+                                }
+                            }
+                            catch {}
+                            await Task.Delay(1000);
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {
