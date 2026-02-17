@@ -17,6 +17,7 @@ using HelixToolkit.Wpf;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using RobotSimulator.Core.Import;
+using MahApps.Metro.IconPacks;
 using RobotSimulator.Core.Kinematics;
 using RobotSimulator.Core.Models;
 using RobotSimulator.Core.Api;
@@ -81,58 +82,73 @@ namespace RobotSimulator
             Closing += Window_Closing;
         }
 
+        // Path Tracing
+        private Point3DCollection _tracePath = new Point3DCollection();
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Create robot model with exact URDF dimensions
-                _robotModel = URDFParser.CreateABBIRB120();
+                // 1. Try Load Custom URDF
+                string urdfPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\src\robot_description\urdf\custom_6axis_test.urdf.xacro"));
+                
+                if (File.Exists(urdfPath))
+                {
+                    try 
+                    {
+                        var parser = new URDFParser();
+                        _robotModel = parser.LoadURDF(urdfPath);
+                        statusText.Text = $"Loaded Custom URDF: {_robotModel.Name}";
+                    }
+                    catch (Exception ex)
+                    {
+                        // Fallback
+                        _robotModel = URDFParser.CreateABBIRB120();
+                        statusText.Text = $"URDF Error ({ex.Message}) - Using Default Model";
+                    }
+                }
+                else
+                {
+                    // Default
+                    _robotModel = URDFParser.CreateABBIRB120();
+                    statusText.Text = "No URDF Found - Using Default ABB Model";
+                }
+
+                // 2. Refresh Kinematics
                 _kinematics = new KinematicsEngine(_robotModel);
                 
-                // Build articulated robot (Actual + Ghost)
+                // 3. Build Safe Articulated Robot
                 BuildArticulatedRobot();
+                
+                // 4. Populate Scene Tree (Dynamic)
+                PopulateSceneTree();
                 
                 // Setup visual properties
                 viewPort3d.RotateGesture = new MouseGesture(MouseAction.RightClick);
                 viewPort3d.PanGesture = new MouseGesture(MouseAction.MiddleClick);
                 
-                // Build environment (floor, table, fences)
+                // Build environment
                 BuildEnvironment();
                 
                 // Initial update
                 UpdateRobotVisualization();
                 UpdateDisplays();
                 
-                // Clean startup state
-                statusText.Text = "Ready - Simulator Initialized";
                 rosStatusText.Text = "DISCONNECTED";
                 rosIndicator.Fill = Brushes.Red;
-                
                 _isInitialized = true;
                 
-                // Auto-scan devices on load
                 RefreshDeviceList();
                 
-                // Start API Server for CLI/AI control
-                try 
-                {
-                    StartApiServer();
-                }
-                catch (Exception ex)
-                {
-                    var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "api_error.log");
-                    File.WriteAllText(logPath, $"{DateTime.Now}: API Server failed to start.\n{ex}\n");
-                    statusText.Text = "API Server Failed to Start (See api_error.log)";
-                }
+                try { StartApiServer(); } catch {}
 
-                // Auto-Connect to ROS if requested
+                // Auto-Connect
                 var args = Environment.GetCommandLineArgs();
                 if (args.Contains("--auto-connect"))
                 {
                     statusText.Text = "Auto-Connecting to ROS...";
                     Task.Run(async () => 
                     {
-                        // Try for 30 seconds
                         for(int i=0; i<30; i++)
                         {
                             try 
@@ -142,7 +158,6 @@ namespace RobotSimulator
                                 Dispatcher.Invoke(() => uri = rosUri.Text);
                                 
                                 success = await _moveit.ConnectAsync(uri);
-                                
                                 if (success)
                                 {
                                     Dispatcher.Invoke(() => 
@@ -150,7 +165,6 @@ namespace RobotSimulator
                                         statusText.Text = "Connected to ROS";
                                         rosStatusText.Text = "CONNECTED";
                                         rosIndicator.Fill = Brushes.LightGreen;
-                                        // Trigger visualization update
                                         UpdateRobotVisualization();
                                     });
                                     break;
@@ -164,10 +178,57 @@ namespace RobotSimulator
             }
             catch (Exception ex)
             {
-                var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash.log");
-                File.WriteAllText(logPath, $"{DateTime.Now}\n{ex}\n");
-                MessageBox.Show($"Error loading simulator: {ex.Message}\n\nSee crash.log for details.", "Init Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Init Error: {ex.Message}");
             }
+        }
+
+        private void PopulateSceneTree()
+        {
+            // Clear the static XAML items and rebuild from Model
+            // Note: In a real WPF app, binding is better, but this direct approach works for V4.
+            // The XAML has "workTree" with static items. We clear them.
+            workTree.Items.Clear();
+
+            // Root Node (Rocket)
+            var rootNode = new TreeViewItem();
+            var headerStack = new StackPanel { Orientation = Orientation.Horizontal };
+            headerStack.Children.Add(new PackIconMaterial { Kind = PackIconMaterialKind.RobotIndustrial, Margin = new Thickness(0,0,5,0), Foreground = Brushes.Orange });
+            headerStack.Children.Add(new TextBlock { Text = _robotModel.Name });
+            rootNode.Header = headerStack;
+            rootNode.IsExpanded = true;
+
+            // Links
+            foreach(var link in _robotModel.Links)
+            {
+                var item = new TreeViewItem { Header = $"{link.Name} (Link)" };
+                rootNode.Items.Add(item);
+            }
+
+            // TCP Node
+            var tcpNode = new TreeViewItem();
+            var tcpHeader = new StackPanel { Orientation = Orientation.Horizontal };
+            tcpHeader.Children.Add(new PackIconMaterial { Kind = PackIconMaterialKind.AxisArrow, Margin = new Thickness(0,0,5,0), Foreground = Brushes.Red });
+            tcpHeader.Children.Add(new TextBlock { Text = "TCP (End Effector)" });
+            tcpNode.Header = tcpHeader;
+            tcpNode.IsExpanded = true;
+            rootNode.Items.Add(tcpNode);
+
+            workTree.Items.Add(rootNode);
+            
+            // Re-add Environment Node (since we cleared everything)
+            var envNode = new TreeViewItem();
+             var envHeader = new StackPanel { Orientation = Orientation.Horizontal };
+            envHeader.Children.Add(new PackIconMaterial { Kind = PackIconMaterialKind.CubeOutline, Margin = new Thickness(0,0,5,0), Foreground = Brushes.Gray });
+            envHeader.Children.Add(new TextBlock { Text = "Environment" });
+            envNode.Header = envHeader;
+            envNode.IsExpanded = true;
+            envNode.Items.Add(new TreeViewItem { Header = "Floor Grid" });
+            
+            var impBtn = new Button { Content = "Import STL...", Style = (Style)FindResource("MahApps.Styles.Button.Chromeless"), Padding = new Thickness(0) };
+            impBtn.Click += ImportSTL_Click;
+            envNode.Items.Add(new TreeViewItem { Header = impBtn });
+
+            workTree.Items.Add(envNode);
         }
         
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -313,29 +374,47 @@ namespace RobotSimulator
 
         private void UpdateRobotVisualization()
         {
-            // Update Rotation Transforms (Chain propagates automatically)
+            // Update Rotation Transforms
             for (int i = 0; i < 6; i++)
             {
                 var rotation = (AxisAngleRotation3D)_jointRotations[i].Rotation;
                 rotation.Angle = _jointAngles[i] * 180.0 / Math.PI;
             }
             
-            // Update Cartesian Readout
+            // Get TCP Pose
             var (x, y, z) = _kinematics.GetEndEffectorPosition(_jointAngles);
             var (r, p, yaw) = _kinematics.GetEndEffectorOrientation(_jointAngles);
             
+            // UI Readout
             txtX.Text = $"X: {x * 1000:F1}";
             txtY.Text = $"Y: {y * 1000:F1}";
             txtZ.Text = $"Z: {z * 1000:F1}";
             txtR.Text = $"R: {r * 180/Math.PI:F1}°";
             txtP.Text = $"P: {p * 180/Math.PI:F1}°";
             txtYaw.Text = $"Y: {yaw * 180/Math.PI:F1}°";
-            
-            // Sync Serial if connected (Legacy)
-            if (_serial.IsConnected)
+
+            // Path Tracing (V4 Feature)
+            if (chkTrace != null && chkTrace.IsChecked == true && _isInitialized)
             {
-                _serial.SendJointAngles(_jointAngles);
+                var pt = new Point3D(x, y, z);
+                // Only add if moved > 1mm to save perf
+                if (_tracePath.Count == 0 || (_tracePath.Last() - pt).Length > 0.001)
+                {
+                    _tracePath.Add(pt);
+                    if (_tracePath.Count > 2000) _tracePath.RemoveAt(0);
+                    
+                    // Update visual
+                    pathTraceVisual.Path = new Point3DCollection(_tracePath); 
+                }
             }
+            else if (chkTrace != null && chkTrace.IsChecked == false && _tracePath.Count > 0)
+            {
+                _tracePath.Clear();
+                pathTraceVisual.Path = null;
+            }
+            
+            // Sync Serial
+            if (_serial.IsConnected) _serial.SendJointAngles(_jointAngles);
         }
         
         private void SetGhostAngles(double[] angles)
