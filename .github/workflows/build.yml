@@ -48,9 +48,18 @@ jobs:
           cmake -S RobotSimulator_CPP -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
-        run: cmake --build build --config Release --parallel
+        id: build_step
+        run: cmake --build build --config Release --parallel -- /verbosity:minimal
+        continue-on-error: true
+
+      - name: Show Build Errors
+        if: steps.build_step.outcome == 'failure'
+        run: |
+          echo "::error::Build failed! Check the Build step output above for MSVC error details."
+          exit 1
 
       - name: Run Component Tests
+        if: steps.build_step.outcome == 'success'
         run: |
           cd build
           ctest -C Release --output-on-failure

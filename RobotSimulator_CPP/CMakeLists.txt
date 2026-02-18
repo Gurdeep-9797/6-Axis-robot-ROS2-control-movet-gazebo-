@@ -32,6 +32,7 @@ file(GLOB CORE_SOURCES
 )
 
 add_library(RobotCore STATIC ${CORE_SOURCES})
+target_include_directories(RobotCore PUBLIC ${CMAKE_SOURCE_DIR})
 
 target_link_libraries(RobotCore PUBLIC
     assimp::assimp
@@ -51,6 +52,7 @@ file(GLOB UI_SOURCES
 )
 
 add_library(RobotApp STATIC ${UI_SOURCES})
+target_include_directories(RobotApp PUBLIC ${CMAKE_SOURCE_DIR})
 
 # CRITICAL: vcpkg directx-headers include paths MUST come BEFORE system SDK
 # to avoid include guard conflicts (system d3d12.h guards block vcpkg definitions).
