@@ -9,34 +9,22 @@ on:
 
 env:
   VCPKG_DEFAULT_TRIPLET: x64-windows
+  VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
+
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   build:
-    # Pin to windows-2022 for reproducibility (windows-latest may change)
-    runs-on: windows-2022
+    # Use standard windows-2025 image (VS 2022+). For VS 2026 via preview runner if valid.
+    # Sticking to windows-2025 to be safe as per user req for newest "VS 26" env match.
+    runs-on: windows-2025
 
     steps:
       - uses: actions/checkout@v4
 
-      # Setup MSVC environment explicitly
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
-      # Cache vcpkg binary packages (NOT the vcpkg tree itself)
-      - name: Cache vcpkg packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:/vcpkg/buildtrees
-            C:/vcpkg/packages
-            C:/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('RobotSimulator_CPP/vcpkg.json') }}-v2
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
-
-      - name: Setup vcpkg
+      - name: Setup vcpkg (x-gha caching)
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: 'C:/vcpkg'
@@ -45,7 +33,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -S RobotSimulator_CPP -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake -S RobotSimulator_CPP -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_SYSTEM_VERSION=10.0.26100.0 -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
         id: build_step
