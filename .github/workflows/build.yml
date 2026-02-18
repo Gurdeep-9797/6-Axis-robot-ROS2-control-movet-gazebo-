@@ -18,7 +18,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
-          vcpkgGitCommitId: 'latest'
+          vcpkgGitCommitId: '8cf84605ce9764de46caeb47b9e710db9493add9'
           vcpkgJsonGlob: 'RobotSimulator_CPP/vcpkg.json'
 
       - name: Configure CMake
