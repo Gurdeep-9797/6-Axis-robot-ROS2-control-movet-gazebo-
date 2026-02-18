@@ -17,7 +17,11 @@ REM 3. Read path from file
 set /p VS_PATH=<"%VS_PATH_FILE%"
 del "%VS_PATH_FILE%"
 
-if "%VS_PATH%"=="" goto :ErrorNoVS
+if "%VS_PATH%"=="" (
+    echo [ERROR] No Visual Studio installation found.
+    pause
+    exit /b 1
+)
 
 echo [INFO] VS Path: "%VS_PATH%"
 
@@ -47,8 +51,13 @@ endlocal
 exit /b 0
 
 :ErrorVsWhere
-    echo [ERROR] vswhere.exe not found at:
-    echo "%VSWHERE%"
+    echo [ERROR] Visual Studio is not installed.
+    echo.
+    echo Running automated setup...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File \"%~dp0SETUP_AND_BUILD.ps1\"'"
+    echo.
+    echo Setup launched in an Administrator window.
+    echo After it completes, re-run RUN.bat.
     pause
     exit /b 1
 
@@ -73,7 +82,7 @@ exit /b 0
     echo Press any key to start the installation ^(Requires Admin^)...
     pause
     
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\install_vs_tools.ps1"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File \"%~dp0SETUP_AND_BUILD.ps1\"'"
     
     echo.
     echo Installation finished. Please re-run RUN.bat.

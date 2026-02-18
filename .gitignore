@@ -24,6 +24,7 @@ Publish/
 
 # --- ROS 2 ---
 build/
+build_local/
 install/
 log/
 COLCON_IGNORE
