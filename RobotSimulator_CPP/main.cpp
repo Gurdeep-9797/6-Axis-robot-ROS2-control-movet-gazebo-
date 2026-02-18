@@ -189,15 +189,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
                 // Render DX12
                 g_dx12->Render([&](ID3D12GraphicsCommandList* cmdList) {
-                    // Render ImGui into command list
+                    // Render ImGui draw data into the DX12 command list
                     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
-                    
-                    // Update and Render additional Platform Windows (Docking)
-                    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-                    {
-                        ImGui::UpdatePlatformWindows();
-                        ImGui::RenderPlatformWindowsDefault();
-                    }
+                    // Note: Viewport platform windows are handled in UIContext::EndFrame()
                 });
             }
         }

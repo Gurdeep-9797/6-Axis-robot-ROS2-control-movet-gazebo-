@@ -81,3 +81,9 @@ void MotionEngine::Update(float deltaTime) {
         m_isMoving = false;
     }
 }
+
+void MotionEngine::MoveLinear(const glm::mat4& targetPose, float speed) {
+    // TODO: Implement Cartesian linear motion via IK
+    // For now, this is a placeholder that logs a warning
+    // In production: decompose targetPose → IK → joint trajectory → MoveTo()
+}
