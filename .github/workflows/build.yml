@@ -14,6 +14,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable GitHub Actions Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+            C:/vcpkg/downloads
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('RobotSimulator_CPP/vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
