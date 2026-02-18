@@ -24,6 +24,7 @@ public:
     ID3D12Device* GetDevice() const { return m_device.Get(); }
     ID3D12CommandQueue* GetCommandQueue() const { return m_commandQueue.Get(); }
     ID3D12DescriptorHeap* GetSRVHeap() const { return m_srvHeap.Get(); }
+    ID3D12GraphicsCommandList* GetCommandList() const { return m_commandList.Get(); }
     DXGI_FORMAT GetBackHeaderFormat() const { return DXGI_FORMAT_R8G8B8A8_UNORM; }
 
 private:

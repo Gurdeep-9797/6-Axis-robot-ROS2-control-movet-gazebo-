@@ -16,44 +16,64 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
 find_package(ixwebsocket CONFIG REQUIRED)
+find_package(cxxopts CONFIG REQUIRED)
 
-# Source Files
-file(GLOB_RECURSE LIB_SOURCES 
-    "engine/*.cpp" "engine/*.h"
+# ─────────────────────────────────────────────────────────
+# Core Logic Library (No DX12, No UI — safe for headless testing)
+# ─────────────────────────────────────────────────────────
+file(GLOB CORE_SOURCES
     "robot/*.cpp" "robot/*.h"
-    "ui/*.cpp" "ui/*.h"
     "simulation/*.cpp" "simulation/*.h"
+    "engine/ros_client.cpp" "engine/ros_client.h"
 )
 
-# Static Library for Logic
-add_library(RobotLib STATIC ${LIB_SOURCES})
+add_library(RobotCore STATIC ${CORE_SOURCES})
 
-# Component Component Libraries
-target_link_libraries(RobotLib PUBLIC
-    Microsoft::DirectX-Headers
-    imgui::imgui
+target_link_libraries(RobotCore PUBLIC
     assimp::assimp
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     glm::glm
     tinyxml2::tinyxml2
-    d3d12.lib
-    dxgi.lib
-    d3dcompiler.lib
     ixwebsocket::ixwebsocket
 )
 
-# Main Executable
-add_executable(RobotSimulator_CPP main.cpp)
-target_link_libraries(RobotSimulator_CPP PRIVATE RobotLib)
+# ─────────────────────────────────────────────────────────
+# Full Application Library (DX12 + UI + Core)
+# ─────────────────────────────────────────────────────────
+file(GLOB UI_SOURCES
+    "engine/dx12_core.cpp" "engine/dx12_core.h"
+    "ui/*.cpp" "ui/*.h"
+)
 
-# Tests
+add_library(RobotApp STATIC ${UI_SOURCES})
+
+target_link_libraries(RobotApp PUBLIC
+    RobotCore
+    Microsoft::DirectX-Headers
+    imgui::imgui
+    d3d12.lib
+    dxgi.lib
+    d3dcompiler.lib
+)
+
+# ─────────────────────────────────────────────────────────
+# Main Executable
+# ─────────────────────────────────────────────────────────
+add_executable(RobotSimulator_CPP WIN32 main.cpp)
+target_link_libraries(RobotSimulator_CPP PRIVATE RobotApp cxxopts::cxxopts)
+
+# ─────────────────────────────────────────────────────────
+# Tests (links only RobotCore — no DX12 needed)
+# ─────────────────────────────────────────────────────────
 enable_testing()
 add_executable(RobotSimulator_Tests tests/test_main.cpp)
-target_link_libraries(RobotSimulator_Tests PRIVATE RobotLib)
+target_link_libraries(RobotSimulator_Tests PRIVATE RobotCore)
 add_test(NAME CoreComponents COMMAND RobotSimulator_Tests)
 
-# Copy Assets to Output
+# ─────────────────────────────────────────────────────────
+# Post-Build: Copy Assets
+# ─────────────────────────────────────────────────────────
 add_custom_command(TARGET RobotSimulator_CPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets
