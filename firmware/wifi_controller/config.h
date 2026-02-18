@@ -35,13 +35,27 @@ struct JointConfig {
     double max_rad;
 };
 
+#include "hardware_config.h"
+
+// --- Joint Mapping (Matches hardware_map.yaml) ---
+struct JointConfig {
+    uint8_t servo_channel;
+    bool servo_inverted;
+    int8_t enc_pin_a;
+    int8_t enc_pin_b;
+    uint16_t ppr; // Pulses per revolution
+    bool enc_inverted;
+    double min_rad;
+    double max_rad;
+};
+
 const JointConfig JOINTS[6] = {
-    {0, false, 34, 35, 4096, false, -3.14159, 3.14159}, // Joint 1
-    {1, false, 32, 33, 4096, false, -1.5708, 1.5708},   // Joint 2
-    {2, false, 25, 26, 4096, false, -2.3562, 2.3562},   // Joint 3
-    {3, false, 27, 14, 2048, false, -1.5708, 1.5708},   // Joint 4
-    {4, false, 12, 13, 2048, false, -3.14159, 3.14159}, // Joint 5
-    {5, false, 4,  16, 2048, false, -1.5708, 1.5708}    // Joint 6
+    {0, false, J1_ENC_A, J1_ENC_B, J1_PPR, false, -3.14159, 3.14159}, // Joint 1
+    {1, false, J2_ENC_A, J2_ENC_B, J2_PPR, false, -1.5708, 1.5708},   // Joint 2
+    {2, false, J3_ENC_A, J3_ENC_B, J3_PPR, false, -2.3562, 2.3562},   // Joint 3
+    {3, false, J4_ENC_A, J4_ENC_B, J4_PPR, false, -1.5708, 1.5708},   // Joint 4
+    {4, false, J5_ENC_A, J5_ENC_B, J5_PPR, false, -3.14159, 3.14159}, // Joint 5
+    {5, false, J6_ENC_A, J6_ENC_B, J6_PPR, false, -1.5708, 1.5708}    // Joint 6
 };
 
 #endif

@@ -15,6 +15,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
+find_package(ixwebsocket CONFIG REQUIRED)
 
 # Source Files
 file(GLOB_RECURSE SOURCES 
@@ -40,6 +41,7 @@ target_link_libraries(RobotSimulator_CPP PRIVATE
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
+    ixwebsocket::ixwebsocket
 )
 
 # Copy Assets to Output

@@ -3,11 +3,20 @@
   "version-string": "1.0.0",
   "dependencies": [
     "directx-headers",
-    "imgui[core,dx12-binding,win32-binding,docking-experimental]",
+    {
+      "name": "imgui",
+      "features": [
+        "dx12-binding",
+        "win32-binding",
+        "docking-experimental"
+      ]
+    },
     "assimp",
     "nlohmann-json",
     "spdlog",
     "glm",
-    "tinyxml2"
+    "tinyxml2",
+    "ixwebsocket",
+    "cxxopts"
   ]
 }

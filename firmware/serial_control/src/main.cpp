@@ -37,16 +37,27 @@ void setServoAngle(int joint, double angle) {
 #endif
 
 // --- DC MOTOR + ENCODER CONFIGURATION ---
-#ifdef MOTOR_TYPE_DC_ENCODER
-// Encoder Pins (A, B) for 6 joints - Customize these
+#include "hardware_config.h"
+
+// Encoder Pins (A, B) for 6 joints
 const int ENC_PINS[NUM_JOINTS][2] = {
-    {36, 39}, {34, 35}, {32, 33}, {25, 26}, {27, 14}, {12, 13}
+    {J1_ENC_A, J1_ENC_B}, 
+    {J2_ENC_A, J2_ENC_B}, 
+    {J3_ENC_A, J3_ENC_B}, 
+    {J4_ENC_A, J4_ENC_B}, 
+    {J5_ENC_A, J5_ENC_B}, 
+    {J6_ENC_A, J6_ENC_B}
 };
 
 // Motor Pins (PWM channel is handled by PCA9685, Direction pins on ESP32)
 // Dir pins: {IN1, IN2}
 const int DIR_PINS[NUM_JOINTS][2] = {
-    {15, 2}, {0, 4}, {16, 17}, {5, 18}, {19, 21}, {22, 23}
+    {J1_DIR_1, J1_DIR_2}, 
+    {J2_DIR_1, J2_DIR_2}, 
+    {J3_DIR_1, J3_DIR_2}, 
+    {J4_DIR_1, J4_DIR_2}, 
+    {J5_DIR_1, J5_DIR_2}, 
+    {J6_DIR_1, J6_DIR_2}
 };
 
 ESP32Encoder encoders[NUM_JOINTS];

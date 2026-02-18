@@ -29,7 +29,7 @@ $cmakePath = "cmake"
 if (-not (Get-Command "cmake" -ErrorAction SilentlyContinue)) {
     $vsCmake = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
     if (Test-Path $vsCmake) {
-        $cmakePath = "& `"$vsCmake`""
+        $cmakePath = $vsCmake
         Write-Host "CMake found in Visual Studio." -ForegroundColor Cyan
     }
     else {
@@ -46,20 +46,26 @@ if (-not (Test-Path $BuildDir)) { New-Item -ItemType Directory -Force -Path $Bui
 Push-Location "$ProjectRoot\RobotSimulator_CPP"
 try {
     # Configure
-    Invoke-Expression "$cmakePath -B build -S . -DCMAKE_TOOLCHAIN_FILE=`"$VcpkgPath\scripts\buildsystems\vcpkg.cmake`" -DVCPKG_TARGET_TRIPLET=x64-windows"
+    Write-Host "Configuring..." -ForegroundColor Gray
+    $configArgs = "-S . -B build -DCMAKE_TOOLCHAIN_FILE=`"$VcpkgPath\scripts\buildsystems\vcpkg.cmake`" -DVCPKG_TARGET_TRIPLET=x64-windows"
+    $procConfig = Start-Process -FilePath $cmakePath -ArgumentList $configArgs -PassThru -Wait -NoNewWindow
+    if ($procConfig.ExitCode -ne 0) { throw "CMake Configuration failed with exit code $($procConfig.ExitCode)" }
     
     # Build
-    Invoke-Expression "$cmakePath --build build --config Release"
+    Write-Host "Building..." -ForegroundColor Gray
+    $buildArgs = "--build build --config Release"
+    $procBuild = Start-Process -FilePath $cmakePath -ArgumentList $buildArgs -PassThru -Wait -NoNewWindow
+    if ($procBuild.ExitCode -ne 0) { throw "CMake Build failed with exit code $($procBuild.ExitCode)" }
 }
 catch {
-    Write-Host "Build Failed!" -ForegroundColor Red
+    Write-Host "Build Failed: $_" -ForegroundColor Red
     exit 1
 }
 Pop-Location
 
 # 3. Start ROS 2 Backend (Docker)
 Write-Host "`n[3/4] Starting ROS 2 Docker Backend..." -ForegroundColor Cyan
-$Env:PROJECT_ROOT = $ProjectRoot
+# PROJECT_ROOT is now loaded from .env by Docker Compose automatically
 docker compose -f docker/docker-compose.sim.yml up -d
 
 # Wait for ROS Bridge

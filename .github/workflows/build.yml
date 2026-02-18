@@ -1,0 +1,42 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
+          vcpkgGitCommitId: 'latest'
+          vcpkgJsonGlob: 'RobotSimulator_CPP/vcpkg.json'
+
+      - name: Configure CMake
+        run: |
+          cmake -S RobotSimulator_CPP -B build -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package / Deploy
+        run: |
+          mkdir Dist
+          copy build\Release\RobotSimulator_CPP.exe Dist\
+          if exist build\Release\*.dll copy build\Release\*.dll Dist\
+          xcopy RobotSimulator_CPP\assets Dist\assets /E /I /Y
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RobotSimulator_Release
+          path: Dist/
