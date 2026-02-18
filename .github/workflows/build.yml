@@ -17,16 +17,22 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
+          vcpkgDirectory: 'C:/vcpkg'
           vcpkgGitCommitId: '8cf84605ce9764de46caeb47b9e710db9493add9'
           vcpkgJsonGlob: 'RobotSimulator_CPP/vcpkg.json'
 
       - name: Configure CMake
         run: |
-          cmake -S RobotSimulator_CPP -B build -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake -S RobotSimulator_CPP -B build -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
         run: cmake --build build --config Release
+
+      - name: Run Component Tests
+        run: |
+          cd build
+          ctest -C Release --output-on-failure
+          cd ..
 
       - name: Package / Deploy
         run: |

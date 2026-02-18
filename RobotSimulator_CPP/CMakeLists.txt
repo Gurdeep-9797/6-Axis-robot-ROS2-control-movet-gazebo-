@@ -18,19 +18,18 @@ find_package(tinyxml2 CONFIG REQUIRED)
 find_package(ixwebsocket CONFIG REQUIRED)
 
 # Source Files
-file(GLOB_RECURSE SOURCES 
+file(GLOB_RECURSE LIB_SOURCES 
     "engine/*.cpp" "engine/*.h"
     "robot/*.cpp" "robot/*.h"
     "ui/*.cpp" "ui/*.h"
     "simulation/*.cpp" "simulation/*.h"
-    "main.cpp"
 )
 
-# Executable
-add_executable(RobotSimulator_CPP ${SOURCES})
+# Static Library for Logic
+add_library(RobotLib STATIC ${LIB_SOURCES})
 
-# Hardware & Windows Libraries
-target_link_libraries(RobotSimulator_CPP PRIVATE
+# Component Component Libraries
+target_link_libraries(RobotLib PUBLIC
     Microsoft::DirectX-Headers
     imgui::imgui
     assimp::assimp
@@ -43,6 +42,16 @@ target_link_libraries(RobotSimulator_CPP PRIVATE
     d3dcompiler.lib
     ixwebsocket::ixwebsocket
 )
+
+# Main Executable
+add_executable(RobotSimulator_CPP main.cpp)
+target_link_libraries(RobotSimulator_CPP PRIVATE RobotLib)
+
+# Tests
+enable_testing()
+add_executable(RobotSimulator_Tests tests/test_main.cpp)
+target_link_libraries(RobotSimulator_Tests PRIVATE RobotLib)
+add_test(NAME CoreComponents COMMAND RobotSimulator_Tests)
 
 # Copy Assets to Output
 add_custom_command(TARGET RobotSimulator_CPP POST_BUILD

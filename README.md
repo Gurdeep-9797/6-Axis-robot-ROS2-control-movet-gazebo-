@@ -1,4 +1,5 @@
 # 6-Axis Industrial Robot Platform
+[![Build & Release](https://github.com/Gurdeep-9797/6-Axis-robot-ROS2-control-movet-gazebo-/actions/workflows/build.yml/badge.svg)](https://github.com/Gurdeep-9797/6-Axis-robot-ROS2-control-movet-gazebo-/actions/workflows/build.yml)
 
 A full-stack robot control system: **C# WPF Simulator** → **ROS 2 / MoveIt Planning** → **ESP32 Hardware**.
 
