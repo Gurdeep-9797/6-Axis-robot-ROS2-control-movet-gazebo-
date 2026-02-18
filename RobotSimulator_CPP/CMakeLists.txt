@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Pin Windows SDK — vcpkg directx-headers requires >= 10.0.22621
+set(CMAKE_SYSTEM_VERSION 10.0.22621.0 CACHE STRING "Windows SDK version")
+
 # Dependencies (vcpkg integration assumed)
 find_package(directx-headers CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -51,6 +54,7 @@ add_library(RobotApp STATIC ${UI_SOURCES})
 target_link_libraries(RobotApp PUBLIC
     RobotCore
     Microsoft::DirectX-Headers
+    Microsoft::DirectX-Guids
     imgui::imgui
     d3d12.lib
     dxgi.lib

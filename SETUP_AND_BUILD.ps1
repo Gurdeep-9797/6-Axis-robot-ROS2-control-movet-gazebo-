@@ -76,33 +76,52 @@ Write-Host ""
 # Step 2: Install Visual Studio Build Tools (if missing)
 # ─────────────────────────────────────────────
 if (-not $vsInstalled) {
-    Write-Host "═══ STEP 2: Installing VS 2022 Build Tools (C++ Desktop) ═══" -ForegroundColor Yellow
+    Write-Host "═══ STEP 2: Adding C++ Desktop workload to Visual Studio ═══" -ForegroundColor Yellow
     Write-Host "  This will install: MSVC compiler, Windows SDK, CMake, MSBuild" -ForegroundColor Gray
     Write-Host "  Estimated time: 5-15 minutes depending on internet speed" -ForegroundColor Gray
     Write-Host ""
     
-    $installerUrl = "https://aka.ms/vs/17/release/vs_BuildTools.exe"
-    $installerPath = "$env:TEMP\vs_BuildTools.exe"
+    # Check if VS is installed but just missing C++ workload
+    $vsAnyPath = $null
+    if (Test-Path $vswherePath) {
+        $vsAnyPath = & $vswherePath -latest -property installationPath 2>$null
+    }
     
-    Write-Host "  Downloading installer..." -ForegroundColor Gray
-    Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing
-    
-    Write-Host "  Running installer (this window will wait)..." -ForegroundColor Gray
-    $installArgs = @(
-        "--quiet",
-        "--wait",
-        "--norestart",
-        "--nocache",
-        "--add", "Microsoft.VisualStudio.Workload.VCTools",
-        "--add", "Microsoft.VisualStudio.Component.VC.CMake.Project",
-        "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621",
-        "--includeRecommended"
-    )
-    
-    $process = Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -PassThru
+    if ($vsAnyPath) {
+        # Modify existing VS installation to add C++ workload
+        Write-Host "  Found VS at: $vsAnyPath — adding C++ workload..." -ForegroundColor Gray
+        $vsInstallerPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        $installArgs = @(
+            "modify",
+            "--installPath", "`"$vsAnyPath`"",
+            "--add", "Microsoft.VisualStudio.Workload.VCTools",
+            "--add", "Microsoft.VisualStudio.Component.VC.CMake.Project",
+            "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621",
+            "--includeRecommended",
+            "--quiet", "--wait", "--norestart"
+        )
+        $process = Start-Process -FilePath $vsInstallerPath -ArgumentList $installArgs -Wait -PassThru
+    } else {
+        # No VS at all — install Build Tools from scratch
+        Write-Host "  No VS found — installing Build Tools..." -ForegroundColor Gray
+        $installerUrl = "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+        $installerPath = "$env:TEMP\vs_BuildTools.exe"
+        
+        Write-Host "  Downloading installer..." -ForegroundColor Gray
+        Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing
+        
+        $installArgs = @(
+            "--quiet", "--wait", "--norestart", "--nocache",
+            "--add", "Microsoft.VisualStudio.Workload.VCTools",
+            "--add", "Microsoft.VisualStudio.Component.VC.CMake.Project",
+            "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621",
+            "--includeRecommended"
+        )
+        $process = Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -PassThru
+    }
     
     if ($process.ExitCode -eq 0 -or $process.ExitCode -eq 3010) {
-        Write-Host "  [OK] VS Build Tools installed successfully!" -ForegroundColor Green
+        Write-Host "  [OK] C++ tools installed successfully!" -ForegroundColor Green
         if ($process.ExitCode -eq 3010) {
             Write-Host "  [NOTE] A restart may be required for full functionality" -ForegroundColor Yellow
         }
@@ -117,7 +136,7 @@ if (-not $vsInstalled) {
     $vsPath = & $vswherePath -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>$null
     Write-Host ""
 } else {
-    Write-Host "═══ STEP 2: VS Build Tools already installed — skipping ═══" -ForegroundColor Green
+    Write-Host "═══ STEP 2: VS C++ Tools already installed — skipping ═══" -ForegroundColor Green
     Write-Host ""
 }
 
