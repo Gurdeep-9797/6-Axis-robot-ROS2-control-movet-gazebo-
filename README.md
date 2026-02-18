@@ -39,28 +39,28 @@ A full-stack robot control system: **C# WPF Simulator** → **ROS 2 / MoveIt Pla
 | `firmware/wifi_controller/` | ESP32 firmware — WiFi TCP mode (ROS hardware bridge) |
 | `docker/` | Docker Compose configs for SIM and REAL modes |
 | `controller/` | `hardware_map.yaml` — joint/pin/encoder mapping |
-| `scripts/` | Launch, test, and CI scripts |
 | `tools/` | URDF pipeline and SolidWorks export utilities |
-| `logic_simulator/` | Python prototype (reference only) |
 | `release/` | Prebuilt simulator binaries |
 
 ## Quick Start
 
-### Option A: Simulator Only (Windows, no Docker)
-```
-1. Go to release/ → Run RobotSimulator.exe
-2. Use sliders to jog, "Teach" to record points
-3. Connect ESP32 via USB → Select COM port → Click "Serial"
-```
+## Quick Start
 
-### Option B: Full ROS 2 Stack (Docker required)
-```bash
-# Simulation mode (no hardware)
-docker compose -f docker/docker-compose.sim.yml up
-
-# Real robot mode (ESP32 on WiFi)
-docker compose -f docker/docker-compose.real.yml up
+### Simulation Mode (One-Click Launch)
+```powershell
+.\START_SYSTEM.ps1
 ```
+This script will:
+1.  Check for `vcpkg` (installs if missing).
+2.  Install all C++ dependencies (DirectX 12, ImGui, etc.).
+3.  Build the C++ Simulator with CMake.
+4.  Start the ROS 2 Docker backend.
+5.  Launch the **DirectX 12 Robot Simulator**.
+
+### Development Build
+1.  Open `RobotSimulator_CPP` folder in Visual Studio.
+2.  Let CMake configure the project.
+3.  Build & Run `Release` target.
 
 ### Option C: Simulator + MoveIt (best of both)
 ```
