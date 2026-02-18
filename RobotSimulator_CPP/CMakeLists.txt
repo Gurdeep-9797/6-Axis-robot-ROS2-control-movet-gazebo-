@@ -7,8 +7,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Pin Windows SDK — vcpkg directx-headers requires >= 10.0.22621
-set(CMAKE_SYSTEM_VERSION 10.0.22621.0 CACHE STRING "Windows SDK version")
+# Do NOT pin CMAKE_SYSTEM_VERSION — let MSVC use whatever SDK is installed.
+# vcpkg directx-headers provides its own d3d12.h with Agility SDK symbols,
+# so we don't depend on the system SDK having a specific version.
 
 # Dependencies (vcpkg integration assumed)
 find_package(directx-headers CONFIG REQUIRED)
@@ -51,6 +52,9 @@ file(GLOB UI_SOURCES
 
 add_library(RobotApp STATIC ${UI_SOURCES})
 
+# CRITICAL: vcpkg directx-headers include paths MUST come BEFORE system SDK
+# to avoid include guard conflicts (system d3d12.h guards block vcpkg definitions).
+# Using BEFORE ensures the vcpkg includes are searched first.
 target_link_libraries(RobotApp PUBLIC
     RobotCore
     Microsoft::DirectX-Headers
@@ -60,6 +64,13 @@ target_link_libraries(RobotApp PUBLIC
     dxgi.lib
     d3dcompiler.lib
 )
+
+# Force DirectX-Headers includes to be searched BEFORE system SDK includes.
+# This prevents the system d3d12.h include guards from blocking vcpkg's d3d12.h.
+get_target_property(DX_DIRS Microsoft::DirectX-Headers INTERFACE_INCLUDE_DIRECTORIES)
+if(DX_DIRS)
+    target_include_directories(RobotApp BEFORE PUBLIC ${DX_DIRS})
+endif()
 
 # ─────────────────────────────────────────────────────────
 # Main Executable

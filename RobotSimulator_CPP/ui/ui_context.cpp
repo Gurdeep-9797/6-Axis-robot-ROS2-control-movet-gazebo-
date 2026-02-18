@@ -1,8 +1,9 @@
 #include "ui_context.h"
+
+// Heavy includes — only in the .cpp, NOT in header
+#include "../engine/dx12_core.h"
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx12.h>
-#include "imgui.h"
-#include "../engine/dx12_core.h"
 #include "pipeline_view.h"
 #include "calibration_panel.h"
 
@@ -48,7 +49,6 @@ void UIContext::Render() {
     RenderDiagnosticsPanel();
     if (m_pipelineView) m_pipelineView->Render();
     if (m_calibrationPanel) m_calibrationPanel->Render();
-    // RenderMenu();
 }
 
 void UIContext::EndFrame() {
@@ -107,7 +107,7 @@ void UIContext::RenderDiagnosticsPanel() {
                 ImGui::TableNextRow();
                 
                 ImGui::TableNextColumn();
-                ImGui::Text("J%d", i + 1);
+                ImGui::Text("J%d", (int)(i + 1));
                 
                 ImGui::TableNextColumn();
                 ImGui::Text("%.4f", ref[i]);

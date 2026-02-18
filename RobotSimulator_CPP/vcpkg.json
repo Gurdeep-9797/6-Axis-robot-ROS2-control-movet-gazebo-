@@ -1,6 +1,7 @@
 {
   "name": "robotsimulator-cpp",
   "version-string": "1.0.0",
+  "builtin-baseline": "8cf84605ce9764de46caeb47b9e710db9493add9",
   "dependencies": [
     "directx-headers",
     {

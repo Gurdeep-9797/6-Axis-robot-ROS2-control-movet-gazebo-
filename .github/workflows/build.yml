@@ -7,23 +7,34 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+env:
+  VCPKG_DEFAULT_TRIPLET: x64-windows
+
 jobs:
   build:
-    runs-on: windows-latest
+    # Pin to windows-2022 for reproducibility (windows-latest may change)
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable GitHub Actions Cache
+      # Setup MSVC environment explicitly
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # Cache vcpkg binary packages (NOT the vcpkg tree itself)
+      - name: Cache vcpkg packages
         uses: actions/cache@v4
         with:
           path: |
-            C:/vcpkg/installed
+            C:/vcpkg/buildtrees
             C:/vcpkg/packages
-            C:/vcpkg/downloads
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('RobotSimulator_CPP/vcpkg.json') }}
+            C:/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('RobotSimulator_CPP/vcpkg.json') }}-v2
           restore-keys: |
-            ${{ runner.os }}-vcpkg-
+            vcpkg-${{ runner.os }}-
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
@@ -34,10 +45,10 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -S RobotSimulator_CPP -B build -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake -S RobotSimulator_CPP -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release --parallel
 
       - name: Run Component Tests
         run: |
@@ -50,8 +61,8 @@ jobs:
           mkdir Dist
           copy build\Release\RobotSimulator_CPP.exe Dist\
           if exist build\Release\*.dll copy build\Release\*.dll Dist\
-          xcopy RobotSimulator_CPP\assets Dist\assets /E /I /Y
-          
+          if exist RobotSimulator_CPP\assets (xcopy RobotSimulator_CPP\assets Dist\assets /E /I /Y)
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:

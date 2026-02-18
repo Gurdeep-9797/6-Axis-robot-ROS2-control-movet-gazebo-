@@ -6,6 +6,9 @@
 #include "robot/robot_model.h"
 #include "simulation/motion_engine.h"
 #include "engine/ros_client.h"
+#include <imgui.h>
+#include <imgui_impl_dx12.h>
+#include <imgui_impl_win32.h>
 #include <memory>
 #include <stdexcept>
 

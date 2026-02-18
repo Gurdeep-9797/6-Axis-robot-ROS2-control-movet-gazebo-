@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui_context.h"
+#include <imgui.h>
 #include "../simulation/motion_engine.h"
 
 class PipelineView {

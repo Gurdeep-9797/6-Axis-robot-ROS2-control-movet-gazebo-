@@ -1,13 +1,12 @@
 #pragma once
 
-#include "../engine/dx12_core.h"
 #include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx12.h>
 
+// Forward declarations — avoid pulling DX12 headers into every UI file
+class DX12Core;
 class PipelineView;
 class CalibrationPanel;
-class MotionEngine; // Forward declaration
+class MotionEngine;
 
 class UIContext {
 public:
