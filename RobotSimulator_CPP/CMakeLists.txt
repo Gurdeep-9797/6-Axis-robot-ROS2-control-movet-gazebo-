@@ -91,7 +91,10 @@ target_link_libraries(RobotSimulator_CPP PRIVATE RobotApp cxxopts::cxxopts)
 # ─────────────────────────────────────────────────────────
 enable_testing()
 add_executable(RobotSimulator_Tests tests/test_main.cpp)
-target_link_libraries(RobotSimulator_Tests PRIVATE RobotCore)
+target_link_libraries(RobotSimulator_Tests PRIVATE
+    RobotCore
+    assimp::assimp    # Needed so robot_model.cpp TU is fully linked (GetSupportedFormats)
+)
 add_test(NAME CoreComponents COMMAND RobotSimulator_Tests)
 
 # ─────────────────────────────────────────────────────────
