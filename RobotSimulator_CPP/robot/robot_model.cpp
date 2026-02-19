@@ -12,14 +12,16 @@
 using namespace tinyxml2;
 namespace fs = std::filesystem;
 
-// Supported 3D formats via Assimp
-static const std::vector<std::string> s_supportedFormats = {
-    ".stl", ".obj", ".dae", ".fbx", ".3ds", ".ply",
-    ".gltf", ".glb", ".step", ".stp", ".iges", ".igs"
-};
-
+// Supported 3D formats via Assimp — defined as function-local static
+// to avoid the static initialization order fiasco (the test framework
+// runs tests via static-object constructors which can execute before
+// a namespace-scope static in another TU is initialized).
 const std::vector<std::string>& RobotModel::GetSupportedFormats() {
-    return s_supportedFormats;
+    static const std::vector<std::string> s_formats = {
+        ".stl", ".obj", ".dae", ".fbx", ".3ds", ".ply",
+        ".gltf", ".glb", ".step", ".stp", ".iges", ".igs"
+    };
+    return s_formats;
 }
 
 RobotModel::RobotModel() {}
