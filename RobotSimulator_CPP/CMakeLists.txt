@@ -46,6 +46,7 @@ target_link_libraries(RobotCore PUBLIC
     glm::glm
     tinyxml2::tinyxml2
     ixwebsocket::ixwebsocket
+    bcrypt.lib        # Required by ixwebsocket/mbedtls for BCryptGenRandom
 )
 
 # ─────────────────────────────────────────────────────────
@@ -94,10 +95,12 @@ target_link_libraries(RobotSimulator_Tests PRIVATE RobotCore)
 add_test(NAME CoreComponents COMMAND RobotSimulator_Tests)
 
 # ─────────────────────────────────────────────────────────
-# Post-Build: Copy Assets
+# Post-Build: Copy Assets (only if assets dir exists)
 # ─────────────────────────────────────────────────────────
-add_custom_command(TARGET RobotSimulator_CPP POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/assets
-    $<TARGET_FILE_DIR:RobotSimulator_CPP>/assets
-)
+if(EXISTS ${CMAKE_SOURCE_DIR}/assets)
+    add_custom_command(TARGET RobotSimulator_CPP POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:RobotSimulator_CPP>/assets
+    )
+endif()
