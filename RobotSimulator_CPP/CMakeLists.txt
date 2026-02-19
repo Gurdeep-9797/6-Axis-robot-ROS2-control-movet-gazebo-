@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Force Windows 11 SDK (match local dev)
-set(CMAKE_SYSTEM_VERSION 10.0.26100.0 CACHE STRING "Force Windows SDK version" FORCE)
+# set(CMAKE_SYSTEM_VERSION 10.0.26100.0 CACHE STRING "Force Windows SDK version" FORCE)
 
 # vcpkg directx-headers has its own d3d12.h. Using 10.0.26100.0 helps compatibility,
 # but our include order fix is the real key.
