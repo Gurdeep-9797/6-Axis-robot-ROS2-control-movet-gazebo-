@@ -67,6 +67,9 @@ private:
     glm::mat4 ParsePose(tinyxml2::XMLElement* originXml);
     glm::vec3 ParseVec3(const char* str);
     void BuildKinematicChain();
+    void GenerateCylinder(MeshData& mesh, float radius, float length, int segments);
+    void GenerateBox(MeshData& mesh, const glm::vec3& size);
+    void GenerateSphere(MeshData& mesh, float radius, int rings, int sectors);
 
     std::vector<RobotLink> m_links;
     std::vector<RobotJoint> m_joints;

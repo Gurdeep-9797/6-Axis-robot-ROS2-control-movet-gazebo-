@@ -26,6 +26,7 @@ public:
     ID3D12DescriptorHeap* GetSRVHeap() const { return m_srvHeap.Get(); }
     ID3D12GraphicsCommandList* GetCommandList() const { return m_commandList.Get(); }
     DXGI_FORMAT GetBackHeaderFormat() const { return DXGI_FORMAT_R8G8B8A8_UNORM; }
+    UINT8* GetCbvDataBegin() const { return m_cbvDataBegin; }
 
 private:
     void InitDevice();
@@ -56,5 +57,19 @@ private:
     UINT m_rtvDescriptorSize;
     UINT m_frameIndex;
 
+    void InitDepthBuffer(int width, int height);
+    void InitPipeline();
+    void InitConstantBuffer();
+
     void WaitForPreviousFrame();
+
+    // 3D Pipeline additions
+    ComPtr<ID3D12RootSignature> m_rootSignature;
+    ComPtr<ID3D12PipelineState> m_pipelineState;
+    ComPtr<ID3D12Resource> m_constantBuffer;
+    UINT8* m_cbvDataBegin;
+
+    // Depth Buffer
+    ComPtr<ID3D12Resource> m_depthStencil;
+    ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
 };

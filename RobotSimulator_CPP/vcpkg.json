@@ -1,7 +1,7 @@
 {
   "name": "robotsimulator-cpp",
   "version-string": "1.0.0",
-  "builtin-baseline": "8cf84605ce9764de46caeb47b9e710db9493add9",
+  "builtin-baseline": "dd930e314f529c86d2703a60d5ea7dd6573d9e5a",
   "dependencies": [
     "directx-headers",
     {
@@ -19,5 +19,47 @@
     "tinyxml2",
     "ixwebsocket",
     "cxxopts"
+  ],
+  "overrides": [
+    {
+      "name": "directx-headers",
+      "version": "1.614.1"
+    },
+    {
+      "name": "imgui",
+      "version": "1.91.8"
+    },
+    {
+      "name": "assimp",
+      "version": "5.4.3"
+    },
+    {
+      "name": "nlohmann-json",
+      "version": "3.11.3"
+    },
+    {
+      "name": "spdlog",
+      "version": "1.15.0"
+    },
+    {
+      "name": "glm",
+      "version": "1.0.3"
+    },
+    {
+      "name": "tinyxml2",
+      "version": "10.0.0"
+    },
+    {
+      "name": "ixwebsocket",
+      "version": "11.4.5"
+    },
+    {
+      "name": "cxxopts",
+      "version": "3.2.1"
+    },
+    {
+      "name": "fmt",
+      "version": "11.0.2"
+    }
   ]
 }

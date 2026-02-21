@@ -67,9 +67,13 @@ api_error.log
 temp/
 tmp/
 *.stl
-!RobotSimulator/Assets/**/*.stl
 !src/**/*.stl
-!RobotSimulator/Assets/*.stl
+
+# --- Archive & Temp (not tracked) ---
+_archive/
+temp_vcpkg/
+cmake_*.log
+tools/vcpkg/
 
 # --- Docker ---
 docker-compose.override.yml
@@ -77,3 +81,4 @@ docker-compose.override.yml
 # --- Rider / IntelliJ ---
 .idea/
 *.sln.iml
+

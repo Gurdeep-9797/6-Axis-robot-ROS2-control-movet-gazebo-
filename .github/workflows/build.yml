@@ -1,11 +1,10 @@
-name: Build & Release
+name: "Build & Release"
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [main]
   pull_request:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+    branches: [main]
 
 env:
   VCPKG_DEFAULT_TRIPLET: x64-windows
@@ -17,51 +16,53 @@ permissions:
 
 jobs:
   build:
-    # Use standard windows-2025 image (VS 2022+). For VS 2026 via preview runner if valid.
-    # Sticking to windows-2025 to be safe as per user req for newest "VS 26" env match.
-    runs-on: windows-2025
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup vcpkg (x-gha caching)
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: 'C:/vcpkg'
-          vcpkgGitCommitId: '8cf84605ce9764de46caeb47b9e710db9493add9'
+          vcpkgGitCommitId: 'dd930e314f529c86d2703a60d5ea7dd6573d9e5a'
           vcpkgJsonGlob: 'RobotSimulator_CPP/vcpkg.json'
 
       - name: Configure CMake
         run: |
-          cmake -S RobotSimulator_CPP -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_SYSTEM_VERSION=10.0.26100.0 -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake -S RobotSimulator_CPP -B build `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="${{ github.workspace }}/RobotSimulator_CPP/toolchain-msvc1950.cmake"
 
       - name: Build
         id: build_step
-        run: cmake --build build --config Release --parallel -- /verbosity:minimal
         continue-on-error: true
+        run: cmake --build build --config Release --parallel
 
       - name: Show Build Errors
         if: steps.build_step.outcome == 'failure'
         run: |
-          echo "::error::Build failed! Check the Build step output above for MSVC error details."
+          Write-Host "::error::Build failed. Check errors above."
           exit 1
 
       - name: Run Component Tests
         if: steps.build_step.outcome == 'success'
-        run: |
-          cd build
-          ctest -C Release --output-on-failure
-          cd ..
+        run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package / Deploy
-        run: |
-          mkdir Dist
-          copy build\Release\RobotSimulator_CPP.exe Dist\
-          if exist build\Release\*.dll copy build\Release\*.dll Dist\
-          if exist RobotSimulator_CPP\assets (xcopy RobotSimulator_CPP\assets Dist\assets /E /I /Y)
-
-      - name: Upload Artifact
+      - name: Package Artifact
+        if: steps.build_step.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: RobotSimulator_Release
-          path: Dist/
+          name: RobotSimulator_CPP
+          path: |
+            build/Release/RobotSimulator_CPP.exe
+            build/Release/assets/
+          if-no-files-found: warn

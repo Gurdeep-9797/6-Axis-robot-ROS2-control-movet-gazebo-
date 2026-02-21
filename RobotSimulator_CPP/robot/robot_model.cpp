@@ -118,13 +118,13 @@ void RobotModel::ParseLink(XMLElement* linkXml, const std::string& basePath) {
     if (visual) {
         XMLElement* geometry = visual->FirstChildElement("geometry");
         if (geometry) {
+            // Try mesh first
             XMLElement* mesh = geometry->FirstChildElement("mesh");
             if (mesh) {
                 std::string filename = mesh->Attribute("filename");
                 
                 // Resolve package:// URIs
                 if (filename.substr(0, 10) == "package://") {
-                    // Strip package:// and resolve relative to base path
                     size_t slash = filename.find('/', 10);
                     if (slash != std::string::npos) {
                         filename = basePath + "/" + filename.substr(slash + 1);
@@ -135,18 +135,43 @@ void RobotModel::ParseLink(XMLElement* linkXml, const std::string& basePath) {
                 
                 link.visualMeshPath = filename;
                 
-                // Parse scale if present
                 const char* scaleStr = mesh->Attribute("scale");
                 if (scaleStr) {
                     link.visualScale = ParseVec3(scaleStr);
                 }
 
-                // Load mesh via Assimp
                 if (fs::exists(filename)) {
                     LoadMesh(filename, link.mesh);
                 } else {
                     spdlog::warn("Mesh file not found: {}", filename);
                 }
+            }
+
+            // Cylinder primitive
+            XMLElement* cyl = geometry->FirstChildElement("cylinder");
+            if (cyl && !link.mesh.loaded) {
+                float radius = cyl->FloatAttribute("radius", 0.05f);
+                float length = cyl->FloatAttribute("length", 0.1f);
+                GenerateCylinder(link.mesh, radius, length, 24);
+                link.visualMeshPath = "[cylinder]";
+            }
+
+            // Box primitive
+            XMLElement* box = geometry->FirstChildElement("box");
+            if (box && !link.mesh.loaded) {
+                glm::vec3 size(0.1f);
+                const char* sizeStr = box->Attribute("size");
+                if (sizeStr) size = ParseVec3(sizeStr);
+                GenerateBox(link.mesh, size);
+                link.visualMeshPath = "[box]";
+            }
+
+            // Sphere primitive
+            XMLElement* sph = geometry->FirstChildElement("sphere");
+            if (sph && !link.mesh.loaded) {
+                float radius = sph->FloatAttribute("radius", 0.05f);
+                GenerateSphere(link.mesh, radius, 16, 12);
+                link.visualMeshPath = "[sphere]";
             }
         }
         
@@ -356,4 +381,149 @@ glm::mat4 RobotModel::GetEndEffectorPose() const {
 
 void RobotModel::Update(float deltaTime) {
     // Future: smooth joint transitions, physics, etc.
+}
+
+// ---------------------------------------------------------
+// Procedural Primitive Geometry
+// ---------------------------------------------------------
+
+void RobotModel::GenerateCylinder(MeshData& mesh, float radius, float length, int segments) {
+    mesh.vertices.clear();
+    mesh.normals.clear();
+    mesh.indices.clear();
+
+    float halfLen = length * 0.5f;
+
+    // Side vertices
+    for (int i = 0; i <= segments; i++) {
+        float angle = (float)i / (float)segments * 6.28318f;
+        float cx = cosf(angle) * radius;
+        float cy = sinf(angle) * radius;
+        float nx = cosf(angle);
+        float ny = sinf(angle);
+
+        // Bottom vertex
+        mesh.vertices.push_back(cx); mesh.vertices.push_back(cy); mesh.vertices.push_back(-halfLen);
+        mesh.normals.push_back(nx); mesh.normals.push_back(ny); mesh.normals.push_back(0);
+
+        // Top vertex
+        mesh.vertices.push_back(cx); mesh.vertices.push_back(cy); mesh.vertices.push_back(halfLen);
+        mesh.normals.push_back(nx); mesh.normals.push_back(ny); mesh.normals.push_back(0);
+    }
+
+    // Side indices
+    for (int i = 0; i < segments; i++) {
+        uint32_t b = i * 2;
+        mesh.indices.push_back(b); mesh.indices.push_back(b + 1); mesh.indices.push_back(b + 2);
+        mesh.indices.push_back(b + 1); mesh.indices.push_back(b + 3); mesh.indices.push_back(b + 2);
+    }
+
+    // Top cap center
+    uint32_t topCenter = (uint32_t)(mesh.vertices.size() / 3);
+    mesh.vertices.push_back(0); mesh.vertices.push_back(0); mesh.vertices.push_back(halfLen);
+    mesh.normals.push_back(0); mesh.normals.push_back(0); mesh.normals.push_back(1);
+
+    // Bottom cap center
+    uint32_t botCenter = (uint32_t)(mesh.vertices.size() / 3);
+    mesh.vertices.push_back(0); mesh.vertices.push_back(0); mesh.vertices.push_back(-halfLen);
+    mesh.normals.push_back(0); mesh.normals.push_back(0); mesh.normals.push_back(-1);
+
+    // Cap vertices and indices
+    uint32_t capStart = (uint32_t)(mesh.vertices.size() / 3);
+    for (int i = 0; i <= segments; i++) {
+        float angle = (float)i / (float)segments * 6.28318f;
+        float cx = cosf(angle) * radius;
+        float cy = sinf(angle) * radius;
+
+        // Top cap vertex
+        mesh.vertices.push_back(cx); mesh.vertices.push_back(cy); mesh.vertices.push_back(halfLen);
+        mesh.normals.push_back(0); mesh.normals.push_back(0); mesh.normals.push_back(1);
+
+        // Bottom cap vertex
+        mesh.vertices.push_back(cx); mesh.vertices.push_back(cy); mesh.vertices.push_back(-halfLen);
+        mesh.normals.push_back(0); mesh.normals.push_back(0); mesh.normals.push_back(-1);
+    }
+
+    for (int i = 0; i < segments; i++) {
+        uint32_t v = capStart + i * 2;
+        mesh.indices.push_back(topCenter); mesh.indices.push_back(v); mesh.indices.push_back(v + 2);
+        mesh.indices.push_back(botCenter); mesh.indices.push_back(v + 3); mesh.indices.push_back(v + 1);
+    }
+
+    mesh.loaded = true;
+    spdlog::info("Generated cylinder: r={}, l={}, {} verts", radius, length, mesh.vertices.size() / 3);
+}
+
+void RobotModel::GenerateBox(MeshData& mesh, const glm::vec3& size) {
+    mesh.vertices.clear();
+    mesh.normals.clear();
+    mesh.indices.clear();
+
+    float hx = size.x * 0.5f, hy = size.y * 0.5f, hz = size.z * 0.5f;
+
+    // 6 faces, 4 verts each = 24 vertices
+    struct V { float x, y, z, nx, ny, nz; };
+    V verts[24] = {
+        // Front (+Z)
+        {-hx,-hy, hz, 0, 0, 1}, { hx,-hy, hz, 0, 0, 1}, { hx, hy, hz, 0, 0, 1}, {-hx, hy, hz, 0, 0, 1},
+        // Back (-Z)
+        { hx,-hy,-hz, 0, 0,-1}, {-hx,-hy,-hz, 0, 0,-1}, {-hx, hy,-hz, 0, 0,-1}, { hx, hy,-hz, 0, 0,-1},
+        // Right (+X)
+        { hx,-hy, hz, 1, 0, 0}, { hx,-hy,-hz, 1, 0, 0}, { hx, hy,-hz, 1, 0, 0}, { hx, hy, hz, 1, 0, 0},
+        // Left (-X)
+        {-hx,-hy,-hz,-1, 0, 0}, {-hx,-hy, hz,-1, 0, 0}, {-hx, hy, hz,-1, 0, 0}, {-hx, hy,-hz,-1, 0, 0},
+        // Top (+Y)
+        {-hx, hy, hz, 0, 1, 0}, { hx, hy, hz, 0, 1, 0}, { hx, hy,-hz, 0, 1, 0}, {-hx, hy,-hz, 0, 1, 0},
+        // Bottom (-Y)
+        {-hx,-hy,-hz, 0,-1, 0}, { hx,-hy,-hz, 0,-1, 0}, { hx,-hy, hz, 0,-1, 0}, {-hx,-hy, hz, 0,-1, 0},
+    };
+
+    for (auto& v : verts) {
+        mesh.vertices.push_back(v.x); mesh.vertices.push_back(v.y); mesh.vertices.push_back(v.z);
+        mesh.normals.push_back(v.nx); mesh.normals.push_back(v.ny); mesh.normals.push_back(v.nz);
+    }
+
+    for (uint32_t face = 0; face < 6; face++) {
+        uint32_t b = face * 4;
+        mesh.indices.push_back(b); mesh.indices.push_back(b+1); mesh.indices.push_back(b+2);
+        mesh.indices.push_back(b); mesh.indices.push_back(b+2); mesh.indices.push_back(b+3);
+    }
+
+    mesh.loaded = true;
+    spdlog::info("Generated box: {}x{}x{}", size.x, size.y, size.z);
+}
+
+void RobotModel::GenerateSphere(MeshData& mesh, float radius, int rings, int sectors) {
+    mesh.vertices.clear();
+    mesh.normals.clear();
+    mesh.indices.clear();
+
+    for (int r = 0; r <= rings; r++) {
+        float phi = 3.14159f * (float)r / (float)rings;
+        for (int s = 0; s <= sectors; s++) {
+            float theta = 6.28318f * (float)s / (float)sectors;
+            float x = sinf(phi) * cosf(theta);
+            float y = cosf(phi);
+            float z = sinf(phi) * sinf(theta);
+
+            mesh.vertices.push_back(x * radius);
+            mesh.vertices.push_back(y * radius);
+            mesh.vertices.push_back(z * radius);
+            mesh.normals.push_back(x);
+            mesh.normals.push_back(y);
+            mesh.normals.push_back(z);
+        }
+    }
+
+    for (int r = 0; r < rings; r++) {
+        for (int s = 0; s < sectors; s++) {
+            uint32_t a = r * (sectors + 1) + s;
+            uint32_t b = a + sectors + 1;
+            mesh.indices.push_back(a); mesh.indices.push_back(b); mesh.indices.push_back(a + 1);
+            mesh.indices.push_back(b); mesh.indices.push_back(b + 1); mesh.indices.push_back(a + 1);
+        }
+    }
+
+    mesh.loaded = true;
+    spdlog::info("Generated sphere: r={}, {} verts", radius, mesh.vertices.size() / 3);
 }

@@ -1,0 +1,77 @@
+# ═══════════════════════════════════════════════════════════
+#  VERSION LOCK — Single source of truth for all versions
+#  Project: 6-Axis Robot Simulator
+#  Updated: 2026-02-20
+# ═══════════════════════════════════════════════════════════
+
+# ── Build Toolchain ──────────────────────────────────────
+compiler:
+  name: MSVC
+  version: "19.50.35724"
+  toolset: "14.50.35717"
+  min_version: "19.50"
+
+ide:
+  name: "Visual Studio 2026 Community"
+  install_path: "D:\\VS 26"
+  vcvars64: "D:\\VS 26\\VC\\Auxiliary\\Build\\vcvars64.bat"
+
+cmake:
+  version: "4.1.2"
+  min_version: "3.28"
+  max_version: "4.99"
+  path: "D:\\VS 26\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+
+ninja:
+  version: "1.12.1"
+  path: "D:\\VS 26\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+
+# ── Windows SDK ──────────────────────────────────────────
+windows_sdk:
+  version: "10.0.26100.0"
+
+# ── C++ Standard ─────────────────────────────────────────
+cpp_standard: 20
+
+# ── vcpkg ────────────────────────────────────────────────
+vcpkg:
+  baseline: "dd930e314f529c86d2703a60d5ea7dd6573d9e5a"
+  triplet: "x64-windows"
+
+# ── vcpkg Dependencies (pinned) ─────────────────────────
+dependencies:
+  directx-headers: "1.614.1"
+  imgui: "1.91.8"
+  assimp: "5.4.3"
+  nlohmann-json: "3.11.3"
+  spdlog: "1.15.0"
+  glm: "1.0.3"
+  tinyxml2: "10.0.0"
+  ixwebsocket: "11.4.5"
+  cxxopts: "3.2.1"
+  fmt: "11.0.2"
+
+# ── ROS 2 (Docker) ──────────────────────────────────────
+ros2:
+  distro: "humble"
+  rmw: "rmw_cyclonedds_cpp"
+  runtime: "docker"
+  image: "robotics_base:latest"
+
+# ── Gazebo (Docker) ─────────────────────────────────────
+gazebo:
+  version: "classic-11"
+  runtime: "docker"
+
+# ── Docker ───────────────────────────────────────────────
+docker:
+  compose_file: "docker/docker-compose.sim.yml"
+  ros_domain_id: 42
+  rosbridge_port: 9090
+
+# ── Build Configuration ─────────────────────────────────
+build:
+  generator:          "Ninja"
+  configs: ["Release", "Debug"]
+  architecture: "x64"
+  build_dir: "build"
