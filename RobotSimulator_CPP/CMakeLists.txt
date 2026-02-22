@@ -70,7 +70,7 @@ if(DX_DIRS)
 endif()
 
 # ─────────────────────────────────────────────────────────
-# Main Executable
+# Main Executable (V1 — original UI)
 # ─────────────────────────────────────────────────────────
 add_executable(RobotSimulator_CPP main.cpp)
 target_link_libraries(RobotSimulator_CPP PRIVATE RobotApp cxxopts::cxxopts bcrypt)
@@ -81,6 +81,21 @@ target_link_libraries(test_dummy PRIVATE RobotApp cxxopts::cxxopts bcrypt)
 target_compile_definitions(test_dummy PRIVATE UNICODE _UNICODE)
 
 # ─────────────────────────────────────────────────────────
+# Teach Pendant V2 — FR-HMI style industrial controller UI
+# ─────────────────────────────────────────────────────────
+file(GLOB V2_UI_SOURCES
+    "ui_v2/*.cpp" "ui_v2/*.h"
+)
+
+add_library(TeachPendantApp STATIC ${V2_UI_SOURCES})
+target_include_directories(TeachPendantApp PUBLIC ${CMAKE_SOURCE_DIR})
+target_link_libraries(TeachPendantApp PUBLIC RobotApp)
+
+add_executable(TeachPendant_V2 main_v2.cpp)
+target_link_libraries(TeachPendant_V2 PRIVATE TeachPendantApp cxxopts::cxxopts bcrypt)
+target_compile_definitions(TeachPendant_V2 PRIVATE UNICODE _UNICODE)
+
+# ─────────────────────────────────────────────────────────
 # Tests (links only RobotCore — no DX12 needed)
 # ─────────────────────────────────────────────────────────
 enable_testing()
@@ -89,7 +104,7 @@ target_link_libraries(RobotSimulator_Tests PRIVATE RobotCore)
 add_test(NAME CoreComponents COMMAND RobotSimulator_Tests)
 
 # ─────────────────────────────────────────────────────────
-# Post-Build: Copy Assets
+# Post-Build: Copy Assets (for all GUI targets)
 # ─────────────────────────────────────────────────────────
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
     add_custom_command(TARGET RobotSimulator_CPP POST_BUILD
@@ -97,4 +112,10 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
         ${CMAKE_SOURCE_DIR}/assets
         $<TARGET_FILE_DIR:RobotSimulator_CPP>/assets
     )
+    add_custom_command(TARGET TeachPendant_V2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:TeachPendant_V2>/assets
+    )
 endif()
+

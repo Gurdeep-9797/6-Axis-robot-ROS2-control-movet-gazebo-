@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cxxopts.hpp>
 #include "engine/dx12_core.h"
-#include "ui/ui_context.h"
+#include "ui_v2/teach_pendant_ui.h"
 #include "robot/robot_model.h"
 #include "simulation/motion_engine.h"
 #include "engine/ros_client.h"
@@ -18,9 +18,9 @@
 #include "engine/camera.h"
 #include "engine/scene_renderer.h"
 
-// Global singletons for this simple example
+// Global singletons
 std::unique_ptr<DX12Core> g_dx12;
-std::unique_ptr<UIContext> g_ui;
+std::unique_ptr<TeachPendantUI> g_ui;
 std::unique_ptr<RobotModel> g_robot;
 std::unique_ptr<MotionEngine> g_motion;
 std::unique_ptr<RosClient> g_ros;
@@ -32,33 +32,38 @@ bool g_isDragging = false;
 bool g_isPanning = false;
 int g_lastMouseX = 0;
 int g_lastMouseY = 0;
+bool g_initialized = false;  // Guard: WndProc must not touch ImGui until init done
 
 // Forward declare ImGui handler
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Window Procedure
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
-        return true;
+    // Only forward to ImGui AFTER initialization
+    if (g_initialized) {
+        if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+            return true;
+    }
 
     switch (uMsg) {
         case WM_DESTROY:
-            MessageBoxA(hwnd, "WM_DESTROY received!", "Debug Trace", MB_OK);
             PostQuitMessage(0);
             return 0;
         case WM_SIZE:
-             if (g_dx12) {
+             if (g_initialized && g_dx12) {
                  RECT rect;
                  GetClientRect(hwnd, &rect);
-                 float w = (float)(rect.right - rect.left);
-                 float h = (float)(rect.bottom - rect.top);
-                 g_dx12->Resize((int)w, (int)h);
-                 if (g_camera && h > 0) g_camera->SetAspect(w / h);
+                 int w = rect.right - rect.left;
+                 int h = rect.bottom - rect.top;
+                 if (w > 0 && h > 0) {
+                     g_dx12->Resize(w, h);
+                     if (g_camera) g_camera->SetAspect((float)w / (float)h);
+                 }
              }
              return 0;
              
         case WM_LBUTTONDOWN:
-            if (!ImGui::GetIO().WantCaptureMouse) {
+            if (g_initialized && !ImGui::GetIO().WantCaptureMouse) {
                 g_isDragging = true;
                 g_lastMouseX = LOWORD(lParam);
                 g_lastMouseY = HIWORD(lParam);
@@ -72,7 +77,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
             
         case WM_MBUTTONDOWN:
-            if (!ImGui::GetIO().WantCaptureMouse) {
+            if (g_initialized && !ImGui::GetIO().WantCaptureMouse) {
                 g_isPanning = true;
                 g_lastMouseX = LOWORD(lParam);
                 g_lastMouseY = HIWORD(lParam);
@@ -86,7 +91,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
             
         case WM_MOUSEMOVE:
-            if (g_camera) {
+            if (g_initialized && g_camera) {
                 int x = LOWORD(lParam);
                 int y = HIWORD(lParam);
                 int dx = x - g_lastMouseX;
@@ -104,7 +109,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
             
         case WM_MOUSEWHEEL:
-            if (!ImGui::GetIO().WantCaptureMouse && g_camera) {
+            if (g_initialized && !ImGui::GetIO().WantCaptureMouse && g_camera) {
                 float delta = GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
                 g_camera->Zoom(delta);
             }
@@ -120,14 +125,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 }
 
 int main(int argc, char** argv) {
-    MessageBoxA(NULL, "main() Started!", "Debug Trace", MB_OK);
-
     std::vector<std::string> args;
     for(int i = 0; i < argc; ++i) {
         args.push_back(argv[i]);
     }
     
-    // Default Configuration
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
     // Default Configuration
@@ -139,11 +141,11 @@ int main(int argc, char** argv) {
 
     // Parse CLI
     try {
-        cxxopts::Options options("RobotSimulator", "6-Axis Robot Simulator");
+        cxxopts::Options options("TeachPendant_V2", "FR-HMI Teach Pendant V2 — 6-Axis Robot Controller");
         options.add_options()
             ("m,mode", "Control Mode (sim, real)", cxxopts::value<std::string>()->default_value("sim"))
             ("u,ros_uri", "ROS Websocket URI", cxxopts::value<std::string>()->default_value("ws://localhost:9090"))
-            ("r,ref_topic", "Reference Joint Topic (e.g. /gazebo/joint_states)", cxxopts::value<std::string>()->default_value(""))
+            ("r,ref_topic", "Reference Joint Topic", cxxopts::value<std::string>()->default_value(""))
             ("w,width", "Window Width", cxxopts::value<int>()->default_value("1280"))
             ("h,height", "Window Height", cxxopts::value<int>()->default_value("800"))
             ("help", "Print help");
@@ -151,7 +153,7 @@ int main(int argc, char** argv) {
         auto result = options.parse(argc, argv);
 
         if (result.count("help")) {
-            MessageBoxA(NULL, options.help().c_str(), "Usage", MB_OK);
+            std::cout << options.help() << std::endl;
             return 0;
         }
 
@@ -167,7 +169,7 @@ int main(int argc, char** argv) {
     }
 
     // Register the window class.
-    const wchar_t CLASS_NAME[] = L"RobotSimulator Window Class";
+    const wchar_t CLASS_NAME[] = L"TeachPendant_V2 Window Class";
 
     WNDCLASS wc = { };
     wc.lpfnWndProc = WindowProc;
@@ -178,19 +180,16 @@ int main(int argc, char** argv) {
 
     // Create the window.
     HWND hwnd = CreateWindowExW(
-        0,                              // Optional window styles.
-        CLASS_NAME,                     // Window class
-        L"Robot Simulator C++20/DX12",  // Window text
-        WS_OVERLAPPEDWINDOW,            // Window style
+        0,
+        CLASS_NAME,
+        L"FR-HMI TeachPendant V2 | 6-Axis Robot Controller",
+        WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, winWidth, winHeight,
-        NULL,       // Parent window    
-        NULL,       // Menu
-        hInstance,  // Instance handle
-        NULL        // Additional application data
+        NULL, NULL, hInstance, NULL
     );
 
     if (hwnd == NULL) {
-        std::string err = "CreateWindowExW failed with Error Code: " + std::to_string(GetLastError());
+        std::string err = "CreateWindowExW failed: " + std::to_string(GetLastError());
         MessageBoxA(NULL, err.c_str(), "Window Creation Error", MB_OK | MB_ICONERROR);
         return 0;
     }
@@ -201,32 +200,31 @@ int main(int argc, char** argv) {
         int width = rect.right - rect.left;
         int height = rect.bottom - rect.top;
         
-        // Initialize Subsystems
+        // Initialize DX12 (defensive init)
         g_dx12 = std::make_unique<DX12Core>();
         if (!g_dx12->Initialize(hwnd, width, height)) {
             return 1;
         }
+
         g_robot = std::make_unique<RobotModel>();
         g_camera = std::make_unique<Camera>((float)width / (float)height);
         
-        // Initialize ROS Client and auto-connect
+        // ROS Client
         g_ros = std::make_unique<RosClient>(ros_uri);
         g_ros->Connect();
-        
         if (!ref_topic.empty()) {
             g_ros->SubscribeReference(ref_topic);
         }
         
         g_motion = std::make_unique<MotionEngine>(g_robot.get(), g_ros.get());
         
-        // Apply Mode
         if (mode_str == "real") {
             g_motion->SetMode(MotionEngine::ControlMode::RealHardware);
         } else {
             g_motion->SetMode(MotionEngine::ControlMode::Simulation);
         }
 
-        // Load default robot model
+        // Load robot model
         std::string urdfPath = args.empty() ? "" : args[0];
         auto lastSlash = urdfPath.find_last_of("\\/");
         if (lastSlash != std::string::npos) {
@@ -234,23 +232,38 @@ int main(int argc, char** argv) {
         } else {
             urdfPath = "assets/robot.urdf";
         }
+        /*
         g_robot->LoadURDF(urdfPath);
+        std::cout << "V2: Robot loaded, building scene..." << std::endl;
         
-        // Build 3D graphical scene
+        // Build 3D scene — must open command list for GPU buffer uploads
         g_scene = std::make_unique<SceneRenderer>(g_dx12->GetDevice());
+        
+        // Reset command list to recording state for mesh uploads
+        g_dx12->GetCommandAllocator()->Reset();
+        g_dx12->GetCommandList()->Reset(g_dx12->GetCommandAllocator(), nullptr);
+        
+        std::cout << "V2: BuildFromRobot..." << std::endl;
         g_scene->BuildFromRobot(g_robot.get(), g_dx12->GetCommandList());
         
-        g_ui = std::make_unique<UIContext>(hwnd, g_dx12.get(), g_motion.get(), g_robot.get(), g_scene.get());
+        std::cout << "V2: FlushCommandList..." << std::endl;
+        // Execute and wait for GPU uploads to complete
+        g_dx12->FlushCommandList();
+        */
         
+        std::cout << "V2: Creating TeachPendantUI..." << std::endl;
+        // ── V2 Teach Pendant UI ──
+        g_ui = std::make_unique<TeachPendantUI>(hwnd, g_dx12.get(), g_motion.get(), nullptr, nullptr);
+        
+        std::cout << "V2: Init complete!" << std::endl;
     } catch (const std::exception& e) {
-        MessageBoxA(NULL, e.what(), "DX12 Init Error", MB_OK | MB_ICONERROR);
-        std::cerr << "DX12 Init Error: " << e.what() << std::endl;
+        MessageBoxA(NULL, e.what(), "Init Error", MB_OK | MB_ICONERROR);
+        std::cerr << "Init Error: " << e.what() << std::endl;
         return 1;
     }
 
     ShowWindow(hwnd, SW_SHOWDEFAULT);
-
-    // MessageBoxA(NULL, "Entering message loop...", "Debug Trace", MB_OK);
+    g_initialized = true;
 
     // Run the message loop.
     MSG msg = { };
@@ -263,41 +276,51 @@ int main(int argc, char** argv) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         } else {
-            // Frame Logic
             if (g_dx12 && g_ui) {
                 try {
-                    // Update Motion
+                    std::cout << "V2: Frame Start" << std::endl;
                     g_motion->Update(0.016f);
                     
-                    // UI Frame
-                    g_ui->BeginFrame();
-                    g_ui->Render(); 
-                    g_ui->EndFrame();
+                    std::cout << "V2: Before BeginFrame - DX12" << std::endl;
+                    ImGui_ImplDX12_NewFrame();
+                    std::cout << "V2: Before BeginFrame - Win32" << std::endl;
+                    ImGui_ImplWin32_NewFrame();
+                    std::cout << "V2: Before BeginFrame - ImGui" << std::endl;
+                    ImGui::NewFrame();
+                    
+                    std::cout << "V2: Before Render" << std::endl;
+                    ImGui::Begin("Test Output");
+                    ImGui::Text("DX12 is working perfectly!");
+                    ImGui::End();
+                    
+                    std::cout << "V2: Before EndFrame" << std::endl;
+                    ImGui::Render();
+                    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                        ImGui::UpdatePlatformWindows();
+                        ImGui::RenderPlatformWindowsDefault(NULL, (void*)g_dx12->GetCommandList());
+                    }
 
-                    // Render DX12
+                    std::cout << "V2: Before DX12 Render" << std::endl;
                     g_dx12->Render([&](ID3D12GraphicsCommandList* cmdList) {
-                        
                         // Update Constant Buffer
                         if (g_dx12->GetCbvDataBegin() && g_camera) {
                             SceneConstantBuffer cb = {};
-                            cb.model = glm::mat4(1.0f); // Identity for background/grid
+                            cb.model = glm::mat4(1.0f);
                             cb.view = g_camera->GetViewMatrix();
                             cb.projection = g_camera->GetProjectionMatrix();
                             cb.ambientColor = glm::vec4(0.2f, 0.2f, 0.25f, 1.0f);
                             cb.directionalLightDir = glm::vec4(-1.0f, -2.0f, -1.5f, 0.0f);
                             cb.directionalLightColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
-                            
                             memcpy(g_dx12->GetCbvDataBegin(), &cb, sizeof(SceneConstantBuffer));
                         }
                         
                         // Draw 3D Scene
                         if (g_scene) {
-                            g_scene->Draw(cmdList, g_robot.get(), g_ui.get(), g_dx12->GetCbvDataBegin());
+                            g_scene->Draw(cmdList, g_robot.get(), nullptr, g_dx12->GetCbvDataBegin());
                         }
 
-                        // Render ImGui draw data into the DX12 command list
+                        // ImGui draw
                         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
-                        // Note: Viewport platform windows are handled in UIContext::EndFrame()
                     });
                 } catch (const std::exception& e) {
                     std::string err = "Frame Error: " + std::string(e.what());

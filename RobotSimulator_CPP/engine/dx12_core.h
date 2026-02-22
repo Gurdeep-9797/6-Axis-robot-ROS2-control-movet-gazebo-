@@ -14,8 +14,10 @@ using Microsoft::WRL::ComPtr;
 
 class DX12Core {
 public:
-    DX12Core(HWND hwnd, int width, int height);
+    DX12Core();
     ~DX12Core();
+
+    bool Initialize(HWND hwnd, int width, int height);
 
     void Render(std::function<void(ID3D12GraphicsCommandList*)> renderCallback = nullptr);
     void Resize(int width, int height);
@@ -25,16 +27,18 @@ public:
     ID3D12CommandQueue* GetCommandQueue() const { return m_commandQueue.Get(); }
     ID3D12DescriptorHeap* GetSRVHeap() const { return m_srvHeap.Get(); }
     ID3D12GraphicsCommandList* GetCommandList() const { return m_commandList.Get(); }
+    ID3D12CommandAllocator* GetCommandAllocator() const { return m_commandAllocator.Get(); }
+    void FlushCommandList();  // Close, execute, and wait for completion
     DXGI_FORMAT GetBackHeaderFormat() const { return DXGI_FORMAT_R8G8B8A8_UNORM; }
     UINT8* GetCbvDataBegin() const { return m_cbvDataBegin; }
 
 private:
-    void InitDevice();
-    void InitCommandQueue();
-    void InitSwapChain(HWND hwnd, int width, int height);
-    void InitDescriptorHeaps();
-    void InitRenderTargets();
-    void CreateCommandList();
+    bool InitDevice();
+    bool InitCommandQueue();
+    bool InitSwapChain(HWND hwnd, int width, int height);
+    bool InitDescriptorHeaps();
+    bool InitRenderTargets();
+    bool CreateCommandList();
     
     // Core DX12 Objects
     ComPtr<ID3D12Device> m_device;
@@ -57,14 +61,18 @@ private:
     UINT m_rtvDescriptorSize;
     UINT m_frameIndex;
 
-    void InitDepthBuffer(int width, int height);
-    void InitPipeline();
-    void InitConstantBuffer();
+    bool InitDepthBuffer(int width, int height);
+    bool InitRootSignature();
+    bool InitShaders();
+    bool InitPipelineState();
+    bool InitConstantBuffer();
 
     void WaitForPreviousFrame();
 
     // 3D Pipeline additions
     ComPtr<ID3D12RootSignature> m_rootSignature;
+    ComPtr<ID3DBlob> m_vertexShader;
+    ComPtr<ID3DBlob> m_pixelShader;
     ComPtr<ID3D12PipelineState> m_pipelineState;
     ComPtr<ID3D12Resource> m_constantBuffer;
     UINT8* m_cbvDataBegin;
