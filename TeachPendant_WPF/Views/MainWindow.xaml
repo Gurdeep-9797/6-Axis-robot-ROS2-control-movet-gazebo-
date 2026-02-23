@@ -1,0 +1,420 @@
+<Window x:Class="TeachPendant_WPF.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:hx="http://helix-toolkit.org/wpf"
+        xmlns:viewmodels="clr-namespace:TeachPendant_WPF.ViewModels"
+        mc:Ignorable="d"
+        Title="FR-HMI Teach Pendant (WPF)" Height="1080" Width="1920"
+        WindowStyle="None" WindowState="Maximized" ResizeMode="CanResize"
+        AllowsTransparency="True"
+        Background="{StaticResource Palette.Background.Medium}"
+        Foreground="{StaticResource Palette.Text.Primary}">
+        
+    <WindowChrome.WindowChrome>
+        <WindowChrome 
+            CaptionHeight="0" 
+            CornerRadius="0" 
+            GlassFrameThickness="1" 
+            ResizeBorderThickness="6" 
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+
+    <!-- Global Grid Layout from Plan: 
+         Row 0: Top Status Bar (80px)
+         Row 1: Main Content Area
+         Row 2: Bottom Execution Bar (100px) -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+
+        <!-- ZONE 1: TOP STATUS BAR (Draggable Title Area) -->
+        <Border Grid.Row="0" Background="{StaticResource Palette.Background.Dark}" BorderBrush="#333" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="20,0">
+                <!-- Branding -->
+                <TextBlock Text="FR" FontWeight="Bold" FontSize="32" Foreground="{StaticResource Palette.Primary.Brand}" VerticalAlignment="Center" Margin="0,0,50,0"/>
+
+                <!-- Transport / Status -->
+                <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="Z" Width="40" Height="40" Margin="5"/>
+                <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="▶" Width="40" Height="40" Margin="5" Command="{Binding StartProgramCommand}" Foreground="#98C379" FontSize="20"/>
+                <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="⏹" Width="40" Height="40" Margin="5" Command="{Binding StopProgramCommand}" Foreground="#E06C75" FontSize="20"/>
+                <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="||" Width="40" Height="40" Margin="5" Foreground="#E5C07B" FontSize="20"/>
+
+                <TextBlock Text="{Binding CurrentState.IsRunning, StringFormat='Running: \{0\}'}" VerticalAlignment="Center" Margin="40,0,20,0" Foreground="{StaticResource Palette.Text.Highlight}"/>
+                <TextBlock Text="toolcoord1  |  wobj0  |  exaxis0" VerticalAlignment="Center" Margin="20,0"/>
+                
+                <TextBlock Text="{Binding CurrentState.SpeedPercent, StringFormat='\{0\}%'}" VerticalAlignment="Center" Margin="40,0,0,0" Foreground="#E5C07B" FontWeight="Bold"/>
+
+                <!-- Right Aligned Settings and Window Controls -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="300,0,0,0">
+                    <TextBlock Text="EN" VerticalAlignment="Center" Margin="20,0"/>
+                    <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="⛭" Width="40" Height="40" FontSize="24" Margin="0,0,20,0"/>
+                    
+                    <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="🗕" Width="40" Height="40" FontSize="16" Command="{Binding MinimizeWindowCommand}"/>
+                    <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="🗗" Width="40" Height="40" FontSize="16" Command="{Binding MaximizeWindowCommand}"/>
+                    <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="✕" Width="40" Height="40" FontSize="16" Command="{Binding CloseWindowCommand}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- MAIN CONTENT AREA -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- 0: Left Nav -->
+                <ColumnDefinition Width="{Binding LeftNavWidth}"/>
+                <!-- 1: Command Palette -->
+                <ColumnDefinition Width="{Binding CmdPaletteWidth}"/>
+                <!-- 2: Program Editor -->
+                <ColumnDefinition Width="{Binding ProgramWidth}"/>
+                <!-- 3: 3D Viewport & Overlays -->
+                <ColumnDefinition Width="{Binding ViewportWidth}"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- BACKGROUND: 3D VIEWPORT -->
+            <!-- Placed strictly in Column 3 -->
+            <Border Grid.Column="3" Background="#F9F9F9">
+                <Grid>
+                    <!-- Offset the 3D viewport by the 380px width of the floating parameter panel so it centers correctly -->
+                    <hx:HelixViewport3D Margin="380,0,0,0" ShowCoordinateSystem="True" ShowFrameRate="True" ZoomExtentsWhenLoaded="True" Background="Transparent">
+                        <hx:DefaultLights/>
+                        <ModelVisual3D x:Name="RobotModelVisual"/>
+                    </hx:HelixViewport3D>
+                    
+                    <!-- Viewport toggles can sit floating anywhere on the right -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10">
+                        <Button Style="{StaticResource IndustrialButton}" Content="⛶ Viewport Config" Command="{Binding ToggleWorkAreaConfigCommand}" Foreground="#98C379" FontWeight="Bold"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- FOREGROUND OVERLAYS -->
+
+            <!-- ZONE 2: LEFT NAV PANEL (Solid Dark) -->
+            <Border Grid.Column="0" Background="{StaticResource Palette.Background.Dark}" BorderBrush="#333" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10,20">
+                        <TextBlock Text="☀ Initialize" Margin="0,10" FontSize="18" Foreground="#ABB2BF"/>
+                        <TextBlock Text="▤ Teaching" Margin="0,10" FontSize="18" Foreground="#98C379" FontWeight="Bold"/>
+                        <StackPanel Margin="20,5,0,15">
+                            <TextBlock Text="Program Teaching" Margin="0,5" Foreground="#ABB2BF" FontWeight="SemiBold"/>
+                            <TextBlock Text="Graphical Program" Margin="0,5" Foreground="#666"/>
+                            <TextBlock Text="Node Graph" Margin="0,5" Foreground="#666"/>
+                            <TextBlock Text="Manage Teaching" Margin="0,5" Foreground="#666"/>
+                        </StackPanel>
+                        <TextBlock Text="✦ Status" Margin="0,10" FontSize="18" Foreground="#ABB2BF"/>
+                        <TextBlock Text="☷ Auxiliary" Margin="0,10" FontSize="18" Foreground="#ABB2BF"/>
+                        <TextBlock Text="⚙ Settings" Margin="0,10" FontSize="18" Foreground="#ABB2BF"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ZONE 3: COMMAND PALETTE (Frosted Light) -->
+            <Border Grid.Column="1" Background="#F2FFFFFF" BorderBrush="#CCC" BorderThickness="1,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ComboBox SelectedIndex="0" Margin="5" Padding="5">
+                            <ComboBoxItem Content="All"/>
+                        </ComboBox>
+                        
+                        <TextBlock Text="Logic command" Margin="10,10,10,5" Foreground="#666" FontWeight="Bold"/>
+                        <UniformGrid Columns="2" Margin="5">
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="WHILE" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="🔃" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="While" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="IFELSE" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="⑂" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="If_Else" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="GOTO" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="↷" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="Goto" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="WAIT" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="⏱" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="Wait" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="PAUSE" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="⏸" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="Pause" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="DOFILE" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="📄" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="Dofile" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="VAR" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="✕" FontSize="22" HorizontalAlignment="Center" Foreground="#888"/>
+                                    <TextBlock Text="Var" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Button>
+                        </UniformGrid>
+
+                        <TextBlock Text="Motion command" Margin="10,10,10,5" Foreground="#666" FontWeight="Bold"/>
+                        <UniformGrid Columns="2" Margin="5">
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="PTP" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="⤵" FontSize="24" HorizontalAlignment="Center" Foreground="#4A90E2"/>
+                                    <TextBlock Text="PTP" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="LIN" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="📏" FontSize="20" HorizontalAlignment="Center" Foreground="#4A90E2"/>
+                                    <TextBlock Text="LIN" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="ARC" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="◜" FontSize="26" HorizontalAlignment="Center" Foreground="#4A90E2"/>
+                                    <TextBlock Text="ARC" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,0,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="CIRCLE" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="⭕" FontSize="18" HorizontalAlignment="Center" Foreground="#4A90E2"/>
+                                    <TextBlock Text="Circle" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddInstructionCommand}" CommandParameter="SPIRAL" Margin="2" Height="65" Background="#FFF" BorderBrush="#DDD">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="🌀" FontSize="18" HorizontalAlignment="Center" Foreground="#4A90E2"/>
+                                    <TextBlock Text="Spiral" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Button>
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ZONE 4: PROGRAM TREE EDITOR (Frosted Light) -->
+            <Border Grid.Column="2" Background="#F2FFFFFF" BorderBrush="#CCC" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Top Icon Toolbar -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5" Height="30" Background="#E5E5E5">
+                        <Button Content="📁" Width="25" Background="Transparent" BorderThickness="0" Foreground="#333"/>
+                        <Button Content="💾" Width="25" Background="Transparent" BorderThickness="0" Foreground="#333"/>
+                        <Rectangle Width="1" Fill="#CCC" Margin="5"/>
+                        <Button Content="✂" Width="25" Background="Transparent" BorderThickness="0" Foreground="#333"/>
+                        <Button Content="📋" Width="25" Background="Transparent" BorderThickness="0" Foreground="#333"/>
+                    </StackPanel>
+
+                    <!-- File Tab -->
+                    <Border Grid.Row="1" Background="#FFF" BorderBrush="#CCC" BorderThickness="0,1,0,1" Padding="10,5">
+                        <TextBlock Text="luexpo.lua" FontWeight="SemiBold" Foreground="#333"/>
+                    </Border>
+
+                    <!-- Flat List Program Editor -->
+                    <ListBox Grid.Row="2" Margin="0" Background="Transparent" BorderThickness="0" ItemsSource="{Binding Instructions}" SelectionMode="Single" SelectedIndex="{Binding CurrentState.ActiveLineNumber, Mode=TwoWay}" AlternationCount="2">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="15,8"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                <Setter Property="BorderBrush" Value="#EEE"/>
+                                <Style.Triggers>
+                                    <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                        <Setter Property="Background" Value="#FFFFFF"/>
+                                    </Trigger>
+                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                        <Setter Property="Background" Value="#F5FDF5"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#B2D83D"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Format: 17 <=> InstrType(param...) -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Index}" Margin="0,0,5,0" Foreground="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=Foreground, FallbackValue=#888}" FontSize="12" FontWeight="SemiBold"/>
+                                    <TextBlock Text="&lt;=&gt; " Margin="0,0,5,0" Foreground="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=Foreground, FallbackValue=#888}" FontSize="12" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding DisplayText}" FontWeight="SemiBold" FontSize="13" Foreground="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=Foreground, FallbackValue=#333}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- ZONE 5: OPERATION & STATUS PANEL (Parameter Overlay) -->
+            <!-- Overlays the 3D Viewport (Column 3) on the left side -->
+            <Border Grid.Column="3" HorizontalAlignment="Left" Width="380" Background="#F2FFFFFF" CornerRadius="0" Margin="0" BorderBrush="#CCC" BorderThickness="0,0,1,0">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Operation &amp; Status" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#333"/>
+                    
+                    <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+                        <TabItem Header="Joint">
+                            <!-- JOINT JOG PANEL -->
+                            <StackPanel Margin="0,10">
+                                <!-- Speed / Accel Settings -->
+                                <Grid Margin="0,0,0,20">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="40"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="30"/>
+                                        <RowDefinition Height="30"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Speed" VerticalAlignment="Center" Foreground="#333"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CurrentState.SpeedPercent}" Margin="5" Background="#FFF" Foreground="#333"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="%" VerticalAlignment="Center" Foreground="#666"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Acceleration" VerticalAlignment="Center" Foreground="#333"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentState.Acceleration}" Margin="5" Background="#FFF" Foreground="#333"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="°/s²" VerticalAlignment="Center" Foreground="#666"/>
+                                </Grid>
+
+                                <!-- Joint Sliders -->
+                                <ItemsControl ItemsSource="{Binding Joints}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                    <ColumnDefinition Width="60"/>
+                                                </Grid.ColumnDefinitions>
+                                                <!-- J1 label -->
+                                                <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" Foreground="#333" FontWeight="Bold"/>
+                                                
+                                                <!-- Minus Button -->
+                                                <Button Grid.Column="1" Content="➖" Command="{Binding DataContext.JogJointCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding Name}" Foreground="#E06C75" FontWeight="Bold" Background="#FFF" BorderBrush="#CCC"/>
+                                                
+                                                <!-- Slider -->
+                                                <Slider Grid.Column="2" Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Angle, Mode=TwoWay}" Margin="10,0" VerticalAlignment="Center"/>
+                                                
+                                                <!-- Plus Button -->
+                                                <Button Grid.Column="3" Content="➕" Command="{Binding DataContext.JogJointCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding Name}" Foreground="#98C379" FontWeight="Bold" Background="#FFF" BorderBrush="#CCC"/>
+                                                
+                                                <!-- Value Readout -->
+                                                <TextBox Grid.Column="4" Text="{Binding Angle, StringFormat=N3}" Margin="5,0,0,0" Background="#FFF" Foreground="#333" BorderBrush="#CCC"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Base">
+                            <TextBlock Text="Base Frame Settings" Margin="10" Foreground="#333"/>
+                        </TabItem>
+                        <TabItem Header="Tool">
+                            <TextBlock Text="TCP Settings" Margin="10" Foreground="#333"/>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </Border>
+
+            <!-- ZONE 6: TCP / ROBOT STATUS OVERLAY (Right Side) -->
+            <Border Grid.Column="3" HorizontalAlignment="Right" Width="280" Background="#E5FFFFFF" CornerRadius="0" Margin="0" BorderBrush="#CCC" BorderThickness="1,0,0,0">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TabControl Grid.Row="0" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
+                        <TabItem Header="Robot"/>
+                        <TabItem Header="Polish"/>
+                        <TabItem Header="Servo"/>
+                        <TabItem Header="Welding"/>
+                    </TabControl>
+                    
+                    <!-- Joint values readout -->
+                    <StackPanel Grid.Row="1" Margin="0,5,0,15">
+                        <TextBlock Text="Joints" FontWeight="Bold" Foreground="#666" Margin="0,0,0,5" HorizontalAlignment="Right"/>
+                        <UniformGrid Columns="3">
+                            <TextBlock Text="{Binding CurrentState.J1, StringFormat='J1: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.J2, StringFormat='J2: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.J3, StringFormat='J3: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.J4, StringFormat='J4: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.J5, StringFormat='J5: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.J6, StringFormat='J6: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                        </UniformGrid>
+                    </StackPanel>
+                    
+                    <!-- TCP values readout -->
+                    <StackPanel Grid.Row="2" Margin="0,5,0,15">
+                        <TextBlock Text="TCP" FontWeight="Bold" Foreground="#666" Margin="0,0,0,5" HorizontalAlignment="Right"/>
+                        <UniformGrid Columns="3">
+                            <TextBlock Text="{Binding CurrentState.X, StringFormat='X: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.Y, StringFormat='Y: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.Z, StringFormat='Z: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.RX, StringFormat='RX: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.RY, StringFormat='RY: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.RZ, StringFormat='RZ: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                        </UniformGrid>
+                    </StackPanel>
+
+                    <!-- FT & Line Num readout -->
+                    <StackPanel Grid.Row="3" Margin="0,5,0,0">
+                        <TextBlock Text="FT" FontWeight="Bold" Foreground="#666" Margin="0,0,0,5" HorizontalAlignment="Right"/>
+                        <UniformGrid Columns="3">
+                            <TextBlock Text="{Binding CurrentState.Fx, StringFormat='Fx: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.Fy, StringFormat='Fy: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                            <TextBlock Text="{Binding CurrentState.Fz, StringFormat='Fz: \{0:F3\}'}" Foreground="#444" Margin="2" FontSize="11"/>
+                        </UniformGrid>
+                        <Border BorderBrush="#DDD" BorderThickness="0,1,0,0" Margin="0,15,0,10" Padding="0,10,0,0">
+                            <TextBlock Text="{Binding CurrentState.ActiveLineNumber, StringFormat='Line-Num: \{0\}'}" FontWeight="SemiBold" Foreground="#E06C75" HorizontalAlignment="Right"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- ROW 2: BOTTOM BAR (Dark) -->
+        <Border Grid.Row="2" Height="70" Background="{StaticResource Palette.Background.Medium}" BorderBrush="#333" BorderThickness="0,1,0,0" Padding="10">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="FR-HMI" FontSize="20" FontWeight="Bold" Foreground="#F28E2B" VerticalAlignment="Center" Margin="10,0,30,0"/>
+                    
+                    <Button Style="{StaticResource IndustrialButton}" Content="▶ Start" Command="{Binding StartProgramCommand}" Foreground="#98C379" Width="120" Height="50" Margin="40,0,10,0" FontSize="18" FontWeight="Bold"/>
+                    <Button Style="{StaticResource IndustrialButton}" Content="⏹ Stop" Command="{Binding StopProgramCommand}" Foreground="#E06C75" Width="120" Height="50" Margin="10,0" FontSize="18" FontWeight="Bold"/>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="300,0,0,0">
+                        <Button Style="{StaticResource IndustrialButton}" Content="F1" Width="80" Height="50" Margin="5"/>
+                        <Button Style="{StaticResource IndustrialButton}" Content="F2" Width="80" Height="50" Margin="5"/>
+                        <Button Style="{StaticResource IndustrialButton}" Content="F3" Width="80" Height="50" Margin="5"/>
+                        <Button Style="{StaticResource IndustrialButton}" Content="F4" Width="80" Height="50" Margin="5"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
