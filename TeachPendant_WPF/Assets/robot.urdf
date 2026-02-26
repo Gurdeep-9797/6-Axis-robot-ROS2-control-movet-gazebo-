@@ -1,45 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<robot name="robot_6_dof">
-  <!-- BASE LINK -->
+<robot name="FR-6DOF">
+  <!-- BASE LINK (Heavy pedestal) -->
   <link name="base_link">
     <visual>
-      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.12" length="0.1"/>
+        <cylinder radius="0.15" length="0.05"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.10" length="0.05"/>
       </geometry>
     </visual>
   </link>
 
-  <!-- JOINT 1 (Yaw) -->
+  <!-- JOINT 1 (Base Yaw) - Rotates around Z -->
   <joint name="joint_1" type="revolute">
     <parent link="base_link"/>
     <child link="link_1"/>
     <origin xyz="0 0 0.1" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
+    <limit lower="-2.967" upper="2.967"/>
   </joint>
   <link name="link_1">
     <visual>
-      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <origin xyz="0 0 0.06" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.09" length="0.1"/>
+        <cylinder radius="0.085" length="0.12"/>
       </geometry>
     </visual>
   </link>
 
   <!-- JOINT 2 (Shoulder Pitch) -->
-  <!-- Rotate -90 on X so Z points laterally -->
   <joint name="joint_2" type="revolute">
     <parent link="link_1"/>
     <child link="link_2"/>
-    <origin xyz="0 0 0.1" rpy="-1.57079632679 0 0"/>
+    <origin xyz="0 0 0.12" rpy="-1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
+    <limit lower="-2.094" upper="2.094"/>
   </joint>
   <link name="link_2">
     <visual>
-      <!-- The arm spans along X axis -->
-      <origin xyz="0.2 0 0" rpy="0 1.57079632679 0"/>
+      <origin xyz="0.175 0 0" rpy="0 1.5707963 0"/>
       <geometry>
-        <cylinder radius="0.06" length="0.4"/>
+        <cylinder radius="0.055" length="0.35"/>
+      </geometry>
+    </visual>
+    <!-- Shoulder housing -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.07" length="0.06"/>
       </geometry>
     </visual>
   </link>
@@ -48,62 +61,81 @@
   <joint name="joint_3" type="revolute">
     <parent link="link_2"/>
     <child link="link_3"/>
-    <origin xyz="0.4 0 0" rpy="0 0 0"/>
+    <origin xyz="0.35 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
+    <limit lower="-2.967" upper="2.967"/>
   </joint>
   <link name="link_3">
     <visual>
-      <origin xyz="0.15 0 0" rpy="0 1.57079632679 0"/>
+      <origin xyz="0.13 0 0" rpy="0 1.5707963 0"/>
       <geometry>
-        <cylinder radius="0.05" length="0.3"/>
+        <cylinder radius="0.045" length="0.26"/>
+      </geometry>
+    </visual>
+    <!-- Elbow housing -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.05"/>
       </geometry>
     </visual>
   </link>
 
-  <!-- JOINT 4 (Wrist 1 Pitch) -->
+  <!-- JOINT 4 (Wrist 1 / Roll) -->
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
-    <origin xyz="0.3 0 0" rpy="0 0 0"/>
+    <origin xyz="0.26 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159"/>
   </joint>
   <link name="link_4">
     <visual>
-      <origin xyz="0 0 0.05" rpy="0 1.57079632679 0"/>
-      <geometry>
-        <cylinder radius="0.045" length="0.1"/>
-      </geometry>
-    </visual>
-  </link>
-
-  <!-- JOINT 5 (Wrist 2 Yaw) -->
-  <joint name="joint_5" type="revolute">
-    <parent link="link_4"/>
-    <child link="link_5"/>
-    <origin xyz="0 0.05 0" rpy="1.57079632679 0 0"/>
-    <axis xyz="0 0 1"/>
-  </joint>
-  <link name="link_5">
-    <visual>
-      <origin xyz="0 0 0.04" rpy="0 0 0"/>
+      <origin xyz="0 0 0.04" rpy="0 1.5707963 0"/>
       <geometry>
         <cylinder radius="0.04" length="0.08"/>
       </geometry>
     </visual>
   </link>
 
-  <!-- JOINT 6 (Wrist 3 Roll / Tool) -->
+  <!-- JOINT 5 (Wrist 2 / Pitch) -->
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <origin xyz="0 0.04 0" rpy="1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.094" upper="2.094"/>
+  </joint>
+  <link name="link_5">
+    <visual>
+      <origin xyz="0 0 0.035" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.07"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- JOINT 6 (Wrist 3 / Tool Roll) -->
   <joint name="joint_6" type="revolute">
     <parent link="link_5"/>
     <child link="link_6"/>
-    <origin xyz="0 0 0.08" rpy="-1.57079632679 0 0"/>
+    <origin xyz="0 0 0.07" rpy="-1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
+    <limit lower="-6.283" upper="6.283"/>
   </joint>
   <link name="link_6">
+    <!-- Tool flange -->
     <visual>
-      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
       <geometry>
-        <box size="0.06 0.06 0.04"/>
+        <cylinder radius="0.03" length="0.015"/>
+      </geometry>
+    </visual>
+    <!-- Tool tip indicator -->
+    <visual>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.05 0.05 0.015"/>
       </geometry>
     </visual>
   </link>

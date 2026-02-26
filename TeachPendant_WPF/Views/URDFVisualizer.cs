@@ -45,18 +45,22 @@ namespace TeachPendant_WPF.Views
 
             if (links.TryGetValue(currentLinkName, out var baseLink))
             {
-                var visual = BuildLinkVisual(baseLink, Brushes.DarkSlateGray);
-                if (visual != null) currentGroup.Children.Add(visual);
+                var baseBrush = new SolidColorBrush(Color.FromRgb(0x40, 0x44, 0x4B));
+                var visuals = BuildLinkVisuals(baseLink, baseBrush);
+                foreach (var visual in visuals)
+                {
+                    if (visual != null) currentGroup.Children.Add(visual);
+                }
             }
 
             int jointIndex = 1;
             Brush[] brushes = { 
-                Brushes.Goldenrod,     // Orange
-                Brushes.LightGray,     // Light Gray
-                Brushes.Goldenrod, 
-                Brushes.LightGray, 
-                Brushes.Goldenrod, 
-                Brushes.DarkSlateGray  // Dark Gray
+                new SolidColorBrush(Color.FromRgb(0xE8, 0xA0, 0x2E)),  // Orange-Gold
+                new SolidColorBrush(Color.FromRgb(0xC0, 0xC0, 0xC5)),  // Silver
+                new SolidColorBrush(Color.FromRgb(0xE8, 0xA0, 0x2E)),  // Orange-Gold
+                new SolidColorBrush(Color.FromRgb(0xC0, 0xC0, 0xC5)),  // Silver
+                new SolidColorBrush(Color.FromRgb(0xE8, 0xA0, 0x2E)),  // Orange-Gold
+                new SolidColorBrush(Color.FromRgb(0x40, 0x44, 0x4B))   // Dark Charcoal
             };
 
             while (true)
@@ -91,8 +95,12 @@ namespace TeachPendant_WPF.Views
                 if (links.TryGetValue(childLinkName, out var childLink))
                 {
                     Brush brush = brushes[(jointIndex - 1) % brushes.Length];
-                    var visual = BuildLinkVisual(childLink, brush);
-                    if (visual != null) jointContainer.Children.Add(visual);
+                    // Process ALL visual elements in the link (not just the first)
+                    var visuals = BuildLinkVisuals(childLink, brush);
+                    foreach (var visual in visuals)
+                    {
+                        if (visual != null) jointContainer.Children.Add(visual);
+                    }
                 }
 
                 currentGroup.Children.Add(jointContainer);
@@ -102,11 +110,27 @@ namespace TeachPendant_WPF.Views
             }
         }
 
+        private List<ModelVisual3D?> BuildLinkVisuals(XElement linkEl, Brush brush)
+        {
+            var result = new List<ModelVisual3D?>();
+            var visualElements = linkEl.Elements("visual");
+            foreach (var visualEl in visualElements)
+            {
+                var vis = BuildSingleVisual(visualEl, brush);
+                if (vis != null) result.Add(vis);
+            }
+            return result;
+        }
+
         private ModelVisual3D? BuildLinkVisual(XElement linkEl, Brush brush)
         {
             var visualEl = linkEl.Element("visual");
             if (visualEl == null) return null;
+            return BuildSingleVisual(visualEl, brush);
+        }
 
+        private ModelVisual3D? BuildSingleVisual(XElement visualEl, Brush brush)
+        {
             var originEl = visualEl.Element("origin");
             var origin = ParseVector(originEl?.Attribute("xyz")?.Value);
             var rpyTransform = ParseRpyToTransform(originEl?.Attribute("rpy")?.Value);
