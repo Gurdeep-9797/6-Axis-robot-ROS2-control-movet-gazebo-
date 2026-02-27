@@ -43,9 +43,42 @@ namespace TeachPendant_WPF.Views
                         item.PropertyChanged += JointSlider_PropertyChanged;
                 }
             };
+            // Reload URDF when selected via settings
+            _viewModel.SettingsVM.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SettingsViewModel.UrdfPath) && !string.IsNullOrEmpty(_viewModel.SettingsVM.UrdfPath))
+                {
+                    ReloadUrdfModel(_viewModel.SettingsVM.UrdfPath);
+                }
+            };
 
             // ── Register keyboard shortcuts ──
             RegisterKeyBindings();
+        }
+
+        private void ReloadUrdfModel(string path)
+        {
+            if (!File.Exists(path)) return;
+            
+            // 1. Visual 3D reload
+            RobotModelVisual.Children.Clear();
+            _urdfVisualizer = new URDFVisualizer(path);
+            RobotModelVisual.Children.Add(_urdfVisualizer.RootVisual);
+
+            // 2. Logical SceneGraph reload
+            var robotNode = TeachPendant_WPF.Services.URDFParser.ParseLogicalRobot(path);
+            if (robotNode != null && robotNode.DOF > 0)
+            {
+                foreach (var slider in _viewModel.RobotVM.JointSliders)
+                {
+                    slider.PropertyChanged -= JointSlider_PropertyChanged;
+                }
+                
+                _viewModel.SceneGraph.SetRobot(robotNode);
+                _viewModel.RobotVM.InitializeSliders(robotNode);
+            }
+
+            UpdateRobotVisual();
         }
 
         // ── Window Drag (fixes custom chrome not draggable) ──────────

@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Backgrounds -->
+    <SolidColorBrush x:Key="Bg.Deepest" Color="#050505"/> <!-- 3D Viewport -->
+    <SolidColorBrush x:Key="Bg.Surface1" Color="#1E1E1E"/> <!-- Left/Right/Bottom Docks -->
+    <SolidColorBrush x:Key="Bg.Surface2" Color="#252526"/> <!-- Headers, Active states -->
+    
+    <!-- Borders -->
+    <SolidColorBrush x:Key="Border.Default" Color="#333333"/>
+    <SolidColorBrush x:Key="Border.Highlight" Color="#3E3E42"/>
+    
+    <!-- Typography -->
+    <SolidColorBrush x:Key="Text.Primary" Color="#E2E8F0"/>
+    <SolidColorBrush x:Key="Text.Muted" Color="#888888"/>
+    
+    <!-- Accents -->
+    <SolidColorBrush x:Key="Accent.Sim" Color="#3B82F6"/> <!-- Blue -->
+    <SolidColorBrush x:Key="Accent.Real" Color="#10B981"/> <!-- Green -->
+    <SolidColorBrush x:Key="Accent.Motion" Color="#F59E0B"/> <!-- Orange -->
+    <SolidColorBrush x:Key="Accent.Error" Color="#F87171"/> <!-- Red -->
+    
+    <!-- Fonts -->
+    <FontFamily x:Key="Font.UI">Inter, Segoe UI, sans-serif</FontFamily>
+    <FontFamily x:Key="Font.Mono">JetBrains Mono, Consolas, monospace</FontFamily>
+</ResourceDictionary>

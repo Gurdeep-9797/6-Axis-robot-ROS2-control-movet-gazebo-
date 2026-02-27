@@ -49,11 +49,12 @@ namespace TeachPendant_WPF.ViewModels
 
         // ── Command Palette ──────────────────────────────────────────
         [ObservableProperty] private bool _isCommandPaletteOpen;
+        [ObservableProperty] private bool _isSettingsOpen;
         [ObservableProperty] private string _commandPaletteQuery = string.Empty;
         public ObservableCollection<CommandDefinition> CommandPaletteResults { get; } = new();
 
         // ── Services ────────────────────────────────────────────────
-        private readonly IRobotDriver _driver;
+        private IRobotDriver _driver;
         private readonly ExecutionEngine _engine;
         private readonly DatabaseService _dbService;
 
@@ -98,11 +99,53 @@ namespace TeachPendant_WPF.ViewModels
                 ProgramVM.ActiveLineNumber = line;
             };
 
+            // 6.5. Real/Sim Mode Toggle Handling
+            GlobalState.ModeChangeRequested += OnModeChangeRequested;
+
             // 7. Load data
             _ = LoadInitialDataAsync();
 
             // 8. Register commands in registry
             RegisterCoreCommands();
+        }
+
+        // ── Real/Sim Mode Switch ─────────────────────────────────────
+        private void OnModeChangeRequested(GlobalStateViewModel.OperatingMode targetMode)
+        {
+            var msg = targetMode == GlobalStateViewModel.OperatingMode.Real
+                ? "WARNING: You are about to connect to the REAL PHYSICAL ROBOT.\n\nEnsure the workspace is clear and the emergency stop is accessible.\n\nProceed?"
+                : "Switch to Simulation Mode?";
+
+            var result = System.Windows.MessageBox.Show(
+                msg, 
+                "Operating Mode Switch", 
+                System.Windows.MessageBoxButton.YesNo, 
+                targetMode == GlobalStateViewModel.OperatingMode.Real 
+                    ? System.Windows.MessageBoxImage.Warning 
+                    : System.Windows.MessageBoxImage.Question);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                _driver.Disconnect();
+                _driver.StateUpdated -= OnDriverStateUpdated;
+
+                if (targetMode == GlobalStateViewModel.OperatingMode.Real)
+                {
+                    var encDriver = new EncoderDriver();
+                    encDriver.EncoderResolution = SettingsVM.EncoderResolution;
+                    encDriver.GearRatio = SettingsVM.GearRatio;
+                    _driver = encDriver;
+                }
+                else
+                {
+                    _driver = new SimulationDriver();
+                }
+
+                _driver.StateUpdated += OnDriverStateUpdated;
+                _engine.SetDriver(_driver);
+                _driver.Connect();
+                GlobalState.SetMode(targetMode);
+            }
         }
 
         // ── Robot Setup ─────────────────────────────────────────────
@@ -221,6 +264,18 @@ namespace TeachPendant_WPF.ViewModels
                     ? WindowState.Normal
                     : WindowState.Maximized;
             }
+        }
+
+        [RelayCommand]
+        private void CloseSettings()
+        {
+            IsSettingsOpen = false;
+        }
+
+        [RelayCommand]
+        private void OpenSettings()
+        {
+            IsSettingsOpen = true;
         }
 
         // ── Work Area Toggle ────────────────────────────────────────
@@ -457,7 +512,7 @@ namespace TeachPendant_WPF.ViewModels
             {
                 Id = "System.Settings", DisplayName = "Open Settings", Category = "System",
                 IconGlyph = "⚙", Description = "Open application settings",
-                Execute = () => { ActiveNavPage = "Settings"; }
+                Execute = () => { IsSettingsOpen = true; }
             });
 
             CommandReg.Register(new CommandDefinition

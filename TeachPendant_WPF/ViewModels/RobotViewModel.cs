@@ -57,7 +57,7 @@ namespace TeachPendant_WPF.ViewModels
             }
         }
 
-        private void InitializeSliders(RobotNode robot)
+        public void InitializeSliders(RobotNode robot)
         {
             JointSliders.Clear();
             for (int i = 0; i < robot.DOF; i++)

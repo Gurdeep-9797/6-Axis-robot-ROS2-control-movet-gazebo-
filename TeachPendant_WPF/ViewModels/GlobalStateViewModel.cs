@@ -51,19 +51,22 @@ namespace TeachPendant_WPF.ViewModels
 
         // ── Commands ────────────────────────────────────────────────
 
+        public event System.Action<OperatingMode>? ModeChangeRequested;
+
         [RelayCommand]
         private void ToggleMode()
         {
-            if (CurrentMode == OperatingMode.Simulator)
-            {
-                CurrentMode = OperatingMode.Real;
-                ModeDisplayText = "Real";
-            }
-            else
-            {
-                CurrentMode = OperatingMode.Simulator;
-                ModeDisplayText = "Simulator";
-            }
+            var targetMode = CurrentMode == OperatingMode.Simulator 
+                ? OperatingMode.Real 
+                : OperatingMode.Simulator;
+            
+            ModeChangeRequested?.Invoke(targetMode);
+        }
+
+        public void SetMode(OperatingMode mode)
+        {
+            CurrentMode = mode;
+            ModeDisplayText = mode == OperatingMode.Simulator ? "Simulator" : "Real";
         }
 
         [RelayCommand]

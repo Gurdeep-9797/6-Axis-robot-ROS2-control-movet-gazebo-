@@ -5,510 +5,387 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:hx="http://helix-toolkit.org/wpf"
         xmlns:viewmodels="clr-namespace:TeachPendant_WPF.ViewModels"
+        xmlns:local="clr-namespace:TeachPendant_WPF.Views"
         mc:Ignorable="d"
         Title="FR-HMI Teach Pendant" Height="1080" Width="1920"
-        WindowStyle="None" WindowState="Maximized" ResizeMode="CanResize"
-        AllowsTransparency="True"
-        Background="{StaticResource Palette.Background.Medium}"
-        Foreground="{StaticResource Palette.Text.Primary}">
+        Style="{StaticResource FRWindowStyle}">
 
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" CornerRadius="0" GlassFrameThickness="1" ResizeBorderThickness="6" UseAeroCaptionButtons="False"/>
+        <WindowChrome CaptionHeight="40" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0"/>
     </WindowChrome.WindowChrome>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <!-- Icon Sidebar -->
-            <ColumnDefinition Width="56"/>
-            <!-- Content Area -->
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Grid Background="{StaticResource Bg.Deepest}">
+        <Grid.RowDefinitions>
+            <!-- Top Ribbon -->
+            <RowDefinition Height="46"/>
+            <!-- 3-Pane Content -->
+            <RowDefinition Height="*"/>
+            <!-- Bottom Console -->
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- ICON SIDEBAR (Slim vertical navigation)                    -->
+        <!-- TOP RIBBON                                                  -->
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Column="0" Background="{StaticResource Palette.Background.Dark}" BorderBrush="#1A1D23" BorderThickness="0,0,1,0">
-            <DockPanel>
-                <!-- FR Brand at top -->
-                <TextBlock DockPanel.Dock="Top" Text="FR" FontWeight="Bold" FontSize="22" Foreground="{StaticResource Palette.Primary.Brand}" 
-                           HorizontalAlignment="Center" Margin="0,14,0,10"/>
-                <Rectangle DockPanel.Dock="Top" Height="1" Fill="#383E4A" Margin="8,0"/>
+        <Border Grid.Row="0" Background="{StaticResource Bg.Surface1}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,0,1" WindowChrome.IsHitTestVisibleInChrome="False">
+            <Grid Margin="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Brand / Menus -->
+                    <ColumnDefinition Width="Auto"/> <!-- Modes -->
+                    <ColumnDefinition Width="*"/>    <!-- Spacer -->
+                    <ColumnDefinition Width="Auto"/> <!-- Status -->
+                    <ColumnDefinition Width="Auto"/> <!-- Window Controls -->
+                </Grid.ColumnDefinitions>
 
-                <!-- Nav Icons -->
-                <StackPanel DockPanel.Dock="Top" Margin="0,8,0,0">
-                    <Button Style="{StaticResource NavButton}" Content="🏠" FontSize="20" HorizontalContentAlignment="Center" Padding="0,10" ToolTip="Initialize"
-                            Command="{Binding SwitchNavPageCommand}" CommandParameter="Initialize" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Style="{StaticResource NavButton}" Content="▤" FontSize="20" HorizontalContentAlignment="Center" Padding="0,10" ToolTip="Teaching" 
-                            Command="{Binding SwitchNavPageCommand}" CommandParameter="Teaching" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Style="{StaticResource NavButton}" Content="✦" FontSize="20" HorizontalContentAlignment="Center" Padding="0,10" ToolTip="Status"
-                            Command="{Binding SwitchNavPageCommand}" CommandParameter="Status" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Style="{StaticResource NavButton}" Content="☷" FontSize="20" HorizontalContentAlignment="Center" Padding="0,10" ToolTip="Auxiliary"
-                            Command="{Binding SwitchNavPageCommand}" CommandParameter="Auxiliary" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Style="{StaticResource NavButton}" Content="⚙" FontSize="20" HorizontalContentAlignment="Center" Padding="0,10" ToolTip="Settings"
-                            Command="{Binding SwitchNavPageCommand}" CommandParameter="Settings" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                <!-- Brand -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="FR-STUDIO IDE" FontWeight="Bold" Foreground="{StaticResource Palette.Primary.Brand}" FontSize="13" Margin="0,0,20,0"/>
+                    <Button Content="File" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    <Button Content="Edit" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    <Button Content="View" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    <Button Content="Robot" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    <Button Content="Settings" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" Command="{Binding OpenSettingsCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
                 </StackPanel>
 
-                <!-- Bottom: Transport Controls -->
-                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,10">
-                    <Rectangle Height="1" Fill="#383E4A" Margin="8,0,8,8"/>
-                    <Button Style="{StaticResource NavButton}" Content="▶" FontSize="18" HorizontalContentAlignment="Center" Padding="0,8" 
-                            Foreground="#98C379" ToolTip="Run Program" Command="{Binding StartProgramCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Style="{StaticResource NavButton}" Content="⏹" FontSize="18" HorizontalContentAlignment="Center" Padding="0,8"
-                            Foreground="#E06C75" ToolTip="Stop" Command="{Binding StopProgramCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                <!-- Mode & Execution (SIM/REAL + Start/Stop) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Border Background="{StaticResource Bg.Deepest}" CornerRadius="3" Padding="2" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Content="SIM" Style="{StaticResource FRToggleButtonStyle}" IsChecked="{Binding GlobalState.IsSimulationMode}"/>
+                            <RadioButton Content="REAL" Style="{StaticResource FRToggleButtonStyle}" IsChecked="{Binding GlobalState.IsRealMode}" Command="{Binding GlobalState.ToggleModeCommand}"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Button Style="{StaticResource FRButtonStyle}" Foreground="{StaticResource Accent.Real}" Command="{Binding StartProgramCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="▶" Margin="0,0,4,0"/>
+                            <TextBlock Text="Running"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource FRButtonStyle}" Foreground="{StaticResource Accent.Error}" Command="{Binding StopProgramCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="■" Margin="0,0,4,0"/>
+                            <TextBlock Text="ABORT"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
-                <!-- Spacer -->
-                <Border/>
-            </DockPanel>
+                <!-- Status Badge -->
+                <Border Grid.Column="3" Background="{StaticResource Bg.Deepest}" CornerRadius="12" Padding="12,4" Margin="0,0,16,0" VerticalAlignment="Center" BorderBrush="{StaticResource Border.Highlight}" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="6" Height="6" Margin="0,0,6,0">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="{StaticResource Text.Muted}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding GlobalState.IsRunning}" Value="True">
+                                            <Setter Property="Fill" Value="{StaticResource Accent.Real}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="{Binding GlobalState.ExecutionStateText}" Foreground="{StaticResource Text.Primary}" FontSize="10" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Window Controls -->
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Style="{StaticResource FRButtonStyle}" Content="🗕" Width="30" Height="24" Padding="0" Command="{Binding MinimizeWindowCommand}"/>
+                    <Button Style="{StaticResource FRButtonStyle}" Content="🗗" Width="30" Height="24" Padding="0" Command="{Binding MaximizeWindowCommand}"/>
+                    <Button Style="{StaticResource FRButtonStyle}" Content="✕" Width="30" Height="24" Padding="0" Command="{Binding CloseWindowCommand}"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- MAIN CONTENT (Right of sidebar)                            -->
+        <!-- 3-PANE EXPLORER                                             -->
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <!-- Top Bar -->
-                <RowDefinition Height="48"/>
-                <!-- Content -->
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" MinWidth="200"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="350" MinWidth="300"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- ═══════ TOP STATUS BAR ═══════ -->
-            <Border Grid.Row="0" Background="{StaticResource Palette.Background.Dark}" BorderBrush="#383E4A" BorderThickness="0,0,0,1">
-                <Grid Margin="12,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Left Status -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- State Badge -->
-                        <Border Background="#2A2D35" CornerRadius="4" Padding="10,4" Margin="0,0,10,0">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Margin="0,0,6,0">
-                                    <Ellipse.Style>
-                                        <Style TargetType="Ellipse">
-                                            <Setter Property="Fill" Value="#555"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding GlobalState.IsRunning}" Value="True">
-                                                    <Setter Property="Fill" Value="#98C379"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Ellipse.Style>
-                                </Ellipse>
-                                <TextBlock Text="{Binding GlobalState.ExecutionStateText}" Foreground="#ABB2BF" FontSize="11"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Mode Toggle -->
-                        <Button Style="{StaticResource IndustrialButton}" Padding="8,3" Margin="0" WindowChrome.IsHitTestVisibleInChrome="True"
-                                Command="{Binding GlobalState.ToggleModeCommand}">
-                            <TextBlock Text="{Binding GlobalState.ModeDisplayText}" Foreground="#56B6C2" FontWeight="Bold" FontSize="11"/>
-                        </Button>
-
-                        <Rectangle Width="1" Fill="#383E4A" Margin="10,10"/>
-
-                        <!-- Tool / WObj -->
-                        <TextBlock Text="{Binding GlobalState.ActiveToolName}" Foreground="#8B919D" FontSize="11" VerticalAlignment="Center" Margin="4,0"/>
-                        <TextBlock Text="│" Foreground="#383E4A" VerticalAlignment="Center" Margin="4,0"/>
-                        <TextBlock Text="{Binding GlobalState.ActiveWorkObjectName}" Foreground="#8B919D" FontSize="11" VerticalAlignment="Center" Margin="4,0"/>
-
-                        <Rectangle Width="1" Fill="#383E4A" Margin="10,10"/>
-
-                        <!-- Speed -->
-                        <TextBlock Text="{Binding GlobalState.SpeedOverridePercent, StringFormat='{}{0:F0}%'}" Foreground="#E5C07B" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <!-- Center: Active Page Label -->
-                    <TextBlock Grid.Column="1" Text="{Binding ActiveNavPage}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="#5C6370" FontSize="12" FontWeight="SemiBold"/>
-
-                    <!-- Right: Window Controls -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="🗕" Width="32" Height="28" FontSize="12" Padding="0" Command="{Binding MinimizeWindowCommand}"/>
-                        <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="🗗" Width="32" Height="28" FontSize="12" Padding="0" Command="{Binding MaximizeWindowCommand}"/>
-                        <Button Style="{StaticResource IndustrialButton}" WindowChrome.IsHitTestVisibleInChrome="True" Content="✕" Width="32" Height="28" FontSize="12" Padding="0" Command="{Binding CloseWindowCommand}"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- ═══════ CONTENT AREA ═══════ -->
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <!-- WorkTree / Content Panel -->
-                    <ColumnDefinition Width="300"/>
-                    <!-- Splitter -->
-                    <ColumnDefinition Width="Auto"/>
-                    <!-- Right: 3D + Parameters -->
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- ═══════════════════════════════════════════════ -->
-                <!-- LEFT PANEL: WorkTree + Command Palette          -->
-                <!-- ═══════════════════════════════════════════════ -->
-                <Grid Grid.Column="0" Background="{StaticResource Palette.Background.Panel}">
+            <!-- ═══════ LEFT PANEL: Toolbox & Logic Tree ═══════ -->
+            <Border Grid.Column="0" Background="{StaticResource Bg.Surface1}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,1,0">
+                <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="200"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-
-                    <!-- WORK TREE (Hierarchical Project Browser) -->
-                    <Border Grid.Row="0" Margin="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+                    
+                    <!-- Toolbox Component -->
+                    <StackPanel Grid.Row="0" Margin="10,16,10,10">
+                        <TextBlock Text="COMMAND TOOLBOX" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11" Margin="0,0,0,8"/>
+                        <WrapPanel Orientation="Horizontal" Focusable="False">
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="LIN" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="↗" Foreground="#61AFEF" Margin="0,0,6,0"/>
+                                    <TextBlock Text="LIN" Foreground="{StaticResource Text.Primary}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="PTP" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⤿" Foreground="#C678DD" Margin="0,0,6,0"/>
+                                    <TextBlock Text="PTP" Foreground="{StaticResource Text.Primary}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="WAIT" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⏱" Foreground="#D19A66" Margin="0,0,6,0"/>
+                                    <TextBlock Text="WAIT" Foreground="{StaticResource Text.Primary}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="SETDO" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚡" Foreground="#98C379" Margin="0,0,6,0"/>
+                                    <TextBlock Text="IO" Foreground="{StaticResource Text.Primary}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="LoadURDF" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🤖" Foreground="#E5C07B" Margin="0,0,6,0"/>
+                                    <TextBlock Text="URDF" Foreground="{StaticResource Text.Primary}"/>
+                                </StackPanel>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                    
+                    <!-- Logic Tree Component -->
+                    <Border Grid.Row="1" Margin="10,0,10,10" Background="{StaticResource Bg.Deepest}" CornerRadius="4" BorderBrush="{StaticResource Border.Default}" BorderThickness="1">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-
-                            <!-- Tree Header + Toolbar -->
-                            <Border Grid.Row="0" Background="#EDF0F5" Padding="10,0" BorderBrush="#DDD" BorderThickness="0,0,0,1">
-                                <DockPanel>
-                                    <TextBlock Text="Project Explorer" FontWeight="Bold" Foreground="#333" FontSize="12" VerticalAlignment="Center"/>
-                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Style="{StaticResource PaletteButton}" Content="📄" Width="24" Height="24" FontSize="12" Margin="1" ToolTip="New Program"
-                                                Command="{Binding NewProgramCommand}"/>
-                                        <Button Style="{StaticResource PaletteButton}" Content="＋" Width="24" Height="24" FontSize="14" Margin="1" ToolTip="Add Point"
-                                                Command="{Binding WorkTree.AddPointCommand}"/>
-                                        <Button Style="{StaticResource PaletteButton}" Content="🗑" Width="24" Height="24" FontSize="12" Margin="1" ToolTip="Delete Selected"
-                                                Command="{Binding WorkTree.DeleteSelectedCommand}"/>
-                                    </StackPanel>
-                                </DockPanel>
+                            <Border Grid.Row="0" Background="{StaticResource Bg.Surface2}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,0,1" Padding="12,8">
+                                <TextBlock Text="LOGIC TREE" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11"/>
                             </Border>
-
-                            <!-- TreeView -->
-                            <TreeView Grid.Row="1" Background="Transparent" BorderThickness="0" 
-                                      ItemsSource="{Binding WorkTree.RootNodes}" Margin="0" Padding="4">
+                            <TreeView Grid.Row="1" ItemsSource="{Binding WorkTree.RootNodes}" Background="Transparent" BorderThickness="0" Margin="4">
                                 <TreeView.ItemContainerStyle>
-                                    <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeItemStyle}">
+                                    <Style TargetType="TreeViewItem">
                                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                        <!-- Note: Using IsSelected TwoWay binding for now; real project may require a behavior to push selection to VM reliably -->
                                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+                                        <Setter Property="Padding" Value="4,2"/>
+                                        <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                        <Setter Property="ContextMenu">
+                                            <Setter.Value>
+                                                <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                                    <MenuItem Header="Edit Parameter..." Command="{Binding WorkTree.EditSelectedCommand}"/>
+                                                    <MenuItem Header="Duplicate" Command="{Binding WorkTree.DuplicateSelectedCommand}"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Delete Node" Command="{Binding WorkTree.DeleteSelectedCommand}" Foreground="#DF6965"/>
+                                                </ContextMenu>
+                                            </Setter.Value>
+                                        </Setter>
                                     </Style>
                                 </TreeView.ItemContainerStyle>
                                 <TreeView.ItemTemplate>
                                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                        <StackPanel Orientation="Horizontal" Margin="2,2">
-                                            <StackPanel.ContextMenu>
-                                                <ContextMenu>
-                                                    <MenuItem Header="Edit" FontSize="12"/>
-                                                    <MenuItem Header="Delete" FontSize="12"
-                                                              Command="{Binding DataContext.WorkTree.DeleteSelectedCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
-                                                    <MenuItem Header="Duplicate" FontSize="12"/>
-                                                    <Separator/>
-                                                    <MenuItem Header="Set Speed..." FontSize="12"/>
-                                                    <MenuItem Header="Set Blend Radius..." FontSize="12"/>
-                                                    <MenuItem Header="Convert Motion Type" FontSize="12">
-                                                        <MenuItem Header="PTP" FontSize="12"/>
-                                                        <MenuItem Header="LIN" FontSize="12"/>
-                                                        <MenuItem Header="ARC" FontSize="12"/>
-                                                    </MenuItem>
-                                                </ContextMenu>
-                                            </StackPanel.ContextMenu>
-                                            <TextBlock Text="{Binding Icon}" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#333" VerticalAlignment="Center" FontWeight="Medium"/>
-                                            <Border Background="#E8EDF5" CornerRadius="3" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Value}" FontSize="10" Foreground="#5C6BC0"/>
-                                            </Border>
+                                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                                            <TextBlock Text="{Binding Icon}" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Name}"/>
+                                            <TextBlock Text="{Binding Value, StringFormat=' ({0})'}" Foreground="{StaticResource Text.Muted}" Margin="4,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Value}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </StackPanel>
                                     </HierarchicalDataTemplate>
                                 </TreeView.ItemTemplate>
                             </TreeView>
                         </Grid>
                     </Border>
+                </Grid>
+            </Border>
 
-                    <!-- Splitter -->
-                    <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" Background="#DDD" ResizeDirection="Rows"/>
+            <!-- SPLITTER 1 -->
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource Border.Default}"/>
 
-                    <!-- COMMAND PALETTE -->
-                    <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <!-- ═══════ CENTER: 3D Workspace ═══════ -->
+            <Border Grid.Column="2" Background="{StaticResource Bg.Deepest}">
+                <Grid>
+                    <hx:HelixViewport3D ShowCoordinateSystem="True" ShowFrameRate="False" ZoomExtentsWhenLoaded="True" Background="Transparent" ShowViewCube="True">
+                        <hx:DefaultLights/>
+                        <!-- Grid floor -->
+                        <hx:GridLinesVisual3D Width="2" Length="2" Thickness="0.002" MinorDistance="0.1" MajorDistance="0.5" Fill="#30888888"/>
+                        <ModelVisual3D x:Name="RobotModelVisual"/>
+                    </hx:HelixViewport3D>
+
+                    <!-- Viewport overlay: TCP readout -->
+                    <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Background="#901E2127" CornerRadius="6" Padding="12,8"
+                            BorderBrush="{StaticResource Border.Highlight}" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="TCP Position / Jts" FontWeight="Bold" Foreground="{StaticResource Text.Primary}" FontSize="11" Margin="0,0,0,4"/>
+                            
+                            <UniformGrid Columns="3" Rows="2">
+                                <TextBlock Text="{Binding CurrentState.J1, StringFormat='J1: {0:F1}°'}" Foreground="{StaticResource Text.Muted}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding CurrentState.J2, StringFormat='J2: {0:F1}°'}" Foreground="{StaticResource Text.Muted}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding CurrentState.J3, StringFormat='J3: {0:F1}°'}" Foreground="{StaticResource Text.Muted}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding CurrentState.J4, StringFormat='J4: {0:F1}°'}" Foreground="{StaticResource Text.Muted}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding CurrentState.J5, StringFormat='J5: {0:F1}°'}" Foreground="{StaticResource Text.Muted}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding CurrentState.J6, StringFormat='J6: {0:F1}°'}" Foreground="{StaticResource Text.Muted}" FontSize="10" Margin="2"/>
+                            </UniformGrid>
+                            <Rectangle Height="1" Fill="{StaticResource Border.Default}" Margin="0,4"/>
+                            <UniformGrid Columns="3">
+                                <TextBlock Text="{Binding RobotVM.TcpX, StringFormat='X: {0:F1}'}" Foreground="{StaticResource Accent.Sim}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding RobotVM.TcpY, StringFormat='Y: {0:F1}'}" Foreground="{StaticResource Accent.Sim}" FontSize="10" Margin="2"/>
+                                <TextBlock Text="{Binding RobotVM.TcpZ, StringFormat='Z: {0:F1}'}" Foreground="{StaticResource Accent.Sim}" FontSize="10" Margin="2"/>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Viewport overlay: Active Line -->
+                    <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" Background="#901E2127" CornerRadius="6" Padding="10,6"
+                            BorderBrush="{StaticResource Border.Highlight}" BorderThickness="1" Visibility="{Binding ProgramVM.ActiveLineNumber, Converter={StaticResource IntToVisibilityConverter}}">
+                        <TextBlock Text="{Binding ProgramVM.ActiveLineNumber, StringFormat='Line: {0}'}" FontWeight="Bold" Foreground="{StaticResource Accent.Error}" FontSize="11"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- SPLITTER 2 -->
+            <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource Border.Default}"/>
+
+            <!-- ═══════ RIGHT PANEL: Machine Control ═══════ -->
+            <Border Grid.Column="4" Background="{StaticResource Bg.Surface1}" BorderBrush="{StaticResource Border.Default}" BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="MACHINE CONTROL" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11" Margin="0,0,0,16"/>
+                        
+                        <!-- Axis Jog (J1-J6) -->
+                        <TextBlock Text="JOINT JOG" FontWeight="SemiBold" Foreground="{StaticResource Text.Primary}" FontSize="12" Margin="0,0,0,8"/>
+                        
+                        <!-- Using ItemsControl for dynamic joint iteration -->
+                        <ItemsControl ItemsSource="{Binding RobotVM.JointSliders}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <local:AxisJogControl AxisName="{Binding Name}" 
+                                                          CurrentPosition="{Binding Angle, Mode=TwoWay}" 
+                                                          MinLimit="{Binding Min}" 
+                                                          MaxLimit="{Binding Max}" 
+                                                          Margin="0,0,0,8"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        
+                        <Rectangle Height="1" Fill="{StaticResource Border.Default}" Margin="0,12"/>
+                        
+                        <!-- Cartesian Jog / Outputs -->
+                        <TextBlock Text="CARTESIAN TCP" FontWeight="SemiBold" Foreground="{StaticResource Text.Primary}" FontSize="12" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- X, Y, Z -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="2">
+                                <TextBlock Text="X" Foreground="{StaticResource Text.Muted}" FontSize="10" HorizontalAlignment="Center"/>
+                                <TextBox Text="{Binding RobotVM.TcpX, StringFormat=N2}" Background="{StaticResource Bg.Deepest}" Foreground="{StaticResource Text.Primary}" BorderBrush="{StaticResource Border.Input}" TextAlignment="Center" Padding="4" IsReadOnly="True"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="2">
+                                <TextBlock Text="Y" Foreground="{StaticResource Text.Muted}" FontSize="10" HorizontalAlignment="Center"/>
+                                <TextBox Text="{Binding RobotVM.TcpY, StringFormat=N2}" Background="{StaticResource Bg.Deepest}" Foreground="{StaticResource Text.Primary}" BorderBrush="{StaticResource Border.Input}" TextAlignment="Center" Padding="4" IsReadOnly="True"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="2">
+                                <TextBlock Text="Z" Foreground="{StaticResource Text.Muted}" FontSize="10" HorizontalAlignment="Center"/>
+                                <TextBox Text="{Binding RobotVM.TcpZ, StringFormat=N2}" Background="{StaticResource Bg.Deepest}" Foreground="{StaticResource Text.Primary}" BorderBrush="{StaticResource Border.Input}" TextAlignment="Center" Padding="4" IsReadOnly="True"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <Rectangle Height="1" Fill="{StaticResource Border.Default}" Margin="0,12"/>
+                        
+                        <!-- Master Speed / Accel -->
+                        <TextBlock Text="MOTION SETTINGS" FontWeight="SemiBold" Foreground="{StaticResource Text.Primary}" FontSize="12" Margin="0,0,0,8"/>
                         <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="30"/>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="30"/>
                             </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Background="#EDF0F5" Padding="10,0" BorderBrush="#DDD" BorderThickness="0,0,0,1">
-                                <TextBlock Text="Commands" FontWeight="Bold" Foreground="#333" FontSize="12" VerticalAlignment="Center"/>
-                            </Border>
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                <UniformGrid Columns="4" Margin="6">
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding AddInstructionCommand}" CommandParameter="PTP">
-                                        <StackPanel>
-                                            <TextBlock Text="⤵" FontSize="16" HorizontalAlignment="Center" Foreground="#4A90E2"/>
-                                            <TextBlock Text="PTP" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding AddInstructionCommand}" CommandParameter="LIN">
-                                        <StackPanel>
-                                            <TextBlock Text="📏" FontSize="14" HorizontalAlignment="Center" Foreground="#4A90E2"/>
-                                            <TextBlock Text="LIN" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding AddInstructionCommand}" CommandParameter="ARC">
-                                        <StackPanel>
-                                            <TextBlock Text="◜" FontSize="18" HorizontalAlignment="Center" Foreground="#4A90E2"/>
-                                            <TextBlock Text="ARC" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding AddInstructionCommand}" CommandParameter="WAIT">
-                                        <StackPanel>
-                                            <TextBlock Text="⏱" FontSize="14" HorizontalAlignment="Center" Foreground="#888"/>
-                                            <TextBlock Text="Wait" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding AddInstructionCommand}" CommandParameter="SETDO">
-                                        <StackPanel>
-                                            <TextBlock Text="🔌" FontSize="14" HorizontalAlignment="Center" Foreground="#888"/>
-                                            <TextBlock Text="I/O" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding AddInstructionCommand}" CommandParameter="WHILE">
-                                        <StackPanel>
-                                            <TextBlock Text="🔃" FontSize="14" HorizontalAlignment="Center" Foreground="#888"/>
-                                            <TextBlock Text="Loop" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding SaveProgramToDbCommand}">
-                                        <StackPanel>
-                                            <TextBlock Text="💾" FontSize="14" HorizontalAlignment="Center" Foreground="#E5C07B"/>
-                                            <TextBlock Text="Save" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="2" Height="48"
-                                            Command="{Binding RobotVM.GoHomeCommand}">
-                                        <StackPanel>
-                                            <TextBlock Text="🏠" FontSize="14" HorizontalAlignment="Center" Foreground="#56B6C2"/>
-                                            <TextBlock Text="Home" FontSize="9" HorizontalAlignment="Center" Foreground="#555"/>
-                                        </StackPanel>
-                                    </Button>
-                                </UniformGrid>
-                            </ScrollViewer>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Speed" Foreground="{StaticResource Text.Muted}" VerticalAlignment="Center" FontSize="11"/>
+                            <Slider Grid.Row="0" Grid.Column="1" Minimum="1" Maximum="100" Value="{Binding RobotVM.SpeedPercent}" VerticalAlignment="Center" Margin="8,0"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding RobotVM.SpeedPercent, StringFormat='{}{0:F0}%'}" Foreground="{StaticResource Text.Primary}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Accel" Foreground="{StaticResource Text.Muted}" VerticalAlignment="Center" FontSize="11"/>
+                            <Slider Grid.Row="1" Grid.Column="1" Minimum="1" Maximum="200" Value="{Binding RobotVM.Acceleration}" VerticalAlignment="Center" Margin="8,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RobotVM.Acceleration, StringFormat='{}{0:F0}'}" Foreground="{StaticResource Text.Primary}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
                         </Grid>
-                    </Border>
-                </Grid>
-
-                <!-- VERTICAL SPLITTER -->
-                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#DDD"/>
-
-                <!-- ═══════════════════════════════════════════════ -->
-                <!-- RIGHT: 3D VIEWPORT (landscape) + PARAMETERS    -->
-                <!-- ═══════════════════════════════════════════════ -->
-                <Grid Grid.Column="2">
-                    <Grid.RowDefinitions>
-                        <!-- 3D Viewport (landscape, dominant) -->
-                        <RowDefinition Height="*"/>
-                        <!-- Bottom Parameters -->
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="280"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- 3D VIEWPORT (LANDSCAPE at top right) -->
-                    <Border Grid.Row="0" Background="#F0F2F5" BorderBrush="#DDD" BorderThickness="0,0,0,1">
-                        <Grid>
-                            <hx:HelixViewport3D ShowCoordinateSystem="True" ShowFrameRate="False" ZoomExtentsWhenLoaded="True" Background="Transparent"
-                                                ShowViewCube="True">
-                                <hx:DefaultLights/>
-                                <!-- Grid floor -->
-                                <hx:GridLinesVisual3D Width="2" Length="2" Thickness="0.002" MinorDistance="0.1" MajorDistance="0.5" Fill="#30888888"/>
-                                <ModelVisual3D x:Name="RobotModelVisual"/>
-                            </hx:HelixViewport3D>
-
-                            <!-- Viewport overlay: TCP readout -->
-                            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Background="#E8FFFFFF" CornerRadius="6" Padding="12,8"
-                                    BorderBrush="#DDD" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="TCP Position" FontWeight="Bold" Foreground="#333" FontSize="11" Margin="0,0,0,4"/>
-                                    <UniformGrid Columns="3" Rows="2">
-                                        <TextBlock Text="{Binding CurrentState.J1, StringFormat='J1: {0:F1}°'}" Foreground="#555" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding CurrentState.J2, StringFormat='J2: {0:F1}°'}" Foreground="#555" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding CurrentState.J3, StringFormat='J3: {0:F1}°'}" Foreground="#555" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding CurrentState.J4, StringFormat='J4: {0:F1}°'}" Foreground="#555" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding CurrentState.J5, StringFormat='J5: {0:F1}°'}" Foreground="#555" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding CurrentState.J6, StringFormat='J6: {0:F1}°'}" Foreground="#555" FontSize="10" Margin="2"/>
-                                    </UniformGrid>
-                                    <Rectangle Height="1" Fill="#DDD" Margin="0,4"/>
-                                    <UniformGrid Columns="3">
-                                        <TextBlock Text="{Binding RobotVM.TcpX, StringFormat='X: {0:F1}'}" Foreground="#4A90E2" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding RobotVM.TcpY, StringFormat='Y: {0:F1}'}" Foreground="#4A90E2" FontSize="10" Margin="2"/>
-                                        <TextBlock Text="{Binding RobotVM.TcpZ, StringFormat='Z: {0:F1}'}" Foreground="#4A90E2" FontSize="10" Margin="2"/>
-                                    </UniformGrid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Viewport overlay: Line Number -->
-                            <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" Background="#E8FFFFFF" CornerRadius="6" Padding="10,6"
-                                    BorderBrush="#DDD" BorderThickness="1">
-                                <TextBlock Text="{Binding ProgramVM.ActiveLineNumber, StringFormat='Line: {0}'}" FontWeight="Bold" Foreground="#E06C75" FontSize="11"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-
-                    <!-- SPLITTER -->
-                    <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" Background="#DDD" ResizeDirection="Rows"/>
-
-                    <!-- ═══════ BOTTOM PARAMETER PANEL ═══════ -->
-                    <Border Grid.Row="2" Background="{StaticResource Palette.Background.Panel}" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
-                        <TabControl Background="Transparent" BorderThickness="0" Margin="4" TabStripPlacement="Top">
-
-                            <!-- JOINT JOG -->
-                            <TabItem Header="🔧 Joint Jog" FontSize="11" Padding="8,4">
-                                <Grid Margin="8,4">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="150"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Sliders -->
-                                    <ItemsControl Grid.Column="0" ItemsSource="{Binding RobotVM.JointSliders}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <UniformGrid Rows="2"/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="4,2">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="26"/>
-                                                        <ColumnDefinition Width="28"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="28"/>
-                                                        <ColumnDefinition Width="50"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" Foreground="#333" FontWeight="Bold" FontSize="11"/>
-                                                    <Button Grid.Column="1" Content="−" FontSize="14" Padding="0" Height="22"
-                                                            Command="{Binding DataContext.JogJointCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                            CommandParameter="{Binding Name, StringFormat='-{0}'}"
-                                                            Style="{StaticResource PaletteButton}" Foreground="#E06C75"/>
-                                                    <Slider Grid.Column="2" Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Angle, Mode=TwoWay}" 
-                                                            Margin="4,0" VerticalAlignment="Center"/>
-                                                    <Button Grid.Column="3" Content="+" FontSize="14" Padding="0" Height="22"
-                                                            Command="{Binding DataContext.JogJointCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                            CommandParameter="{Binding Name, StringFormat='+{0}'}"
-                                                            Style="{StaticResource PaletteButton}" Foreground="#98C379"/>
-                                                    <TextBox Grid.Column="4" Text="{Binding Angle, StringFormat=N1}" Margin="2,0,0,0" 
-                                                             Background="#FFF" Foreground="#333" BorderBrush="#CCC" FontSize="10" VerticalContentAlignment="Center"/>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
-                                    <!-- Speed / Accel -->
-                                    <StackPanel Grid.Column="1" Margin="12,4">
-                                        <TextBlock Text="Speed" Foreground="#666" FontSize="10"/>
-                                        <Grid Margin="0,2,0,8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="24"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox Text="{Binding RobotVM.SpeedPercent, Mode=TwoWay}" Background="#FFF" Foreground="#333" FontSize="11"/>
-                                            <TextBlock Grid.Column="1" Text="%" Foreground="#888" VerticalAlignment="Center" Margin="4,0,0,0" FontSize="10"/>
-                                        </Grid>
-                                        <TextBlock Text="Accel" Foreground="#666" FontSize="10"/>
-                                        <Grid Margin="0,2,0,8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="30"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox Text="{Binding RobotVM.Acceleration, Mode=TwoWay}" Background="#FFF" Foreground="#333" FontSize="11"/>
-                                            <TextBlock Grid.Column="1" Text="°/s²" Foreground="#888" VerticalAlignment="Center" Margin="4,0,0,0" FontSize="10"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Grid>
-                            </TabItem>
-
-                            <!-- TOOL TCP -->
-                            <TabItem Header="📌 Tool" FontSize="11" Padding="8,4">
-                                <Grid Margin="12,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="30"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="30"/>
-                                        <ColumnDefinition Width="30"/>
-                                        <ColumnDefinition Width="100"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="28"/>
-                                        <RowDefinition Height="28"/>
-                                        <RowDefinition Height="28"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="X" Foreground="#666" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SettingsVM.ToolX}" Background="#FFF" Foreground="#333" Margin="2"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Y" Foreground="#666" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SettingsVM.ToolY}" Background="#FFF" Foreground="#333" Margin="2"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Z" Foreground="#666" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SettingsVM.ToolZ}" Background="#FFF" Foreground="#333" Margin="2"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Rx" Foreground="#666" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding SettingsVM.ToolRx}" Background="#FFF" Foreground="#333" Margin="2"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="Ry" Foreground="#666" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding SettingsVM.ToolRy}" Background="#FFF" Foreground="#333" Margin="2"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Rz" Foreground="#666" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding SettingsVM.ToolRz}" Background="#FFF" Foreground="#333" Margin="2"/>
-                                </Grid>
-                            </TabItem>
-
-                            <!-- BASE FRAME -->
-                            <TabItem Header="📐 Base" FontSize="11" Padding="8,4">
-                                <StackPanel Margin="12,8" Orientation="Horizontal">
-                                    <StackPanel Margin="0,0,20,0">
-                                        <TextBlock Text="X" Foreground="#666" FontSize="10"/>
-                                        <TextBox Text="{Binding SettingsVM.BaseOffsetX}" Width="80" Background="#FFF" Foreground="#333" Margin="0,2,0,6"/>
-                                        <TextBlock Text="Y" Foreground="#666" FontSize="10"/>
-                                        <TextBox Text="{Binding SettingsVM.BaseOffsetY}" Width="80" Background="#FFF" Foreground="#333" Margin="0,2,0,6"/>
-                                        <TextBlock Text="Z" Foreground="#666" FontSize="10"/>
-                                        <TextBox Text="{Binding SettingsVM.BaseOffsetZ}" Width="80" Background="#FFF" Foreground="#333" Margin="0,2"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </TabItem>
-
-                            <!-- PROGRAM STATUS -->
-                            <TabItem Header="📊 Status" FontSize="11" Padding="8,4">
-                                <Grid Margin="12,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="24"/>
-                                        <RowDefinition Height="24"/>
-                                        <RowDefinition Height="24"/>
-                                        <RowDefinition Height="24"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Program:" Foreground="#666" FontSize="11"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ProgramVM.ProgramName}" Foreground="#333" FontSize="11"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Nodes:" Foreground="#666" FontSize="11"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ProgramVM.Nodes.Count}" Foreground="#333" FontSize="11"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Active Line:" Foreground="#666" FontSize="11"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ProgramVM.ActiveLineNumber}" Foreground="#E06C75" FontWeight="Bold" FontSize="11"/>
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Mode:" Foreground="#666" FontSize="11"/>
-                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding GlobalState.ModeDisplayText}" Foreground="#56B6C2" FontSize="11"/>
-                                </Grid>
-                            </TabItem>
-                        </TabControl>
-                    </Border>
-                </Grid>
-            </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
         </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- BOTTOM CONSOLE (Telemetry)                                  -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="2" Background="{StaticResource Bg.Deepest}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Console Tabs -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Background="{StaticResource Bg.Surface1}">
+                    <Border BorderBrush="{StaticResource Accent.Sim}" BorderThickness="0,0,0,2" Padding="16,0">
+                        <TextBlock Text="TERMINAL" Foreground="{StaticResource Text.Primary}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Padding="16,0" Cursor="Hand">
+                        <TextBlock Text="OUTPUT" Foreground="{StaticResource Text.Muted}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Padding="16,0" Cursor="Hand">
+                        <TextBlock Text="DEBUG CONSOLE" Foreground="{StaticResource Text.Muted}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Padding="16,0" Cursor="Hand">
+                        <TextBlock Text="PROBLEMS" Foreground="{StaticResource Text.Muted}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Console Content: Currently placeholder for logging system -->
+                <ScrollViewer Grid.Row="1" Background="{StaticResource Bg.Deepest}" Padding="10">
+                    <TextBlock FontFamily="Consolas" FontSize="12" Foreground="{StaticResource Text.Muted}">
+                        <Run Text="[SYS] FR-STUDIO Core Engine Started." Foreground="{StaticResource Accent.Real}"/><LineBreak/>
+                        <Run Text="[SYS] Connecting to Robot Hardware (Simulation)..."/><LineBreak/>
+                        <Run Text="[SYS] Loaded URDF: irb120_workspace.urdf"/><LineBreak/>
+                        <Run Text="[WRN] Teach velocity limited to 250mm/s in T1 mode." Foreground="#E5C07B"/><LineBreak/>
+                        <Run Text="[SYS] Ready."/>
+                    </TextBlock>
+                </ScrollViewer>
+            </Grid>
+        </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- COMMAND PALETTE OVERLAY (Ctrl+Shift+P)                         -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <Grid Grid.ColumnSpan="2" Visibility="{Binding IsCommandPaletteOpen, Converter={StaticResource BoolToVisibility}}">
+        <Grid Grid.RowSpan="3" Visibility="{Binding IsCommandPaletteOpen, Converter={StaticResource BoolToVisibility}}">
             <!-- Dark backdrop -->
             <Border Background="#80000000" />
             <!-- Palette card -->
             <Border HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,80,0,0"
-                    Width="520" Background="White" CornerRadius="8"
-                    BorderBrush="#3A7BFF" BorderThickness="2">
+                    Width="520" Background="{StaticResource Bg.Surface2}" CornerRadius="8"
+                    BorderBrush="{StaticResource Accent.Sim}" BorderThickness="2">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="30" Opacity="0.35" ShadowDepth="8"/>
                 </Border.Effect>
@@ -518,18 +395,18 @@
                         <RowDefinition Height="*" MaxHeight="360"/>
                     </Grid.RowDefinitions>
                     <!-- Search box -->
-                    <Border Grid.Row="0" Padding="16,12" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                    <Border Grid.Row="0" Padding="16,12" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,0,1">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="⌘" FontSize="16" Foreground="#3A7BFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Grid.Column="0" Text="⌘" FontSize="16" Foreground="{StaticResource Accent.Sim}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <TextBox Grid.Column="1" Text="{Binding CommandPaletteQuery, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="14" BorderThickness="0" Background="Transparent"
+                                     FontSize="14" BorderThickness="0" Background="Transparent" Foreground="{StaticResource Text.Primary}"
                                      VerticalContentAlignment="Center"/>
-                            <TextBlock Grid.Column="2" Text="ESC" FontSize="10" Foreground="#AAA" VerticalAlignment="Center"
+                            <TextBlock Grid.Column="2" Text="ESC" FontSize="10" Foreground="{StaticResource Text.Muted}" VerticalAlignment="Center"
                                        Cursor="Hand" Margin="8,0,0,0">
                                 <TextBlock.InputBindings>
                                     <MouseBinding Gesture="LeftClick" Command="{Binding ToggleCommandPaletteCommand}"/>
@@ -542,27 +419,135 @@
                         <ItemsControl ItemsSource="{Binding CommandPaletteResults}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Style="{StaticResource PaletteButton}" Margin="4,2" Height="40" HorizontalContentAlignment="Left"
+                                    <Button Background="Transparent" BorderThickness="0" Margin="4,2" MinHeight="40" HorizontalContentAlignment="Stretch"
                                             Command="{Binding DataContext.ExecuteAndClosePaletteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding}">
-                                        <Grid Margin="8,0">
+                                        <Grid Margin="8,4">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="28"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding IconGlyph}" FontSize="14" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{Binding IconGlyph}" FontSize="14" Foreground="{StaticResource Text.Primary}" VerticalAlignment="Center"/>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="Medium" Foreground="#333"/>
-                                                <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#888"/>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource Text.Primary}"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{StaticResource Text.Muted}"/>
                                             </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="{Binding Category}" FontSize="10" Foreground="#AAA" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Category}" FontSize="10" Foreground="{StaticResource Accent.Sim}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                         </Grid>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+                    <!-- SETTINGS MODAL OVERLAY -->
+                    <Border Grid.RowSpan="3" Background="#80000000" Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Border Width="700" Height="500" Background="{StaticResource Bg.Deepest}" CornerRadius="8"
+                                BorderBrush="{StaticResource Border.Default}" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="40" Opacity="0.5" ShadowDepth="10"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="50"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Header -->
+                                <Border Grid.Row="0" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,0,1" Background="{StaticResource Bg.Surface2}" CornerRadius="8,8,0,0">
+                                    <Grid Margin="16,0">
+                                        <TextBlock Text="⚙ System Settings" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource Text.Primary}" VerticalAlignment="Center"/>
+                                        <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Center" Width="32" Height="32"
+                                                Background="Transparent" BorderThickness="0" Foreground="{StaticResource Text.Muted}"
+                                                Command="{Binding CloseSettingsCommand}">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="4"/>
+                                                </Style>
+                                            </Button.Resources>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Body -->
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Left Nav -->
+                                    <Border Grid.Column="0" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,1,0" Background="{StaticResource Bg.Surface1}">
+                                        <TabControl x:Name="SettingsNav" TabStripPlacement="Left" BorderThickness="0" Background="Transparent" Margin="0,8">
+                                            <TabItem Header="📄 General"/>
+                                            <TabItem Header="🤖 Robot Model">
+                                                <StackPanel Margin="20">
+                                                    <TextBlock Text="Robot Kinematic Model" FontWeight="Bold" FontSize="14" Margin="0,0,0,15" Foreground="{StaticResource Text.Primary}"/>
+                                                    <TextBlock Text="Use the Command Palette (Ctrl+Shift+P) and search 'Load URDF' to select a robot model." Foreground="{StaticResource Text.Muted}" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding SettingsVM.UrdfPath}" Margin="0,15,0,0" Foreground="{StaticResource Text.Primary}" TextWrapping="Wrap" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </TabItem>
+                                            <TabItem Header="⚙ Encoder Config" IsSelected="True">
+                                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                    <StackPanel Margin="20">
+                                                        <TextBlock Text="Encoder Hardware Parameters" FontWeight="Bold" FontSize="14" Margin="0,0,0,15" Foreground="{StaticResource Text.Primary}"/>
+                                                        
+                                                        <Grid Margin="0,0,0,10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="Resolution (bits):" VerticalAlignment="Center" Foreground="{StaticResource Text.Muted}"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding SettingsVM.EncoderResolution}" Padding="6,4" Background="{StaticResource Bg.Deepest}" BorderBrush="{StaticResource Border.Input}" Foreground="{StaticResource Text.Primary}"/>
+                                                        </Grid>
+
+                                                        <Grid Margin="0,0,0,10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="Gear Ratio:" VerticalAlignment="Center" Foreground="{StaticResource Text.Muted}"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding SettingsVM.GearRatio}" Padding="6,4" Background="{StaticResource Bg.Deepest}" BorderBrush="{StaticResource Border.Input}" Foreground="{StaticResource Text.Primary}"/>
+                                                        </Grid>
+
+                                                        <Grid Margin="0,0,0,10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="Counts/Revolution:" VerticalAlignment="Center" Foreground="{StaticResource Text.Muted}"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding SettingsVM.CountsPerRevolution}" Padding="6,4" Background="{StaticResource Bg.Deepest}" BorderBrush="{StaticResource Border.Input}" Foreground="{StaticResource Text.Primary}"/>
+                                                        </Grid>
+
+                                                        <Grid Margin="0,0,0,10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="Direction Invert:" VerticalAlignment="Center" Foreground="{StaticResource Text.Muted}"/>
+                                                            <CheckBox Grid.Column="1" IsChecked="{Binding SettingsVM.DirectionInvert}" VerticalAlignment="Center"/>
+                                                        </Grid>
+
+                                                        <Grid Margin="0,0,0,10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="Offset Calibration:" VerticalAlignment="Center" Foreground="{StaticResource Text.Muted}"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding SettingsVM.OffsetCalibration}" Padding="6,4" Background="{StaticResource Bg.Deepest}" BorderBrush="{StaticResource Border.Input}" Foreground="{StaticResource Text.Primary}"/>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </ScrollViewer>
+                                            </TabItem>
+                                            <TabItem Header="🔌 Communication"/>
+                                            <TabItem Header="📏 Units"/>
+                                            <TabItem Header="🎨 Theme"/>
+                                        </TabControl>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Border>
                 </Grid>
             </Border>
         </Grid>

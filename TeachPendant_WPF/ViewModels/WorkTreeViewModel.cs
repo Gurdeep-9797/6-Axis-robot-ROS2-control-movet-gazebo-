@@ -114,6 +114,36 @@ namespace TeachPendant_WPF.ViewModels
             SelectedNode = null;
         }
 
+        [RelayCommand]
+        private void EditSelected()
+        {
+            if (_selectedNode == null) return;
+        }
+
+        [RelayCommand]
+        private void DuplicateSelected()
+        {
+            if (_selectedNode == null) return;
+        }
+
+        [RelayCommand]
+        private void SetSpeed()
+        {
+            if (_selectedNode == null) return;
+        }
+
+        [RelayCommand]
+        private void SetBlendRadius()
+        {
+            if (_selectedNode == null) return;
+        }
+
+        [RelayCommand]
+        private void ConvertMotionType(string newType)
+        {
+            if (_selectedNode == null || _selectedNode.NodeType != WorkTreeNodeType.ProgramInstr) return;
+        }
+
         private bool RemoveNodeRecursive(ObservableCollection<WorkTreeNode> nodes, WorkTreeNode target)
         {
             if (nodes.Remove(target)) return true;

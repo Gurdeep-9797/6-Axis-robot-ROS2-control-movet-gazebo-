@@ -12,7 +12,7 @@ namespace TeachPendant_WPF.Services
     /// </summary>
     public class ExecutionEngine
     {
-        private readonly IRobotDriver _driver;
+        private IRobotDriver _driver;
         private CancellationTokenSource? _cancellationTokenSource;
 
         // ── FSM State ───────────────────────────────────────────────
@@ -51,6 +51,11 @@ namespace TeachPendant_WPF.Services
         public ExecutionEngine(IRobotDriver driver)
         {
             _driver = driver;
+        }
+
+        public void SetDriver(IRobotDriver newDriver)
+        {
+            _driver = newDriver;
         }
 
         // ── Execution ───────────────────────────────────────────────
