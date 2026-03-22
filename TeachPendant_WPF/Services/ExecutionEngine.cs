@@ -96,8 +96,8 @@ namespace TeachPendant_WPF.Services
                         State = ExecutionState.Running;
                     }
 
-                    // Execute the instruction
-                    await instruction.ExecuteAsync(state);
+                    // Execute the instruction with true hardware connection capability!
+                    await instruction.ExecuteAsync(state, _driver);
                 }
 
                 if (State == ExecutionState.Running)
@@ -117,6 +117,28 @@ namespace TeachPendant_WPF.Services
             {
                 state.IsRunning = false;
                 ExecutionStateChanged?.Invoke(false);
+            }
+        }
+
+        // ── Single Line Testing ─────────────────────────────────────
+        public async Task RunSingleInstructionAsync(Models.RobotInstruction instruction, RobotState state)
+        {
+            if (State == ExecutionState.Running) return;
+            
+            State = ExecutionState.Running;
+            try
+            {
+                // Execute un-coupled from the cancellation token loop
+                await instruction.ExecuteAsync(state, _driver);
+            }
+            catch (Exception ex)
+            {
+                State = ExecutionState.Error;
+                ErrorOccurred?.Invoke(ex.Message);
+            }
+            finally
+            {
+                State = ExecutionState.Idle;
             }
         }
 

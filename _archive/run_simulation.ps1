@@ -133,7 +133,8 @@ if (-not (Test-Path $exePath)) {
 
 if (Test-Path $exePath) {
     Write-Host "  Executable: $exePath" -ForegroundColor White
-    Start-Process $exePath
+    $simDir = Join-Path $ProjectRoot "RobotSimulator_CPP"
+    Start-Process $exePath -WorkingDirectory $simDir
     Write-Host "  [OK] Simulator launched" -ForegroundColor Green
 }
 else {

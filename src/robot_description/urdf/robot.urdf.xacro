@@ -34,6 +34,17 @@
     <color rgba="1.0 0.5 0.0 1"/>
   </material>
 
+  <!-- Dummy root link to satisfy KDL parser & Gazebo -->
+  <link name="world"/>
+
+  <joint name="fixed_base_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ======================== LINKS & JOINTS ======================== -->
+  
   <!-- ============== BASE LINK ============== -->
   <link name="base_link">
     <visual>
@@ -255,15 +266,20 @@
 
   <link name="tool0"/>
 
-  <!-- ============== GAZEBO PLUGINS ============== -->
+  <!-- ============== GAZEBO HARMONIC PLUGINS ============== -->
   <!-- CRITICAL: Remapping maintained -->
   <gazebo>
-    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-      <robot_sim_type>gazebo_ros2_control/GazeboSystem</robot_sim_type>
-      <parameters>$(find robot_gazebo)/config/gazebo_controllers.yaml</parameters>
-      <ros>
-        <remapping>/joint_states:=/gazebo/joint_states</remapping>
-      </ros>
+    <plugin filename="gz-sim-joint-trajectory-controller-system" name="gz::sim::systems::JointTrajectoryController">
+      <topic>/gazebo/joint_trajectory</topic>
+    </plugin>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>/gazebo/joint_states</topic>
+      <joint_name>joint_1</joint_name>
+      <joint_name>joint_2</joint_name>
+      <joint_name>joint_3</joint_name>
+      <joint_name>joint_4</joint_name>
+      <joint_name>joint_5</joint_name>
+      <joint_name>joint_6</joint_name>
     </plugin>
   </gazebo>
 

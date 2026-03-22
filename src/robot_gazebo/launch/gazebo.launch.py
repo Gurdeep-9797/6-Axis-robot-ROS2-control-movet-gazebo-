@@ -1,9 +1,9 @@
 """
-Gazebo Launch File - FIXED
+Gazebo Harmonic Launch File - FIXED
 
 AUTHORITY: EMULATED (No Real Authority)
 
-This launch file starts Gazebo simulation which:
+This launch file starts Gazebo Harmonic simulation which:
 - Provides physics emulation (NON-RT, NON-CERTIFIED)
 - Spawns the robot model
 - Runs simulated controllers
@@ -25,21 +25,19 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.event_handlers import OnProcessStart
-
 
 def generate_launch_description():
     # Declare arguments
     headless = LaunchConfiguration('headless', default='false')
-    world = LaunchConfiguration('world', default='default.world')
+    world = LaunchConfiguration('world', default='empty.sdf')
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     
     # Package paths
     robot_description_pkg = FindPackageShare('robot_description')
     robot_gazebo_pkg = FindPackageShare('robot_gazebo')
-    gazebo_ros_pkg = FindPackageShare('gazebo_ros')
+    ros_gz_sim_pkg = FindPackageShare('ros_gz_sim')
     
-    # Robot description - FIXED: Use correct URDF file name
+    # Robot description
     robot_description_path = PathJoinSubstitution([
         robot_description_pkg, 'urdf', 'custom_6axis_test.urdf.xacro'
     ])
@@ -47,33 +45,24 @@ def generate_launch_description():
     robot_description = Command(['xacro ', robot_description_path])
     
     # World file
-    world_path = PathJoinSubstitution([
-        robot_gazebo_pkg, 'worlds', world
-    ])
+    world_path = world
     
-    # Controllers config
-    controllers_config = PathJoinSubstitution([
-        robot_gazebo_pkg, 'config', 'gazebo_controllers.yaml'
-    ])
-    
-    # Gazebo server
-    gazebo_server = IncludeLaunchDescription(
+    # Gazebo Harmonic (gz_sim) - Headless
+    gazebo_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            PathJoinSubstitution([gazebo_ros_pkg, 'launch', 'gzserver.launch.py'])
+            PathJoinSubstitution([ros_gz_sim_pkg, 'launch', 'gz_sim.launch.py'])
         ]),
-        launch_arguments={
-            'world': world_path,
-            'pause': 'false',
-            'verbose': 'true',
-        }.items(),
+        launch_arguments={'gz_args': ['-r -s -v4 ', world_path]}.items(),
+        condition=IfCondition(headless)
     )
-    
-    # Gazebo client (GUI) - only if not headless
-    gazebo_client = IncludeLaunchDescription(
+
+    # Gazebo Harmonic (gz_sim) - GUI
+    gazebo_sim_gui = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            PathJoinSubstitution([gazebo_ros_pkg, 'launch', 'gzclient.launch.py'])
+            PathJoinSubstitution([ros_gz_sim_pkg, 'launch', 'gz_sim.launch.py'])
         ]),
-        condition=UnlessCondition(headless),
+        launch_arguments={'gz_args': ['-r -v4 ', world_path]}.items(),
+        condition=UnlessCondition(headless)
     )
     
     # Robot state publisher
@@ -87,65 +76,76 @@ def generate_launch_description():
         }]
     )
     
-    # Spawn robot in Gazebo
+    # Generate SDF and spawn robot in Gazebo Harmonic
+    generate_sdf = ExecuteProcess(
+        cmd=['bash', '-c', ['xacro ', robot_description_path, ' > /tmp/robot.urdf && gz sdf -p /tmp/robot.urdf > /tmp/robot.sdf']],
+        output='screen'
+    )
+
     spawn_robot = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
+        package='ros_gz_sim',
+        executable='create',
         arguments=[
-            '-topic', 'robot_description',
-            '-entity', 'robot_arm',
+            '-name', 'robot_arm',
+            '-file', '/tmp/robot.sdf',
             '-x', '0', '-y', '0', '-z', '0',
         ],
         output='screen',
     )
     
-    # FIXED: Add delays for controller spawners to ensure robot and controller_manager are ready
-    # Joint state broadcaster - delay 10 seconds after launch to ensure Gazebo is ready
+    # Bridge for ROS 2 <-> Gazebo Harmonic
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/gazebo/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+            '/gazebo/joint_trajectory@trajectory_msgs/msg/JointTrajectory]gz.msgs.JointTrajectory',
+        ],
+        remappings=[
+            ('/gazebo/joint_states', '/joint_states'),
+            ('/gazebo/joint_trajectory', '/robot_arm_controller/joint_trajectory'),
+        ],
+        output='screen'
+    )
+
+    # Joint state broadcaster
     joint_state_broadcaster_spawner = TimerAction(
-        period=10.0,
+        period=5.0,
         actions=[
             Node(
                 package='controller_manager',
                 executable='spawner',
-                arguments=[
-                    'joint_state_broadcaster',
-                    '-c', '/controller_manager',
-                    '--controller-manager-timeout', '60',
-                ],
+                arguments=['joint_state_broadcaster', '-c', '/controller_manager', '--controller-manager-timeout', '60'],
                 output='screen',
             )
         ]
     )
     
-    # Robot arm controller - delay 15 seconds
+    # Robot arm controller
     robot_arm_controller_spawner = TimerAction(
-        period=15.0,
+        period=8.0,
         actions=[
             Node(
                 package='controller_manager',
                 executable='spawner',
-                arguments=[
-                    'robot_arm_controller',
-                    '-c', '/controller_manager',
-                    '--controller-manager-timeout', '60',
-                ],
+                arguments=['robot_arm_controller', '-c', '/controller_manager', '--controller-manager-timeout', '60'],
                 output='screen',
             )
         ]
     )
     
     return LaunchDescription([
-        DeclareLaunchArgument('headless', default_value='false',
-                              description='Run Gazebo headless (no GUI)'),
-        DeclareLaunchArgument('world', default_value='default.world',
-                              description='World file to load'),
-        DeclareLaunchArgument('use_sim_time', default_value='true',
-                              description='Use simulation time'),
+        DeclareLaunchArgument('headless', default_value='false', description='Run Gazebo headless'),
+        DeclareLaunchArgument('world', default_value='empty.sdf', description='World file to load'),
+        DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulation time'),
         
-        gazebo_server,
-        gazebo_client,
+        gazebo_sim,
+        gazebo_sim_gui,
+        bridge,
         robot_state_publisher,
-        spawn_robot,
+        generate_sdf,
+        TimerAction(period=2.0, actions=[spawn_robot]),
         joint_state_broadcaster_spawner,
         robot_arm_controller_spawner,
     ])

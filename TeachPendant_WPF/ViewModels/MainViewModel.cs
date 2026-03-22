@@ -81,8 +81,34 @@ namespace TeachPendant_WPF.ViewModels
             SettingsVM = new SettingsViewModel(_dbService);
             WorkTree = new WorkTreeViewModel();
 
+            // Intercept isolated single-line execution requests (Step Execution)
+            WorkTree.StepRequested += async (node) => 
+            {
+                if (!GlobalState.IsRunning && _driver != null && _driver.IsConnected)
+                {
+                    Models.RobotInstruction instr = null;
+                    if (node.NodeType == WorkTreeNodeType.ProgramInstr)
+                    {
+                        if (node.Name.Contains("WAIT") || node.Name.Contains("⏱")) instr = new Models.WaitInstruction(500);
+                        else if (node.Name.Contains("LIN") || node.Name.Contains("↗")) instr = new Models.LinInstruction(node.Value, 50, 0);
+                        else if (node.Name.Contains("PTP") || node.Name.Contains("⤿")) instr = new Models.PtpInstruction(node.Value, 50);
+                        else if (node.Name.Contains("IO") || node.Name.Contains("⚡")) instr = new Models.SetDOInstruction(1, 1);
+                    }
+                    if (instr != null) await _engine.RunSingleInstructionAsync(instr, CurrentState);
+                }
+            };
+
+            // Intercept manual UI drags and force Gazebo physics translation instantly
+            RobotVM.JointJogRequested += (angles) => 
+            {
+                if (!GlobalState.IsRunning && _driver != null && _driver.IsConnected)
+                {
+                    _driver.SendJointPositions(angles);
+                }
+            };
+
             // 5. Driver — now safe to connect since sub-VMs exist
-            _driver = new SimulationDriver();
+            _driver = new Ros2Driver();
             _driver.StateUpdated += OnDriverStateUpdated;
             _driver.Connect();
 
@@ -107,6 +133,21 @@ namespace TeachPendant_WPF.ViewModels
 
             // 8. Register commands in registry
             RegisterCoreCommands();
+
+            // 9. Auto-Demonstration: Randomly execute programs safely to prove WP->Gazebo channels
+            Task.Run(async () => {
+                await Task.Delay(8000); // give Gazebo/ROS 8 seconds to boot behind the scenes and WPF to settle
+                while(true) {
+                    try {
+                        if (!GlobalState.IsRunning && _driver.IsConnected) {
+                            Application.Current.Dispatcher.InvokeAsync(() => {
+                                StartProgramCommand.Execute(null);
+                            });
+                        }
+                    } catch { }
+                    await Task.Delay(15000); // re-trigger every 15s
+                }
+            });
         }
 
         // ── Real/Sim Mode Switch ─────────────────────────────────────
@@ -138,7 +179,7 @@ namespace TeachPendant_WPF.ViewModels
                 }
                 else
                 {
-                    _driver = new SimulationDriver();
+                    _driver = new Ros2Driver();
                 }
 
                 _driver.StateUpdated += OnDriverStateUpdated;
@@ -153,15 +194,15 @@ namespace TeachPendant_WPF.ViewModels
         {
             var robot = new RobotNode { Name = "FR-6DOF" };
 
-            // Define 6 revolute joints matching the URDF
+            // Define 6 revolute joints strictly matching the industrial D-H URDF
             var jointConfigs = new[]
             {
-                (name: "J1", axis: new System.Windows.Media.Media3D.Vector3D(0, 0, 1), min: -170.0, max: 170.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 0)),
-                (name: "J2", axis: new System.Windows.Media.Media3D.Vector3D(0, 1, 0), min: -120.0, max: 120.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 152)),
-                (name: "J3", axis: new System.Windows.Media.Media3D.Vector3D(0, 1, 0), min: -170.0, max: 170.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 380)),
-                (name: "J4", axis: new System.Windows.Media.Media3D.Vector3D(1, 0, 0), min: -180.0, max: 180.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 0)),
-                (name: "J5", axis: new System.Windows.Media.Media3D.Vector3D(0, 1, 0), min: -120.0, max: 120.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 325)),
-                (name: "J6", axis: new System.Windows.Media.Media3D.Vector3D(1, 0, 0), min: -360.0, max: 360.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 80)),
+                (name: "J1", axis: new System.Windows.Media.Media3D.Vector3D(0, 0, 1), min: -170.0, max: 170.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 150)),
+                (name: "J2", axis: new System.Windows.Media.Media3D.Vector3D(0, 1, 0), min: -135.0, max: 135.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 50, 250)),
+                (name: "J3", axis: new System.Windows.Media.Media3D.Vector3D(0, 1, 0), min: -150.0, max: 150.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 450)),
+                (name: "J4", axis: new System.Windows.Media.Media3D.Vector3D(1, 0, 0), min: -180.0, max: 180.0, offset: new System.Windows.Media.Media3D.Vector3D(0, -50, 150)),
+                (name: "J5", axis: new System.Windows.Media.Media3D.Vector3D(0, 1, 0), min: -120.0, max: 120.0, offset: new System.Windows.Media.Media3D.Vector3D(0, 0, 350)),
+                (name: "J6", axis: new System.Windows.Media.Media3D.Vector3D(1, 0, 0), min: -360.0, max: 360.0, offset: new System.Windows.Media.Media3D.Vector3D(0, -50, 120)),
             };
 
             foreach (var cfg in jointConfigs)

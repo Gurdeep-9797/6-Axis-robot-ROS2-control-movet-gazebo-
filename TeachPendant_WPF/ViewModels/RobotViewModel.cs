@@ -15,6 +15,9 @@ namespace TeachPendant_WPF.ViewModels
     public partial class RobotViewModel : ObservableObject
     {
         private readonly SceneGraphManager _sceneGraph;
+        private bool _isApplyingStateFromDriver;
+
+        public event Action<double[]>? JointJogRequested;
 
         // ── Joint Data (Bound to UI Sliders) ────────────────────────
 
@@ -82,6 +85,11 @@ namespace TeachPendant_WPF.ViewModels
                         {
                             _sceneGraph.Robot.Joints[item.JointIndex].CurrentAngle = item.Angle;
                             UpdateTCPReadout();
+
+                            if (!_isApplyingStateFromDriver)
+                            {
+                                JointJogRequested?.Invoke(JointSliders.Select(x => x.Angle).ToArray());
+                            }
                         }
                     }
                 };
@@ -100,15 +108,23 @@ namespace TeachPendant_WPF.ViewModels
         {
             if (_sceneGraph.Robot == null) return;
 
-            _sceneGraph.Robot.ApplyJointAngles(angles);
-
-            // Sync sliders
-            for (int i = 0; i < Math.Min(angles.Length, JointSliders.Count); i++)
+            _isApplyingStateFromDriver = true;
+            try
             {
-                JointSliders[i].Angle = angles[i];
-            }
+                _sceneGraph.Robot.ApplyJointAngles(angles);
 
-            UpdateTCPReadout();
+                // Sync sliders
+                for (int i = 0; i < Math.Min(angles.Length, JointSliders.Count); i++)
+                {
+                    JointSliders[i].Angle = angles[i];
+                }
+
+                UpdateTCPReadout();
+            }
+            finally
+            {
+                _isApplyingStateFromDriver = false;
+            }
         }
 
         /// <summary>

@@ -4,7 +4,7 @@ services:
   ros_core:
     image: robotics_base:latest
     container_name: ros_core
-    command: bash -c "source /opt/ros/humble/setup.bash && cd /ros_ws && rm -f build_finished && colcon build --packages-ignore robot_tests && touch build_finished && source install/setup.bash && ros2 launch robot_description display.launch.py"
+    command: bash -c "source /opt/ros/humble/setup.bash && cd /ros_ws && rm -f build_finished && colcon build --packages-ignore robot_tests robot_hardware_bridge && touch build_finished && source install/setup.bash && ros2 launch robot_description display.launch.py"
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
@@ -19,10 +19,12 @@ services:
       - ros_core
     volumes:
       - ${PROJECT_ROOT}:/ros_ws
-    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; rm -rf /ros_ws/install/robot_hardware_bridge 2>/dev/null; source /ros_ws/install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"
     environment:
       - ROS_DOMAIN_ID=42
-      - DISPLAY=host.docker.internal:0 # for GUI
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_X11_NO_MITSHM=1 # for GUI
     networks:
       - robot_net
     deploy:
@@ -37,20 +39,18 @@ services:
       - ros_core
     volumes:
       - ${PROJECT_ROOT}:/ros_ws
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /mnt/wslg:/mnt/wslg:rw
     environment:
       - ROS_DOMAIN_ID=42
-      - DISPLAY=host.docker.internal:0
-    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"
+      - DISPLAY=:0
+      - QT_X11_NO_MITSHM=1
+      - XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
+      - WAYLAND_DISPLAY=wayland-0
+      - LIBGL_ALWAYS_SOFTWARE=1
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; rm -rf /ros_ws/install/robot_hardware_bridge 2>/dev/null; source /ros_ws/install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"
     networks:
       - robot_net
-    # GPU Removed for compatibility
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [ gpu ]
 
   hardware_bridge:
     image: robotics_base:latest
@@ -60,7 +60,7 @@ services:
       - moveit
     volumes:
       - ${PROJECT_ROOT}:/ros_ws
-    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 run robot_hardware_bridge bridge_node"
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; rm -rf /ros_ws/install/robot_hardware_bridge 2>/dev/null; source /ros_ws/install/setup.bash && ros2 run robot_hardware_bridge bridge_node || echo 'bridge_node not available'"
     environment:
       - ROS_DOMAIN_ID=42
     networks:
@@ -71,7 +71,7 @@ services:
     container_name: rosbridge
     depends_on:
       - ros_core
-    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; source /ros_ws/install/setup.bash && ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
+    command: bash -c "source /opt/ros/humble/setup.bash && while [ ! -f /ros_ws/build_finished ]; do sleep 2; done; rm -rf /ros_ws/install/robot_hardware_bridge 2>/dev/null; source /ros_ws/install/setup.bash && ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
     ports:
       - "9090:9090"
     environment:

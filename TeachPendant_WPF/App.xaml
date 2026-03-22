@@ -1,4 +1,4 @@
-﻿<Application x:Class="TeachPendant_WPF.App"
+<Application x:Class="TeachPendant_WPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="Views/MainWindow.xaml">
@@ -27,6 +27,7 @@
 
         <!-- BooleanToVisibility Converter -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <!-- ═══════ BASE STYLES ═══════ -->
         <Style TargetType="Window">

@@ -10,8 +10,18 @@
         Title="FR-HMI Teach Pendant" Height="1080" Width="1920"
         Style="{StaticResource FRWindowStyle}">
 
+        <!-- Global Application Keybindings -->
+    <Window.InputBindings>
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Program.Save" />
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Program.Load" />
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Program.New" />
+        <!-- Quick Play / Stop Shortcuts -->
+        <KeyBinding Key="Space" Command="{Binding StartProgramCommand}" />
+        <KeyBinding Key="Esc" Command="{Binding StopProgramCommand}" />
+    </Window.InputBindings>
+
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="40" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0"/>
+        <WindowChrome CaptionHeight="40" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="4"/>
     </WindowChrome.WindowChrome>
 
     <Grid Background="{StaticResource Bg.Deepest}">
@@ -37,14 +47,37 @@
                     <ColumnDefinition Width="Auto"/> <!-- Window Controls -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Brand -->
+                <!-- Brand & Menus -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="FR-STUDIO IDE" FontWeight="Bold" Foreground="{StaticResource Palette.Primary.Brand}" FontSize="13" Margin="0,0,20,0"/>
-                    <Button Content="File" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Content="Edit" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Content="View" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Content="Robot" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                    <Button Content="Settings" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" Command="{Binding OpenSettingsCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    
+                    <Menu Background="Transparent" Foreground="{StaticResource Text.Primary}" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <MenuItem Header="File" Padding="8,4" Foreground="{StaticResource Text.Primary}">
+                            <MenuItem Header="New Project" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Program.New" InputGestureText="Ctrl+N" />
+                            <MenuItem Header="Open Program" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Program.Load" InputGestureText="Ctrl+O" />
+                            <Separator />
+                            <MenuItem Header="Save Project" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Program.Save" InputGestureText="Ctrl+S" />
+                            <MenuItem Header="Save As..." />
+                            <Separator />
+                            <MenuItem Header="Exit" Command="{Binding CloseWindowCommand}"/>
+                        </MenuItem>
+                        <MenuItem Header="Edit" Padding="8,4" Foreground="{StaticResource Text.Primary}">
+                            <MenuItem Header="Undo" InputGestureText="Ctrl+Z" />
+                            <MenuItem Header="Redo" InputGestureText="Ctrl+Y" />
+                            <Separator />
+                            <MenuItem Header="Cut" InputGestureText="Ctrl+X" />
+                            <MenuItem Header="Copy" InputGestureText="Ctrl+C" />
+                            <MenuItem Header="Paste" InputGestureText="Ctrl+V" />
+                        </MenuItem>
+                        <MenuItem Header="Robot" Padding="8,4" Foreground="{StaticResource Text.Primary}">
+                            <MenuItem Header="Start Program" Command="{Binding StartProgramCommand}" InputGestureText="Space"/>
+                            <MenuItem Header="Abort (E-Stop)" Command="{Binding StopProgramCommand}" InputGestureText="Esc"/>
+                            <Separator />
+                            <MenuItem Header="Load URDF..." Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="Robot.LoadURDF" />
+                        </MenuItem>
+                    </Menu>
+
+                    <Button Content="Settings" Style="{StaticResource FRButtonStyle}" Background="Transparent" BorderThickness="0" Command="{Binding OpenSettingsCommand}" WindowChrome.IsHitTestVisibleInChrome="True" Margin="20,0,0,0"/>
                 </StackPanel>
 
                 <!-- Mode & Execution (SIM/REAL + Start/Stop) -->
@@ -99,88 +132,145 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- 3-PANE EXPLORER                                             -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- 4-PANE FR-HMI TABLET EXPLORER                               -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" MinWidth="200"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="350" MinWidth="300"/>
+                <ColumnDefinition Width="220"/> <!-- Col 0: Palette -->
+                <ColumnDefinition Width="5"/>   <!-- Col 1: Splitter -->
+                <ColumnDefinition Width="350" MinWidth="250"/> <!-- Col 2: WorkTree -->
+                <ColumnDefinition Width="5"/>   <!-- Col 3: Splitter -->
+                <ColumnDefinition Width="*"/>   <!-- Col 4: Master Panel -->
+                <ColumnDefinition Width="64"/>  <!-- Col 5: Right Nav -->
             </Grid.ColumnDefinitions>
 
-            <!-- ═══════ LEFT PANEL: Toolbox & Logic Tree ═══════ -->
-            <Border Grid.Column="0" Background="{StaticResource Bg.Surface1}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,1,0">
+            <!-- COL 5: Vertical Navigation (Moved to Right) -->
+            <Border Grid.Column="5" Background="{StaticResource Bg.Deepest}" BorderBrush="{StaticResource Border.Default}" BorderThickness="1,0,0,0">
+                <StackPanel Margin="0,16,0,0">
+                    <RadioButton Style="{StaticResource FRToggleButtonStyle}" Content="Prog " IsChecked="True" Height="64" Margin="0,0,0,8"/>
+                    <RadioButton Style="{StaticResource FRToggleButtonStyle}" Content="Stat " Height="64" Margin="0,0,0,8"/>
+                    <RadioButton Style="{StaticResource FRToggleButtonStyle}" Content="Aux " Height="64" Margin="0,0,0,8"/>
+                    <RadioButton Style="{StaticResource FRToggleButtonStyle}" Content="Set " Height="64"/>
+                </StackPanel>
+            </Border>
+
+            <!-- COL 0: Command Toolbox -->
+            <Border Grid.Column="0" Background="#801E1E1E" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,1,0">
+                <ScrollViewer>
+                    <StackPanel Margin="10,16,10,10">
+                        <TextBlock Text="Logic Command" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="12" Margin="0,0,0,12"/>
+                        <UniformGrid Columns="2">
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="WAIT" Margin="2,2">
+                                <StackPanel><TextBlock Text="⏱" Foreground="#D19A66" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="Wait" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="SETDO" Margin="2,2">
+                                <StackPanel><TextBlock Text="⚡" Foreground="#98C379" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="IO Set" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="WHILE" Margin="2,2">
+                                <StackPanel><TextBlock Text="🔃" Foreground="#61AFEF" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="Loop" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="DOFILE" Margin="2,2">
+                                <StackPanel><TextBlock Text="📄" Foreground="#E5C07B" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="Sub Call" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                        </UniformGrid>
+
+                        <Rectangle Height="1" Fill="{StaticResource Border.Default}" Margin="0,16"/>
+
+                        <TextBlock Text="Motion Command" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="12" Margin="0,0,0,12"/>
+                        <UniformGrid Columns="2">
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="LIN" Margin="2,2">
+                                <StackPanel><TextBlock Text="↗" Foreground="#56B6C2" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="Lin" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="PTP" Margin="2,2">
+                                <StackPanel><TextBlock Text="⤿" Foreground="#C678DD" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="Ptp" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="ARC" Margin="2,2">
+                                <StackPanel><TextBlock Text="⭕" Foreground="#E06C75" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="Arc" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="LoadURDF" Margin="2,2">
+                                <StackPanel><TextBlock Text="🤖" Foreground="{StaticResource Accent.Motion}" FontSize="18" HorizontalAlignment="Center"/><TextBlock Text="URDF" Foreground="{StaticResource Text.Primary}" HorizontalAlignment="Center"/></StackPanel>
+                            </Button>
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- SPLITTER 1 -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource Border.Default}"/>
+
+            <!-- COL 2: Logic WorkTree -->
+            <Border Grid.Column="2" Background="#801E1E1E" CornerRadius="4" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,1,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    
-                    <!-- Toolbox Component -->
-                    <StackPanel Grid.Row="0" Margin="10,16,10,10">
-                        <TextBlock Text="COMMAND TOOLBOX" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11" Margin="0,0,0,8"/>
-                        <WrapPanel Orientation="Horizontal" Focusable="False">
-                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="LIN" Margin="0,0,4,4">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="↗" Foreground="#61AFEF" Margin="0,0,6,0"/>
-                                    <TextBlock Text="LIN" Foreground="{StaticResource Text.Primary}"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="PTP" Margin="0,0,4,4">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⤿" Foreground="#C678DD" Margin="0,0,6,0"/>
-                                    <TextBlock Text="PTP" Foreground="{StaticResource Text.Primary}"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="WAIT" Margin="0,0,4,4">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⏱" Foreground="#D19A66" Margin="0,0,6,0"/>
-                                    <TextBlock Text="WAIT" Foreground="{StaticResource Text.Primary}"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding AddInstructionCommand}" CommandParameter="SETDO" Margin="0,0,4,4">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⚡" Foreground="#98C379" Margin="0,0,6,0"/>
-                                    <TextBlock Text="IO" Foreground="{StaticResource Text.Primary}"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource FRButtonStyle}" Command="{Binding CommandReg.ExecuteCommand}" CommandParameter="LoadURDF" Margin="0,0,4,4">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🤖" Foreground="#E5C07B" Margin="0,0,6,0"/>
-                                    <TextBlock Text="URDF" Foreground="{StaticResource Text.Primary}"/>
-                                </StackPanel>
-                            </Button>
-                        </WrapPanel>
-                    </StackPanel>
-                    
-                    <!-- Logic Tree Component -->
-                    <Border Grid.Row="1" Margin="10,0,10,10" Background="{StaticResource Bg.Deepest}" CornerRadius="4" BorderBrush="{StaticResource Border.Default}" BorderThickness="1">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Background="{StaticResource Bg.Surface2}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,0,1" Padding="12,8">
-                                <TextBlock Text="LOGIC TREE" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11"/>
-                            </Border>
-                            <TreeView Grid.Row="1" ItemsSource="{Binding WorkTree.RootNodes}" Background="Transparent" BorderThickness="0" Margin="4">
+                    <Border Grid.Row="0" Background="{StaticResource Bg.Surface2}" BorderBrush="{StaticResource Border.Default}" BorderThickness="0,0,0,1" Padding="12,8">
+                        <TextBlock Text="LOGIC SEQUENCE" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11"/>
+                    </Border>
+                    <TreeView Grid.Row="1" ItemsSource="{Binding WorkTree.RootNodes}" Background="Transparent" BorderThickness="0" Margin="4">
                                 <TreeView.ItemContainerStyle>
                                     <Style TargetType="TreeViewItem">
                                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                                        <!-- Note: Using IsSelected TwoWay binding for now; real project may require a behavior to push selection to VM reliably -->
                                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
                                         <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
-                                        <Setter Property="Padding" Value="4,2"/>
+                                        <Setter Property="Padding" Value="4,4"/>
+                                        <Setter Property="Margin" Value="0,1"/>
                                         <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="TreeViewItem">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" MinWidth="19"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition/>
+                                                        </Grid.RowDefinitions>
+                                                        <ToggleButton x:Name="Expander" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"/>
+                                                        <Border x:Name="Bd" Grid.Column="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true" CornerRadius="3">
+                                                            <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                        </Border>
+                                                        <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Grid.Column="1"/>
+                                                    </Grid>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="false">
+                                                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                                                        </Trigger>
+                                                        <Trigger Property="HasItems" Value="false">
+                                                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsSelected" Value="true">
+                                                            <Setter TargetName="Bd" Property="Background" Value="#3399FF"/>
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                        </Trigger>
+                                                        <MultiTrigger>
+                                                            <MultiTrigger.Conditions>
+                                                                <Condition Property="IsSelected" Value="true"/>
+                                                                <Condition Property="IsSelectionActive" Value="false"/>
+                                                            </MultiTrigger.Conditions>
+                                                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Bg.Surface2}"/>
+                                                            <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+                                                        </MultiTrigger>
+                                                        <Trigger Property="IsMouseOver" Value="true">
+                                                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Border.Highlight}"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
                                         <Setter Property="ContextMenu">
                                             <Setter.Value>
                                                 <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                                    <MenuItem Header="Edit Parameter..." Command="{Binding WorkTree.EditSelectedCommand}"/>
-                                                    <MenuItem Header="Duplicate" Command="{Binding WorkTree.DuplicateSelectedCommand}"/>
+                                                    <MenuItem Header="▶ Execute Line (Step)" Command="{Binding WorkTree.StepSelectedCommand}" Foreground="{StaticResource Accent.Real}" FontWeight="Bold"/>
+                                                    <MenuItem Header="Edit Parameter..." Command="{Binding WorkTree.EditSelectedCommand}" FontWeight="SemiBold"/>
                                                     <Separator/>
-                                                    <MenuItem Header="Delete Node" Command="{Binding WorkTree.DeleteSelectedCommand}" Foreground="#DF6965"/>
+                                                    <MenuItem Header="Duplicate Feature" Command="{Binding WorkTree.DuplicateSelectedCommand}"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Delete Node" Command="{Binding WorkTree.DeleteSelectedCommand}" Foreground="{StaticResource Accent.Error}"/>
                                                 </ContextMenu>
                                             </Setter.Value>
                                         </Setter>
@@ -189,42 +279,91 @@
                                 <TreeView.ItemTemplate>
                                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                         <StackPanel Orientation="Horizontal" Margin="0,2">
-                                            <TextBlock Text="{Binding Icon}" Margin="0,0,8,0"/>
-                                            <TextBlock Text="{Binding Name}"/>
-                                            <TextBlock Text="{Binding Value, StringFormat=' ({0})'}" Foreground="{StaticResource Text.Muted}" Margin="4,0,0,0">
+                                            <TextBlock Text="{Binding Icon}" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
+                                                        <Setter Property="FontWeight" Value="Normal"/>
+                                                        <Style.Triggers>
+                                                            <!-- Bold Text for structural elements imitating CAD Folders/Features -->
+                                                            <DataTrigger Binding="{Binding NodeType}" Value="Folder">
+                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding NodeType}" Value="Robot">
+                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource Palette.Primary.Brand}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding NodeType}" Value="Program">
+                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <Border CornerRadius="3" Background="{StaticResource Bg.Deepest}" Padding="4,1" Margin="8,0,0,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Value}" Value="">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Value, StringFormat='{} {0} '}" Foreground="#A8C7FA" FontSize="11" VerticalAlignment="Center"/>
+                                            </Border>
                                         </StackPanel>
                                     </HierarchicalDataTemplate>
                                 </TreeView.ItemTemplate>
                             </TreeView>
-                        </Grid>
-                    </Border>
                 </Grid>
             </Border>
 
-            <!-- SPLITTER 1 -->
-            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource Border.Default}"/>
+            <!-- SPLITTER 2 -->
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource Border.Default}"/>
 
-            <!-- ═══════ CENTER: 3D Workspace ═══════ -->
-            <Border Grid.Column="2" Background="{StaticResource Bg.Deepest}">
-                <Grid>
-                    <hx:HelixViewport3D ShowCoordinateSystem="True" ShowFrameRate="False" ZoomExtentsWhenLoaded="True" Background="Transparent" ShowViewCube="True">
+            <!-- COL 4: Master Panel (Viewer & Jog Tabs) -->
+            <Border Grid.Column="4" Background="{StaticResource Bg.Surface2}">
+                <TabControl Background="Transparent" BorderThickness="0">
+                    <TabControl.Resources>
+                        <Style TargetType="TabItem">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{StaticResource Text.Muted}"/>
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Padding" Value="16,8"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="TabItem">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" ContentSource="Header"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource Accent.Motion}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TabControl.Resources>
+                    
+                    <TabItem Header="3D Simulation Viewer">
+                        <Grid>
+                            <hx:HelixViewport3D ShowCoordinateSystem="True" ShowFrameRate="False" ZoomExtentsWhenLoaded="True" Background="Transparent" ShowViewCube="True" RotateGesture="MiddleClick" PanGesture="RightClick" CameraRotationMode="Turntable">
                         <hx:DefaultLights/>
                         <!-- Grid floor -->
                         <hx:GridLinesVisual3D Width="2" Length="2" Thickness="0.002" MinorDistance="0.1" MajorDistance="0.5" Fill="#30888888"/>
                         <ModelVisual3D x:Name="RobotModelVisual"/>
                     </hx:HelixViewport3D>
-
-                    <!-- Viewport overlay: TCP readout -->
+                            <!-- Viewport overlay: TCP readout -->
                     <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Background="#901E2127" CornerRadius="6" Padding="12,8"
                             BorderBrush="{StaticResource Border.Highlight}" BorderThickness="1">
                         <StackPanel>
@@ -246,21 +385,26 @@
                             </UniformGrid>
                         </StackPanel>
                     </Border>
-                    
-                    <!-- Viewport overlay: Active Line -->
+                            <!-- Viewport overlay: Active Line -->
                     <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" Background="#901E2127" CornerRadius="6" Padding="10,6"
-                            BorderBrush="{StaticResource Border.Highlight}" BorderThickness="1" Visibility="{Binding ProgramVM.ActiveLineNumber, Converter={StaticResource IntToVisibilityConverter}}">
+                            BorderBrush="{StaticResource Border.Highlight}" BorderThickness="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ProgramVM.ActiveLineNumber}" Value="-1">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
                         <TextBlock Text="{Binding ProgramVM.ActiveLineNumber, StringFormat='Line: {0}'}" FontWeight="Bold" Foreground="{StaticResource Accent.Error}" FontSize="11"/>
                     </Border>
-                </Grid>
-            </Border>
-
-            <!-- SPLITTER 2 -->
-            <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource Border.Default}"/>
-
-            <!-- ═══════ RIGHT PANEL: Machine Control ═══════ -->
-            <Border Grid.Column="4" Background="{StaticResource Bg.Surface1}" BorderBrush="{StaticResource Border.Default}" BorderThickness="1,0,0,0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        </Grid>
+                    </TabItem>
+                    
+                    <TabItem Header="Manual System Jog">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16">
                         <TextBlock Text="MACHINE CONTROL" FontWeight="Bold" Foreground="{StaticResource Text.Muted}" FontSize="11" Margin="0,0,0,16"/>
                         
@@ -334,6 +478,8 @@
                         </Grid>
                     </StackPanel>
                 </ScrollViewer>
+                    </TabItem>
+                </TabControl>
             </Border>
         </Grid>
 
@@ -368,7 +514,7 @@
                     <TextBlock FontFamily="Consolas" FontSize="12" Foreground="{StaticResource Text.Muted}">
                         <Run Text="[SYS] FR-STUDIO Core Engine Started." Foreground="{StaticResource Accent.Real}"/><LineBreak/>
                         <Run Text="[SYS] Connecting to Robot Hardware (Simulation)..."/><LineBreak/>
-                        <Run Text="[SYS] Loaded URDF: irb120_workspace.urdf"/><LineBreak/>
+                        <Run Text="[SYS] Loaded URDF: custom_6axis_test.urdf.xacro (Industrial D-H Config)"/><LineBreak/>
                         <Run Text="[WRN] Teach velocity limited to 250mm/s in T1 mode." Foreground="#E5C07B"/><LineBreak/>
                         <Run Text="[SYS] Ready."/>
                     </TextBlock>

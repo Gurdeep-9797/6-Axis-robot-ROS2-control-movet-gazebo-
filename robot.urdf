@@ -312,17 +312,8 @@
     </joint>
   </ros2_control>
   <gazebo>
-    <plugin filename="gz-sim-joint-trajectory-controller-system" name="gz::sim::systems::JointTrajectoryController">
-      <topic>/gazebo/joint_trajectory</topic>
-    </plugin>
-    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
-      <topic>/gazebo/joint_states</topic>
-      <joint_name>joint_1</joint_name>
-      <joint_name>joint_2</joint_name>
-      <joint_name>joint_3</joint_name>
-      <joint_name>joint_4</joint_name>
-      <joint_name>joint_5</joint_name>
-      <joint_name>joint_6</joint_name>
+    <plugin filename="gz_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+      <parameters>/mnt/d/Projects/ROBOT/6-Axis-robot-ROS2-control-movet-gazebo-/install/robot_gazebo/share/robot_gazebo/config/gazebo_controllers.yaml</parameters>
     </plugin>
   </gazebo>
 </robot>

@@ -4,12 +4,19 @@
         <ResourceDictionary Source="Colors.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Base Window Style -->
+    <!-- Base Window Style (Acrylic Glass Enabled) -->
     <Style x:Key="FRWindowStyle" TargetType="Window">
         <Setter Property="Background" Value="{StaticResource Bg.Deepest}"/>
         <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
         <Setter Property="FontFamily" Value="{StaticResource Font.UI}"/>
         <Setter Property="FontSize" Value="12"/>
+        <Setter Property="WindowStyle" Value="SingleBorderWindow"/>
+        <Setter Property="AllowsTransparency" Value="False"/>
+        <Setter Property="WindowChrome.WindowChrome">
+            <Setter.Value>
+                <WindowChrome GlassFrameThickness="-1" ResizeBorderThickness="4" CaptionHeight="32" CornerRadius="0"/>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Custom SIM/REAL RadioButton Toggle Style -->
@@ -56,11 +63,17 @@
         <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Padding" Value="12,6"/>
         <Setter Property="Margin" Value="2"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FontSize" Value="11"/>
-        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="1"/>
+            </Setter.Value>
+        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -68,16 +81,28 @@
                             Background="{TemplateBinding Background}" 
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="3"
+                            CornerRadius="4"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <!-- Hover State -->
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Border.Highlight}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="#555555"/>
                         </Trigger>
+                        <!-- Pressed State micro-animation -->
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Bg.Surface1}"/>
+                            <Setter Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <!-- Disabled State -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.4"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

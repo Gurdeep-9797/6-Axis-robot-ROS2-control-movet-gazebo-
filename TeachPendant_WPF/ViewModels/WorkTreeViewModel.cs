@@ -118,12 +118,54 @@ namespace TeachPendant_WPF.ViewModels
         private void EditSelected()
         {
             if (_selectedNode == null) return;
+            
+            // Pop the professional FeatureManager edit dialog
+            var dialog = new TeachPendant_WPF.Views.EditNodeDialog(_selectedNode.Value);
+            dialog.Owner = App.Current.MainWindow;
+            
+            if (dialog.ShowDialog() == true)
+            {
+                // Push the modified value back to the node visually and update it
+                _selectedNode.Value = dialog.NodeValue;
+                
+                // Note: For deeper Logic (like WaitInstruction.DelayMs), a switch block on NodeType 
+                // would sync this string representation back to the underlying Program Instructions collection!
+            }
+        }
+
+        // ── Single Line Run Proxy ─────────────────────────────────────
+        public event Action<WorkTreeNode> StepRequested;
+
+        [RelayCommand]
+        private void StepSelected()
+        {
+            if (_selectedNode == null) return;
+            StepRequested?.Invoke(_selectedNode);
         }
 
         [RelayCommand]
         private void DuplicateSelected()
         {
             if (_selectedNode == null) return;
+            var parent = FindParent(RootNodes, _selectedNode);
+            if (parent != null)
+            {
+                var clone = new WorkTreeNode(_selectedNode.Icon, _selectedNode.Name + " (Copy)", _selectedNode.NodeType);
+                clone.Value = _selectedNode.Value;
+                clone.Tag = _selectedNode.Tag;
+                parent.Children.Add(clone);
+            }
+        }
+
+        private WorkTreeNode? FindParent(ObservableCollection<WorkTreeNode> nodes, WorkTreeNode child, WorkTreeNode? currentParent = null)
+        {
+            if (nodes.Contains(child)) return currentParent;
+            foreach (var node in nodes)
+            {
+                var found = FindParent(node.Children, child, node);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         [RelayCommand]

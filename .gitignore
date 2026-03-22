@@ -70,7 +70,6 @@ tmp/
 !src/**/*.stl
 
 # --- Archive & Temp (not tracked) ---
-_archive/
 temp_vcpkg/
 cmake_*.log
 tools/vcpkg/
@@ -82,3 +81,5 @@ docker-compose.override.yml
 .idea/
 *.sln.iml
 
+.env    
+.env.example

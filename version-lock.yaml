@@ -60,7 +60,7 @@ ros2:
 
 # ── Gazebo (Docker) ─────────────────────────────────────
 gazebo:
-  version: "classic-11"
+  version: "harmonic"
   runtime: "docker"
 
 # ── Docker ───────────────────────────────────────────────

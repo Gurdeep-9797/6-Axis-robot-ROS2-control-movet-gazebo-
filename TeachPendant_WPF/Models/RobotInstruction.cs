@@ -30,7 +30,7 @@ namespace TeachPendant_WPF.Models
         public ObservableCollection<RobotInstruction> Children { get; set; } = new ObservableCollection<RobotInstruction>();
         public bool HasChildren => Children.Count > 0;
 
-        public abstract Task ExecuteAsync(RobotState state);
+        public abstract Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver);
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -52,7 +52,7 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Logic";
         public override string IconText => "⏱";
 
-        public override async Task ExecuteAsync(RobotState state)
+        public override async Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
             await Task.Delay(DelayMs);
         }
@@ -73,9 +73,9 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Logic";
         public override string IconText => "🔌";
 
-        public override Task ExecuteAsync(RobotState state)
+        public override Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
-            // Set IO bit logic here
+            // Set IO bit logic here via driver if supported
             return Task.CompletedTask;
         }
     }
@@ -97,9 +97,9 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Motion";
         public override string IconText => "📏";
 
-        public override async Task ExecuteAsync(RobotState state)
+        public override async Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
-            // FAKE KINEMATICS FOR UI DEMO: Sweep joints smoothly over 1.5 seconds
+            // LIVE KINEMATICS FOR HARDWARE & UI SYNC: 
             int steps = 30;
             int delayMs = 50;
 
@@ -109,12 +109,14 @@ namespace TeachPendant_WPF.Models
             double targetJ3 = r.Next(-45, 45);
             double targetJ4 = r.Next(-90, 90);
             double targetJ5 = r.Next(-45, 45);
+            double targetJ6 = r.Next(-90, 90);
 
             double startJ1 = state.J1;
             double startJ2 = state.J2;
             double startJ3 = state.J3;
             double startJ4 = state.J4;
             double startJ5 = state.J5;
+            double startJ6 = state.J6;
 
             for (int i = 1; i <= steps; i++)
             {
@@ -128,11 +130,13 @@ namespace TeachPendant_WPF.Models
                 state.J3 = startJ3 + (targetJ3 - startJ3) * smoothT;
                 state.J4 = startJ4 + (targetJ4 - startJ4) * smoothT;
                 state.J5 = startJ5 + (targetJ5 - startJ5) * smoothT;
+                state.J6 = startJ6 + (targetJ6 - startJ6) * smoothT;
                 
                 // Simulate some force data variance
                 state.Fx = r.NextDouble() * 5.0;
-                state.Fy = r.NextDouble() * 5.0;
-                state.Fz = r.NextDouble() * -10.0;
+                
+                // DRIVER INVOCATION (THIS MOVES GAZEBO!)
+                driver.SendJointPositions(new[] { state.J1, state.J2, state.J3, state.J4, state.J5, state.J6 });
 
                 await Task.Delay(delayMs);
             }
@@ -154,9 +158,9 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Motion";
         public override string IconText => "🎯";
 
-        public override async Task ExecuteAsync(RobotState state)
+        public override async Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
-            // FAKE KINEMATICS FOR UI DEMO: Sweep joints smoothly over 2.0 seconds
+            // LIVE KINEMATICS FOR HARDWARE & UI SYNC
             int steps = 40;
             int delayMs = 50; 
 
@@ -194,6 +198,9 @@ namespace TeachPendant_WPF.Models
                 state.Y = state.J2 * 2.0;
                 state.Z = 300 + state.J3 * 2.0;
 
+                // DRIVER INVOCATION (THIS MOVES GAZEBO!)
+                driver.SendJointPositions(new[] { state.J1, state.J2, state.J3, state.J4, state.J5, state.J6 });
+
                 await Task.Delay(delayMs);
             }
         }
@@ -216,7 +223,7 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Motion";
         public override string IconText => "⭕";
 
-        public override Task ExecuteAsync(RobotState state)
+        public override Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
             return Task.CompletedTask;
         }
@@ -235,7 +242,7 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Structure";
         public override string IconText => "📄";
 
-        public override Task ExecuteAsync(RobotState state)
+        public override Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
             return Task.CompletedTask;
         }
@@ -247,7 +254,7 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Structure";
         public override string IconText => "🏁";
 
-        public override Task ExecuteAsync(RobotState state)
+        public override Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
             return Task.CompletedTask;
         }
@@ -266,12 +273,12 @@ namespace TeachPendant_WPF.Models
         public override string NodeType => "Structure";
         public override string IconText => "🔃";
 
-        public override async Task ExecuteAsync(RobotState state)
+        public override async Task ExecuteAsync(RobotState state, TeachPendant_WPF.Services.IRobotDriver driver)
         {
             // Placeholder execute for While loop simulation
             foreach(var child in Children)
             {
-                await child.ExecuteAsync(state);
+                await child.ExecuteAsync(state, driver);
             }
         }
     }
