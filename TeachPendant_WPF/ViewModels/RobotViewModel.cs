@@ -71,24 +71,23 @@ namespace TeachPendant_WPF.ViewModels
                     Name = $"J{i + 1}",
                     Min = joint.MinLimit,
                     Max = joint.MaxLimit,
-                    Angle = joint.CurrentAngle,
+                    CommandAngle = joint.CurrentAngle,
+                    ActualAngle = joint.CurrentAngle,
                     JointIndex = i
                 };
 
                 // When slider value changes, update the scene graph joint
                 slider.PropertyChanged += (s, e) =>
                 {
-                    if (e.PropertyName == nameof(JointSliderItem.Angle))
+                    if (e.PropertyName == nameof(JointSliderItem.CommandAngle))
                     {
                         var item = (JointSliderItem)s!;
                         if (_sceneGraph.Robot != null && item.JointIndex < _sceneGraph.Robot.DOF)
                         {
-                            _sceneGraph.Robot.Joints[item.JointIndex].CurrentAngle = item.Angle;
-                            UpdateTCPReadout();
-
                             if (!_isApplyingStateFromDriver)
                             {
-                                JointJogRequested?.Invoke(JointSliders.Select(x => x.Angle).ToArray());
+                                // User moved the slider manually.
+                                JointJogRequested?.Invoke(JointSliders.Select(x => x.CommandAngle).ToArray());
                             }
                         }
                     }
@@ -113,10 +112,10 @@ namespace TeachPendant_WPF.ViewModels
             {
                 _sceneGraph.Robot.ApplyJointAngles(angles);
 
-                // Sync sliders
+                // Instantly update Readout property (ActualAngle) representing physical truth continuously
                 for (int i = 0; i < Math.Min(angles.Length, JointSliders.Count); i++)
                 {
-                    JointSliders[i].Angle = angles[i];
+                    JointSliders[i].ActualAngle = angles[i];
                 }
 
                 UpdateTCPReadout();
@@ -171,7 +170,7 @@ namespace TeachPendant_WPF.ViewModels
             if (idx < 0 || idx >= JointSliders.Count) return;
 
             double step = 1.0; // 1 degree step
-            JointSliders[idx].Angle += isPositive ? step : -step;
+            JointSliders[idx].CommandAngle += isPositive ? step : -step;
         }
 
         [RelayCommand]
@@ -196,7 +195,9 @@ namespace TeachPendant_WPF.ViewModels
         [ObservableProperty] private string _name = string.Empty;
         [ObservableProperty] private double _min = -180;
         [ObservableProperty] private double _max = 180;
-        [ObservableProperty] private double _angle;
+
+        [ObservableProperty] private double _commandAngle;
+        [ObservableProperty] private double _actualAngle;
 
         public int JointIndex { get; set; }
     }

@@ -1,6 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Net;
+using System.Text.Json;
+using System.IO;
+using System.Text;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -134,18 +138,82 @@ namespace TeachPendant_WPF.ViewModels
             // 8. Register commands in registry
             RegisterCoreCommands();
 
-            // 9. Auto-Demonstration: Randomly execute programs safely to prove WP->Gazebo channels
-            Task.Run(async () => {
-                await Task.Delay(8000); // give Gazebo/ROS 8 seconds to boot behind the scenes and WPF to settle
-                while(true) {
-                    try {
-                        if (!GlobalState.IsRunning && _driver.IsConnected) {
-                            Application.Current.Dispatcher.InvokeAsync(() => {
-                                StartProgramCommand.Execute(null);
-                            });
+            // 9. Registration complete
+            // (Removed legacy auto-demonstration loop per user request to stop redundant background faking)
+
+            // 10. Start Local CLI Integration Server
+            StartCliApiServer();
+        }
+
+        private void StartCliApiServer()
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var listener = new HttpListener();
+                    listener.Prefixes.Add("http://localhost:5000/");
+                    listener.Start();
+                    
+                    while (true)
+                    {
+                        var context = await listener.GetContextAsync();
+                        var req = context.Request;
+                        var res = context.Response;
+                        
+                        try
+                        {
+                            if (req.Url!.AbsolutePath == "/state" && req.HttpMethod == "GET")
+                            {
+                                var angles = RobotVM.GetJointAngles();
+                                var json = JsonSerializer.Serialize(new { joints = angles });
+                                var buffer = Encoding.UTF8.GetBytes(json);
+                                res.ContentType = "application/json";
+                                await res.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                            }
+                            else if (req.Url.AbsolutePath == "/move" && req.HttpMethod == "POST")
+                            {
+                                using var reader = new StreamReader(req.InputStream);
+                                var json = await reader.ReadToEndAsync();
+                                var payload = JsonSerializer.Deserialize<double[]>(json);
+                                
+                                if (payload != null && payload.Length == 6)
+                                {
+                                    Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        for (int i = 0; i < 6; i++)
+                                        {
+                                            RobotVM.JointSliders[i].Angle = payload[i];
+                                        }
+                                    });
+                                    var msg = Encoding.UTF8.GetBytes("{\"status\": \"ok\"}");
+                                    await res.OutputStream.WriteAsync(msg, 0, msg.Length);
+                                }
+                                else
+                                {
+                                    res.StatusCode = 400;
+                                }
+                            }
+                            else
+                            {
+                                res.StatusCode = 404;
+                            }
                         }
-                    } catch { }
-                    await Task.Delay(15000); // re-trigger every 15s
+                        catch (Exception ex)
+                        {
+                            res.StatusCode = 500;
+                            var error = Encoding.UTF8.GetBytes(ex.Message);
+                            await res.OutputStream.WriteAsync(error, 0, error.Length);
+                        }
+                        finally
+                        {
+                            res.Close();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine($"CLI API Server failed: {e.Message}");
                 }
             });
         }

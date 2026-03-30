@@ -269,10 +269,10 @@
   <!-- ============== GAZEBO HARMONIC PLUGINS ============== -->
   <!-- CRITICAL: Remapping maintained -->
   <gazebo>
-    <plugin filename="gz-sim-joint-trajectory-controller-system" name="gz::sim::systems::JointTrajectoryController">
+    <plugin filename="libgz-sim-joint-trajectory-controller-system.so" name="gz::sim::systems::JointTrajectoryController">
       <topic>/gazebo/joint_trajectory</topic>
     </plugin>
-    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+    <plugin filename="libgz-sim-joint-state-publisher-system.so" name="gz::sim::systems::JointStatePublisher">
       <topic>/gazebo/joint_states</topic>
       <joint_name>joint_1</joint_name>
       <joint_name>joint_2</joint_name>

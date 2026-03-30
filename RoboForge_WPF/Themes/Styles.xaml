@@ -1,0 +1,305 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Colors.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- WINDOW STYLE                                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="RFWindowStyle" TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource Bg.Deepest}"/>
+        <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="WindowStyle" Value="SingleBorderWindow"/>
+        <Setter Property="AllowsTransparency" Value="False"/>
+        <Setter Property="WindowChrome.WindowChrome">
+            <Setter.Value>
+                <WindowChrome GlassFrameThickness="-1" ResizeBorderThickness="4" CaptionHeight="32" CornerRadius="0"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- GLASSY BUTTON (Primary — with glass sheen + shadow)    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="GlassButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource Bg.Surface}"/>
+        <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="1"/>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <!-- Drop shadow layer -->
+                        <Border x:Name="shadow" Background="#18000000" CornerRadius="5" Margin="-1,1,-1,-1"/>
+                        <!-- Main glass body -->
+                        <Border x:Name="body"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <!-- Glass sheen overlay -->
+                                <Border x:Name="sheen" CornerRadius="3" Opacity="0.08"
+                                        Background="White" VerticalAlignment="Top" Height="50%" IsHitTestVisible="False"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="body" Property="BorderBrush" Value="{StaticResource Border.Glow}"/>
+                            <Setter TargetName="sheen" Property="Opacity" Value="0.14"/>
+                            <Setter TargetName="body" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="{StaticResource Accent.Primary.Color}" BlurRadius="12" Opacity="0.25" ShadowDepth="0"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.04" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.04" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.12"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="body" Property="Background" Value="{StaticResource Bg.Panel}"/>
+                            <Setter TargetName="sheen" Property="Opacity" Value="0.04"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.96" Duration="0:0:0.06"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.96" Duration="0:0:0.06"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="body" Property="Opacity" Value="0.35"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- RIBBON BUTTON (Icon + Label, vertical layout)          -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="RibbonButton" TargetType="Button" BasedOn="{StaticResource GlassButton}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="MinWidth" Value="48"/>
+        <Setter Property="FontSize" Value="10"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MODE TOGGLE (Edit/Simulate/Live radio buttons)         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="ModeToggle" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource Text.Muted}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="border" Background="Transparent" CornerRadius="2" Padding="12,4" Margin="1,0">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Accent.Primary}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Bg.Accent}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsChecked" Value="True"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Accent.PrimaryLight}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SIDEBAR ICON BUTTON                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="SidebarButton" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource Text.Muted}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="border" Background="Transparent" CornerRadius="3"
+                            Width="44" Height="44" Margin="4,1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#1A2B8FED"/>
+                            <Setter Property="Foreground" Value="{StaticResource Accent.Primary}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Bg.Accent}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PANEL HEADER                                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="PanelHeader" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Bg.Header}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="12,6"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- STATUS LED                                              -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="StatusLedOn" TargetType="Ellipse">
+        <Setter Property="Width" Value="8"/>
+        <Setter Property="Height" Value="8"/>
+        <Setter Property="Fill" Value="{StaticResource Led.On}"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#22C55E" BlurRadius="6" Opacity="0.6" ShadowDepth="0"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="StatusLedOff" TargetType="Ellipse">
+        <Setter Property="Width" Value="8"/>
+        <Setter Property="Height" Value="8"/>
+        <Setter Property="Fill" Value="{StaticResource Led.Off}"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- BLOCK ITEM (Draggable program block)                   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="BlockItemStyle" TargetType="Border">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="1"/>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="8" Opacity="0.3" ShadowDepth="2" Color="#000000"/>
+                    </Setter.Value>
+                </Setter>
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.03" Duration="0:0:0.1"/>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.03" Duration="0:0:0.1"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.1"/>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.1"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CONSOLE LINE                                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="ConsoleLineStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="12,2"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PROPERTY FIELD                                          -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style x:Key="PropertyLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource Text.Muted}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="PropertyInput" TargetType="TextBox">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Background" Value="{StaticResource Bg.Panel}"/>
+        <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="CaretBrush" Value="{StaticResource Accent.Primary}"/>
+        <Style.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource Border.Glow}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CUSTOM SCROLLBAR                                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Style TargetType="ScrollBar">
+        <Setter Property="Width" Value="6"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CONVERTERS                                              -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+</ResourceDictionary>

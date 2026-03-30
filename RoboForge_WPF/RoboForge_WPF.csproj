@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>RoboForge_WPF</RootNamespace>
+    <AssemblyName>RoboForge_WPF</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="HelixToolkit.Wpf" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Websocket.Client" Version="5.3.0" />
+  </ItemGroup>
+
+  <!-- Reference shared code from the existing TeachPendant_WPF project -->
+  <ItemGroup>
+    <Compile Include="..\TeachPendant_WPF\Models\RobotState.cs" Link="Shared\Models\RobotState.cs" />
+    <Compile Include="..\TeachPendant_WPF\Models\RobotProgram.cs" Link="Shared\Models\RobotProgram.cs" />
+    <Compile Include="..\TeachPendant_WPF\Models\RobotInstruction.cs" Link="Shared\Models\RobotInstruction.cs" />
+    <Compile Include="..\TeachPendant_WPF\Models\AppDbContext.cs" Link="Shared\Models\AppDbContext.cs" />
+    <Compile Include="..\TeachPendant_WPF\Models\Nodes\*.cs" Link="Shared\Models\Nodes\%(Filename)%(Extension)" />
+    <Compile Include="..\TeachPendant_WPF\SceneGraph\*.cs" Link="Shared\SceneGraph\%(Filename)%(Extension)" />
+    <Compile Include="..\TeachPendant_WPF\Services\*.cs" Link="Shared\Services\%(Filename)%(Extension)" />
+    <Compile Include="..\TeachPendant_WPF\Views\URDFVisualizer.cs" Link="Shared\Views\URDFVisualizer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\robot.urdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Copy URDF asset from existing project -->
+  <Target Name="CopyURDF" BeforeTargets="Build">
+    <Copy SourceFiles="..\TeachPendant_WPF\Assets\robot.urdf"
+          DestinationFolder="Assets"
+          SkipUnchangedFiles="true"
+          Condition="Exists('..\TeachPendant_WPF\Assets\robot.urdf')" />
+  </Target>
+
+</Project>
