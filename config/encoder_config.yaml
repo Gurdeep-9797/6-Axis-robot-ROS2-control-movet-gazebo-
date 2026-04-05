@@ -1,0 +1,52 @@
+# encoder_config.yaml
+# Edit counts_per_rev and gear_ratio to match your hardware.
+# Run the calibration procedure to set zero_offset_counts.
+
+joints:
+  - joint_name:          "joint_1"
+    counts_per_rev:      4096        # 12-bit absolute encoder (e.g. AS5047P)
+    gear_ratio:          100.0       # 100:1 harmonic drive
+    zero_offset_counts:  2048        # SET BY CALIBRATION — do not guess
+    direction:           1           # +1 = CCW positive, -1 = CW positive
+    joint_limit_min_rad: -3.14159
+    joint_limit_max_rad:  3.14159
+
+  - joint_name:          "joint_2"
+    counts_per_rev:      4096
+    gear_ratio:          80.0
+    zero_offset_counts:  2048
+    direction:           -1          # reversed — check with physical robot
+    joint_limit_min_rad: -1.9199
+    joint_limit_max_rad:  1.9199
+
+  - joint_name:          "joint_3"
+    counts_per_rev:      4096
+    gear_ratio:          80.0
+    zero_offset_counts:  2048
+    direction:           1
+    joint_limit_min_rad: -3.14159
+    joint_limit_max_rad:  1.2217
+
+  - joint_name:          "joint_4"
+    counts_per_rev:      4096
+    gear_ratio:          50.0
+    zero_offset_counts:  2048
+    direction:           1
+    joint_limit_min_rad: -3.49066
+    joint_limit_max_rad:  3.49066
+
+  - joint_name:          "joint_5"
+    counts_per_rev:      4096
+    gear_ratio:          50.0
+    zero_offset_counts:  2048
+    direction:           1
+    joint_limit_min_rad: -2.0944
+    joint_limit_max_rad:  2.0944
+
+  - joint_name:          "joint_6"
+    counts_per_rev:      4096
+    gear_ratio:          30.0
+    zero_offset_counts:  2048
+    direction:           1
+    joint_limit_min_rad: -6.98132
+    joint_limit_max_rad:  6.98132

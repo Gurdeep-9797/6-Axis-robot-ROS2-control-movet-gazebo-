@@ -1,0 +1,24 @@
+# OMPL Planning Configuration
+# Planner settings for motion planning (NON-REAL-TIME)
+
+planner_configs:
+  RRTConnect:
+    type: geometric::RRTConnect
+    range: 0.0
+  RRTstar:
+    type: geometric::RRTstar
+    range: 0.0
+    goal_bias: 0.05
+    delay_collision_checking: 1
+  PRM:
+    type: geometric::PRM
+    max_nearest_neighbors: 10
+
+robot_arm:
+  planner_configs:
+    - RRTConnect
+    - RRTstar
+    - PRM
+  default_planner_config: RRTConnect
+  projection_evaluator: joints(joint_1,joint_2)
+  longest_valid_segment_fraction: 0.01

@@ -1,0 +1,30 @@
+# Trajectory Execution Configuration
+# Time parameterization and execution settings
+
+trajectory_execution:
+  allowed_execution_duration_scaling: 1.2
+  allowed_goal_duration_margin: 0.5
+  allowed_start_tolerance: 0.01
+  execution_duration_monitoring: true
+
+# Time Parameterization (TOTG - Time-Optimal Trajectory Generation)
+planning_pipelines:
+  pipeline_names: ["ompl"]
+  
+ompl:
+  planning_plugins:
+    - ompl_interface/OMPLPlanner
+  request_adapters:
+    - default_planning_request_adapters/ResolveConstraintFrames
+    - default_planning_request_adapters/ValidateWorkspaceBounds
+    - default_planning_request_adapters/CheckStartStateBounds
+    - default_planning_request_adapters/CheckStartStateCollision
+  response_adapters:
+    - default_planning_response_adapters/AddTimeOptimalParameterization
+    - default_planning_response_adapters/ValidateSolution
+    - default_planning_response_adapters/DisplayMotionPath
+
+# Velocity/Acceleration scaling for safety
+moveit_simple_controller_manager:
+  controller_names:
+    - robot_arm_controller
