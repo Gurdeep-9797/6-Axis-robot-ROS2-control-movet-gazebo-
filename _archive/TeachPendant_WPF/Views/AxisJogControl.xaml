@@ -1,0 +1,27 @@
+<UserControl x:Class="TeachPendant_WPF.Views.AxisJogControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="40" d:DesignWidth="300">
+    <Grid Margin="0,4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="40"/>  <!-- Axis Name -->
+            <ColumnDefinition Width="30"/>  <!-- Minus Button -->
+            <ColumnDefinition Width="*"/>   <!-- Slider -->
+            <ColumnDefinition Width="30"/>  <!-- Plus Button -->
+            <ColumnDefinition Width="60"/>  <!-- Value Readout -->
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" Text="{Binding AxisName}" Foreground="{StaticResource Text.Primary}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" x:Name="TxtAxisName"/>
+
+        <Button Grid.Column="1" Content="−" Style="{StaticResource FRButtonStyle}" Foreground="{StaticResource Text.Muted}" x:Name="BtnMinus"/>
+
+        <Slider Grid.Column="2" VerticalAlignment="Center" Margin="8,0" x:Name="SldPosition"/>
+
+        <Button Grid.Column="3" Content="+" Style="{StaticResource FRButtonStyle}" Foreground="{StaticResource Text.Muted}" x:Name="BtnPlus"/>
+
+        <TextBox Grid.Column="4" Background="{StaticResource Bg.Deepest}" Foreground="{StaticResource Accent.Sim}" BorderBrush="{StaticResource Border.Input}" VerticalAlignment="Center" Padding="4,2" FontSize="11" FontWeight="Bold" TextAlignment="Right" x:Name="TxtValue"/>
+    </Grid>
+</UserControl>

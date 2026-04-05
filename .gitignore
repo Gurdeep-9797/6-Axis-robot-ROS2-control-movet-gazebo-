@@ -27,6 +27,11 @@ build/
 build_local/
 install/
 log/
+build_win/
+install_win/
+log_win/
+bridge-server/
+tmp_logs.txt
 COLCON_IGNORE
 ament_code_generator_off
 *.pyc

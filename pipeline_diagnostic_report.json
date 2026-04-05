@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-04-05T14:08:14",
+  "ok": 0,
+  "errors": 2,
+  "warnings": 0,
+  "entries": [
+    {
+      "time": "14:08:10",
+      "level": "INF",
+      "msg": "Connecting to rosbridge at ws://localhost:9090..."
+    },
+    {
+      "time": "14:08:14",
+      "level": "ERR",
+      "msg": "Cannot connect to rosbridge: [WinError 1225] The remote computer refused the network connection"
+    },
+    {
+      "time": "14:08:14",
+      "level": "ERR",
+      "msg": "ABORT: Cannot reach rosbridge. Is Docker running?"
+    },
+    {
+      "time": "14:08:14",
+      "level": "INF",
+      "msg": "  Start with: docker compose -f docker/docker-compose.sim.yml up -d"
+    }
+  ]
+}

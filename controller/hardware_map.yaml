@@ -1,0 +1,117 @@
+# Hardware Mapping Configuration
+# Defines connection layout for ESP32 + PCA9685 + Encoders
+
+hardware:
+  communication:
+    serial_baud: 115200
+    command_timeout_ms: 500  # E-STOP if no command received
+    feedback_rate_hz: 50     # Publisher frequency
+
+  i2c:
+    sda_pin: 21
+    scl_pin: 22
+    frequency: 400000        # Fast Mode (400kHz)
+    pca9685_address: 0x40
+
+joints:
+  joint_1:
+    servo:
+      channel: 0             # PCA9685 Channel 0
+      min_pulse_us: 500
+      max_pulse_us: 2500
+      neutral_pulse_us: 1500
+      inverted: false
+    encoder:
+      type: AB_QUADRATURE
+      pin_a: 34              # Input Only
+      pin_b: 35              # Input Only
+      ppi: 4096              # Pulses Per Interval (Tick Count)
+      inverted: false
+    limits:
+      min_pos_rad: -3.14159
+      max_pos_rad: 3.14159
+
+  joint_2:
+    servo:
+      channel: 1
+      min_pulse_us: 500
+      max_pulse_us: 2500
+      neutral_pulse_us: 1500
+      inverted: false
+    encoder:
+      type: AB_QUADRATURE
+      pin_a: 32
+      pin_b: 33
+      ppi: 4096
+      inverted: false
+    limits:
+      min_pos_rad: -1.5708
+      max_pos_rad: 1.5708
+
+  joint_3:
+    servo:
+      channel: 2
+      min_pulse_us: 500
+      max_pulse_us: 2500
+      neutral_pulse_us: 1500
+      inverted: false
+    encoder:
+      type: AB_QUADRATURE
+      pin_a: 25
+      pin_b: 26
+      ppi: 4096
+      inverted: false
+    limits:
+      min_pos_rad: -2.3562
+      max_pos_rad: 2.3562
+
+  joint_4:
+    servo:
+      channel: 3
+      min_pulse_us: 500
+      max_pulse_us: 2500
+      neutral_pulse_us: 1500
+      inverted: false
+    encoder:
+      type: AB_QUADRATURE
+      pin_a: 27
+      pin_b: 14
+      ppi: 2048
+      inverted: false
+    limits:
+      min_pos_rad: -1.5708
+      max_pos_rad: 1.5708
+
+  joint_5:
+    servo:
+      channel: 4
+      min_pulse_us: 500
+      max_pulse_us: 2500
+      neutral_pulse_us: 1500
+      inverted: false
+    encoder:
+      type: AB_QUADRATURE
+      pin_a: 12
+      pin_b: 13
+      ppi: 2048
+      inverted: false
+    limits:
+      min_pos_rad: -3.14159
+      max_pos_rad: 3.14159
+
+  joint_6:
+    servo:
+      channel: 5
+      min_pulse_us: 500
+      max_pulse_us: 2500
+      neutral_pulse_us: 1500
+      inverted: false
+    encoder:
+      type: AB_QUADRATURE
+      pin_a: 4  # Note: Check strap pins
+      pin_b: 16 # Note: UART2 RX usually
+      ppi: 2048
+      inverted: false
+    limits:
+      min_pos_rad: -1.5708
+      max_pos_rad: 1.5708

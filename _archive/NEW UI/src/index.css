@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 14% 10%;
+    --foreground: 210 20% 90%;
+
+    --card: 220 14% 13%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 220 14% 15%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 207 90% 54%;
+    --primary-foreground: 220 14% 4%;
+
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 12% 16%;
+    --muted-foreground: 215 12% 55%;
+
+    --accent: 220 14% 22%;
+    --accent-foreground: 210 20% 90%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 12% 20%;
+    --input: 220 12% 20%;
+    --ring: 207 90% 54%;
+
+    --radius: 0.25rem;
+
+    /* Industrial status colors */
+    --status-ok: 142 71% 45%;
+    --status-warning: 38 92% 50%;
+    --status-error: 0 72% 51%;
+    --status-info: 207 90% 54%;
+
+    /* Viewport */
+    --viewport-bg: 220 20% 8%;
+    --viewport-grid: 220 14% 14%;
+
+    /* Ribbon */
+    --ribbon-bg: 220 14% 12%;
+    --ribbon-border: 220 12% 18%;
+    --ribbon-hover: 220 14% 20%;
+    --ribbon-active: 207 90% 54%;
+
+    /* Console */
+    --console-bg: 220 20% 7%;
+    --console-text: 120 40% 65%;
+    --console-error: 0 72% 60%;
+    --console-warning: 38 80% 60%;
+
+    /* Panel */
+    --panel-bg: 220 14% 11%;
+    --panel-header: 220 14% 14%;
+    --panel-hover: 220 14% 16%;
+
+    /* Tree */
+    --tree-selected: 207 90% 54% / 0.15;
+    --tree-hover: 220 14% 18%;
+
+    /* LED */
+    --led-on: 142 71% 45%;
+    --led-off: 220 12% 25%;
+
+    /* Code editor */
+    --code-bg: 220 20% 8%;
+    --code-keyword: 207 90% 65%;
+    --code-string: 142 60% 55%;
+    --code-comment: 220 10% 40%;
+    --code-number: 38 80% 60%;
+    --code-function: 280 60% 65%;
+    --code-line-number: 220 10% 30%;
+    --code-line-active: 220 14% 14%;
+
+    /* Block editor */
+    --block-move: 207 80% 45%;
+    --block-logic: 38 80% 50%;
+    --block-io: 142 60% 40%;
+    --block-wait: 280 50% 50%;
+    --block-loop: 340 60% 50%;
+
+    /* Scrollbar */
+    --scrollbar-track: 220 14% 10%;
+    --scrollbar-thumb: 220 12% 22%;
+
+    --sidebar-background: 220 14% 11%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 207 90% 54%;
+    --sidebar-primary-foreground: 220 14% 4%;
+    --sidebar-accent: 220 14% 18%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 12% 18%;
+    --sidebar-ring: 207 90% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    overflow: hidden;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--scrollbar-track));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--scrollbar-thumb));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  .ribbon-btn {
+    @apply flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-sm text-xs transition-all duration-150;
+    @apply text-secondary-foreground hover:bg-accent active:bg-primary active:text-primary-foreground;
+  }
+  .ribbon-btn.active {
+    @apply bg-primary text-primary-foreground;
+  }
+  .ribbon-btn:disabled {
+    @apply opacity-30 pointer-events-none;
+  }
+
+  .panel-header {
+    @apply flex items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wider;
+    background: hsl(var(--panel-header));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .tree-node {
+    @apply flex items-center gap-1.5 px-2 py-1 text-sm cursor-pointer rounded-sm transition-colors duration-100;
+    @apply hover:bg-accent;
+  }
+  .tree-node.selected {
+    background: hsl(var(--tree-selected));
+    @apply text-primary;
+  }
+
+  .status-led {
+    @apply w-2.5 h-2.5 rounded-full transition-colors duration-300;
+  }
+  .status-led.on {
+    background: hsl(var(--led-on));
+    box-shadow: 0 0 6px hsl(var(--led-on));
+  }
+  .status-led.off {
+    background: hsl(var(--led-off));
+  }
+
+  .console-line {
+    @apply font-mono text-xs py-0.5 px-3;
+  }
+
+  .mode-toggle {
+    @apply flex rounded-sm overflow-hidden border border-border;
+  }
+  .mode-toggle-btn {
+    @apply px-3 py-1 text-xs font-medium transition-all duration-150;
+    @apply text-muted-foreground hover:text-foreground;
+  }
+  .mode-toggle-btn.active {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .block-item {
+    @apply flex items-center gap-2 px-3 py-2 rounded text-sm cursor-grab transition-all duration-150;
+    @apply hover:brightness-110 active:cursor-grabbing active:scale-95;
+  }
+
+  .property-field {
+    @apply flex items-center justify-between py-1.5 border-b border-border/50;
+  }
+  .property-label {
+    @apply text-xs text-muted-foreground;
+  }
+  .property-value {
+    @apply text-xs bg-secondary px-2 py-1 rounded-sm text-foreground border border-border focus:border-primary outline-none;
+  }
+
+  .viewport-toolbar-btn {
+    @apply p-1.5 rounded transition-colors duration-150;
+    @apply text-muted-foreground hover:text-foreground hover:bg-accent;
+  }
+  .viewport-toolbar-btn.active {
+    @apply text-primary bg-primary/10;
+  }
+}
