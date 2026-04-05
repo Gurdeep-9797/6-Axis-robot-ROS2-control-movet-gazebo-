@@ -1,7 +1,0 @@
-Model : Model3D
-Visual : Visual3D
-Distance : Double
-Mesh : MeshGeometry3D
-Normal : Vector3D
-Position : Point3D
-RayHit : RayMeshGeometry3DHitTestResult
