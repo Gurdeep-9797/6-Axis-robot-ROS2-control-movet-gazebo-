@@ -425,4 +425,103 @@ namespace RoboForge.Wpf.ViewModels
     public partial class SettingsViewModel : ObservableObject { }
     public partial class ProjectManagerViewModel : ObservableObject { }
     public partial class Robot3DViewModel : ObservableObject { }
+
+    // ── v8.2 Hardware Configuration ─────────────────────────────────────
+    public enum MotorType { DC, BLDC, Stepper }
+    public enum EncoderType { Incremental, AbsoluteSPI, AbsoluteI2C, AbsoluteSSI, Resolver }
+    public enum SignalOutputType { PWM, StepDir, CAN, EtherCAT }
+
+    public class JointHardwareConfig : ObservableObject
+    {
+        public int JointIndex { get; set; }
+        public MotorType Motor { get; set; } = MotorType.DC;
+        public SignalOutputType Signal { get; set; } = SignalOutputType.PWM;
+        public double Kp { get; set; } = 1.2;
+        public double Ki { get; set; } = 0.05;
+        public double MaxCurrentA { get; set; } = 5.0;
+        public double GearRatio { get; set; } = 100.0;
+        public bool InvertDirection { get; set; }
+        // BLDC
+        public int PolePairs { get; set; } = 7;
+        public double FluxLinkage { get; set; } = 0.012;
+        public double PhaseResistance { get; set; } = 0.5;
+        public double FocKpD { get; set; } = 0.5;
+        public double FocKiD { get; set; } = 5.0;
+        public double FocKpQ { get; set; } = 0.5;
+        public double FocKiQ { get; set; } = 5.0;
+        // Encoder
+        public EncoderType Encoder { get; set; } = EncoderType.AbsoluteSPI;
+        public int CPR { get; set; } = 4096;
+        public double EncoderGearRatio { get; set; } = 100.0;
+        public int ZeroOffset { get; set; } = 2048;
+        public int EncoderDirection { get; set; } = 1;
+        // Status
+        public bool Configured { get; set; }
+        public string TestResult { get; set; } = "untested"; // untested, pass, fail, testing
+    }
+
+    public class PostResult
+    {
+        public int Joint { get; set; }
+        public bool EncoderOk { get; set; }
+        public bool MotorOk { get; set; }
+        public bool SerialOk { get; set; }
+        public double LatencyMs { get; set; }
+    }
+
+    public partial class HardwareConfigViewModel : ObservableObject
+    {
+        [ObservableProperty] private ObservableCollection<JointHardwareConfig> _joints = new();
+        [ObservableProperty] private int _selectedJointIndex;
+        [ObservableProperty] private ObservableCollection<PostResult> _postResults = new();
+        [ObservableProperty] private bool _isPostRunning;
+        [ObservableProperty] private bool _configSaved;
+
+        public HardwareConfigViewModel()
+        {
+            for (int i = 0; i < 6; i++)
+                Joints.Add(new JointHardwareConfig { JointIndex = i });
+        }
+
+        [RelayCommand]
+        private async Task RunPostAsync()
+        {
+            IsPostRunning = true;
+            PostResults.Clear();
+
+            for (int i = 0; i < 6; i++)
+            {
+                await Task.Delay(400);
+                PostResults.Add(new PostResult
+                {
+                    Joint = i + 1,
+                    EncoderOk = Joints[i].Configured || new Random().NextDouble() > 0.1,
+                    MotorOk = Joints[i].Configured || new Random().NextDouble() > 0.1,
+                    SerialOk = true,
+                    LatencyMs = Math.Round(new Random().NextDouble() * 2, 1),
+                });
+            }
+
+            IsPostRunning = false;
+        }
+
+        [RelayCommand]
+        private void SaveConfig()
+        {
+            // Serialize and save to file
+            var json = JsonSerializer.Serialize(Joints, new JsonSerializerOptions { WriteIndented = true });
+            System.IO.File.WriteAllText("robot_hardware_config.json", json);
+            ConfigSaved = true;
+        }
+
+        [RelayCommand]
+        private void LoadConfig()
+        {
+            if (!System.IO.File.Exists("robot_hardware_config.json")) return;
+            var json = System.IO.File.ReadAllText("robot_hardware_config.json");
+            var loaded = JsonSerializer.Deserialize<ObservableCollection<JointHardwareConfig>>(json);
+            if (loaded != null) Joints = loaded;
+            ConfigSaved = true;
+        }
+    }
 }

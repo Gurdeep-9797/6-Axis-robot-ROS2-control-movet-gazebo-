@@ -1,84 +1,66 @@
-# 6-Axis Industrial Robot Platform
+# RoboForge v8.0 
+
 [![Build & Release](https://github.com/Gurdeep-9797/6-Axis-robot-ROS2-control-movet-gazebo-/actions/workflows/build.yml/badge.svg)](https://github.com/Gurdeep-9797/6-Axis-robot-ROS2-control-movet-gazebo-/actions/workflows/build.yml)
 
-A full-stack robot control system: **C# WPF Simulator** → **ROS 2 / MoveIt Planning** → **ESP32 Hardware**.
+A professional full-stack advanced industrial robot control system featuring a **React Online Web-IDE**, a **C# WPF Offline Client**, backed by **ROS 2 / MoveIt Planning** and an **ESP32 Real-Time Hardware Bridge**.
+
+## v8.0 Architecture & Features
+
+RoboForge v8.0 acts as a modern, Blender-style 3D CAD environment and visual node-based programmer integrated directly into the physical robotic workspace.
+
+### Key Upgrades
+- **Blender-Style 3D Workspace**: A fully interactive 3D viewport featuring `@react-three/drei` Cartesian Transform Controls. Click and drag geometric shapes and waypoints directly in 3D space with professional gizmos.
+- **Bi-Directional Scene Outliner**: Real-time synchronization between the Worktree and the 3D viewport. Drop primitive solids (box, sphere, cylinder) directly into the virtual workspace via the floating context menu.
+- **Real-Time Hardware Telemetry Pipeline**: The frontend accurately reflects 250Hz hardware encoder joint definitions utilizing the ROS 2 WebSocket bridge. 
+- **Universal Parity**: Seamless telemetry and interface parity across the Web Browser Simulator and the offline `.NET 8 WPF` executable.
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Simulator (C# WPF)     ──── rosbridge WebSocket ────┐  │
-│  • 3D Visualization                                   │  │
-│  • Teach Pendant                                      ▼  │
-│  • Serial USB Control    MoveIt 2 (Docker/Linux)         │
-│                          • TRAC-IK Solver                │
-│                          • OMPL Path Planning            │
-│                          • Collision Avoidance            │
-│                                   │                      │
-│                          Hardware Bridge (ROS Node)       │
-│                          • Schema Validation              │
-│                          • Protocol Gateway               │
-│                                   │                      │
-│                          ┌────────┴────────┐             │
-│                          │                 │             │
-│                     WiFi (TCP)        Gazebo Sim         │
-│                          │                               │
-│                    ESP32 Controller                       │
-│                    • PCA9685 PWM                          │
-│                    • Encoder Feedback                     │
-│                    • Safety Watchdog                      │
-└─────────────────────────────────────────────────────────┘
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Frontends (React & WPF)    ──── rosbridge WebSocket ────┐  │
+│  • Full 3D Editor (Gizmos)                               │  │
+│  • Visual Scene Outliner                                 ▼  │
+│  • Diagnostics & Jog                                MoveIt 2│
+│                                                          │  │
+│                          Hardware Bridge (ROS Node)      │  │
+│                          • Real/Simulated Fallbacks      │  │
+│                                                          │  │
+│                          ┌────────┴────────┐             │  │
+│                     WiFi (TCP)        Gazebo Harmonic    │  │
+│                          │                               │  │
+│                    ESP32 Controller                      │  │
+│                    • 250Hz Encoders                      │  │
+│                    • PID FOC Support                     │  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Directory Structure
+## Setup & Deployment
 
-| Folder | Purpose |
-|--------|---------|
-| `RobotSimulator/` | C# WPF desktop app (3D visualization, teach pendant, serial control) |
-| `src/` | ROS 2 packages (MoveIt config, hardware bridge, description, Gazebo) |
-| `firmware/serial_control/` | ESP32 firmware — USB serial mode (standalone simulator) |
-| `firmware/wifi_controller/` | ESP32 firmware — WiFi TCP mode (ROS hardware bridge) |
-| `docker/` | Docker Compose configs for SIM and REAL modes |
-| `controller/` | `hardware_map.yaml` — joint/pin/encoder mapping |
-| `tools/` | URDF pipeline and SolidWorks export utilities |
-| `release/` | Prebuilt simulator binaries |
-
-## Quick Start
-
-## Quick Start
-
-### Simulation Mode (One-Click Launch)
+### 1. Zero-Friction Pre-Requisites (Windows)
+To automatically install Visual Studio 2022 Desktop Workloads, .NET 8.0 SDK, and CMake:
 ```powershell
-.\START_SYSTEM.ps1
-```
-This script will:
-1.  Check for `vcpkg` (installs if missing).
-2.  Install all C++ dependencies (DirectX 12, ImGui, etc.).
-3.  Build the C++ Simulator with CMake.
-4.  Start the ROS 2 Docker backend.
-5.  Launch the **DirectX 12 Robot Simulator**.
-
-### Development Build
-1.  Open `RobotSimulator_CPP` folder in Visual Studio.
-2.  Let CMake configure the project.
-3.  Build & Run `Release` target.
-
-### Option C: Simulator + MoveIt (best of both)
-```
-1. Start Docker stack (Option B)
-2. Run RobotSimulator.exe
-3. Enter rosbridge URI → Click "ROS"
-4. "Go To Point" now plans via MoveIt with collision avoidance
+.\tools\install_vs_tools.ps1
 ```
 
-## Two Firmware Modes
+### 2. Launch the Entire Stack
+The automated bootstrap script pulls up the ROS 2 container ecosystem (MoveIt, Gazebo, Bridge) and serves the React Web IDE seamlessly.
+```powershell
+.\run_roboforge.ps1
+```
 
-| Mode | Folder | Communication | Use Case |
-|------|--------|---------------|----------|
-| **Serial** | `firmware/serial_control/` | USB `<J0:val,...>` | Direct simulator control |
-| **WiFi** | `firmware/wifi_controller/` | TCP binary on port 5000 | ROS hardware bridge |
+### 3. Build the Offline Client (Optional)
+If a web browser is unavailable in your cleanroom environment:
+```powershell
+.\build_wpf.ps1
+```
 
-See **[USAGE.md](USAGE.md)** for wiring, firmware flashing, and detailed setup.
+## Physical Hardware Handshake (Encoder Calibration)
+
+When attaching RoboForge to physical cobots:
+1. Validate connectivity against the Bridge Node using `tests/real_hardware_loop_test.py`.
+2. Hardware Mode will automatically reject motion controls without first passing the *Pre-Flight 11-Point Health Check*. 
+3. If hardware connects, the `TrackingErrorWidget` will actively gauge encoder derivation against commanded velocities.
 
 ---
-*Built with ROS 2 Humble, MoveIt 2, Gazebo, .NET 8, PlatformIO*
+*Built with ROS 2 Humble, React Three Fiber, MoveIt 2, .NET 8, and Gazebo Harmonic.*

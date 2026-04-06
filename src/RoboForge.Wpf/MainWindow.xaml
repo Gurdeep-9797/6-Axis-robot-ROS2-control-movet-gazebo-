@@ -133,7 +133,7 @@
 
             <!-- Center Workspace (3D + Health Overlay) -->
             <Grid Grid.Column="2">
-                <hx:Viewport3DX x:Name="Viewport" MSAA="Four" FXAA="True" UseDefaultGestures="True" Background="{StaticResource BgPrimary}"/>
+                <hx:Viewport3DX x:Name="Viewport" MSAA="Four" UseDefaultGestures="True" Background="{StaticResource BgPrimary}"/>
                 
                 <!-- v8.0 Health Check Overlay -->
                 <Border Background="#CC000000" Visibility="{Binding IsHealthCheckRunning, Converter={StaticResource BoolToVisibilityConverter}}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

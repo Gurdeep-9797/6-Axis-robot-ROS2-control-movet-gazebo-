@@ -1,9 +1,0 @@
-planner_configs:
-  RRTConnectkConfigDefault:
-    type: geometric::RRTConnect
-    range: 0.0  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
-manipulator:
-  planner_configs:
-    - RRTConnectkConfigDefault
-  projection_evaluator: joints(joint_1,joint_2)
-  longest_valid_segment_fraction: 0.005

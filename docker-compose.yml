@@ -1,18 +1,16 @@
 version: '3.8'
 
 services:
-  # ── ROS 2 Core / Description ──────────────────────────────────────────
+  # ── ROS 2 Core / Robot Description ────────────────────────────────────
   ros_core:
     image: robotics_base:latest
     container_name: roboforge_core
-    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 launch robot_description display.launch.py"
+    entrypoint: []
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_description display.launch.py"]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
       - ./src:/ros_ws/src
-      - ./robot_description:/ros_ws/src/robot_description
-      - ./robot_gazebo:/ros_ws/src/robot_gazebo
-      - ./robot_moveit_config:/ros_ws/src/robot_moveit_config
     networks:
       - robot_net
     healthcheck:
@@ -21,49 +19,69 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── MoveIt Motion Planning ────────────────────────────────────────────
+  # ── MoveIt Motion Planning ─────────────────────────────────────────────
   moveit:
     image: robotics_base:latest
     container_name: roboforge_moveit
     depends_on:
       ros_core:
         condition: service_healthy
-    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"
+    entrypoint: []
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
       - ./src:/ros_ws/src
-      - ./robot_description:/ros_ws/src/robot_description
-      - ./robot_moveit_config:/ros_ws/src/robot_moveit_config
     networks:
       - robot_net
 
-  # ── Gazebo Physics Sim ───────────────────────────────────────────────
+  # ── 250Hz Pseudo Hardware Simulator ───────────────────────────────────
+  # Provides /joint_states at 250Hz without Gazebo (simulation mode).
+  # Subscribes to /joint_trajectory_command, interpolates, publishes.
+  pseudo_hardware:
+    image: robotics_base:latest
+    container_name: roboforge_pseudo_hw
+    depends_on:
+      ros_core:
+        condition: service_healthy
+    entrypoint: []
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 run roboforge_bridge pseudo_hardware_node || sleep infinity"]
+    environment:
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - ./src:/ros_ws/src
+    networks:
+      - robot_net
+
+  # ── Gazebo Physics Sim (OPTIONAL — use profile=sim) ───────────────────
   gazebo:
     image: robotics_base:latest
     container_name: roboforge_gazebo
+    profiles:
+      - sim
     depends_on:
       - moveit
-    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"
+    entrypoint: []
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
       - ./src:/ros_ws/src
-      - ./robot_description:/ros_ws/src/robot_description
-      - ./robot_gazebo:/ros_ws/src/robot_gazebo
     networks:
       - robot_net
 
-  # ── WebSocket Bridge & Telemetry ──────────────────────────────────────
+  # ── WebSocket Bridge & Telemetry ───────────────────────────────────────
   bridge:
     image: robotics_base:latest
     container_name: roboforge_bridge
     depends_on:
       - moveit
-      - gazebo
-    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 run roboforge_bridge roboforge_bridge"
+      - pseudo_hardware
+    entrypoint: []
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 run roboforge_bridge roboforge_bridge || sleep infinity"]
     ports:
-      - "9090:9090"
+      - "9090:9090"   # rosbridge WebSocket — IK, FK, trajectory, subscriptions
+      - "8765:8765"   # REST API — /health, /api/hardware/ports
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
@@ -71,16 +89,17 @@ services:
     networks:
       - robot_net
 
-  # ── React Online IDE (Frontend) ──────────────────────────────────────
+  # ── React Online IDE (Frontend) ────────────────────────────────────────
   frontend:
     build:
       context: ./NEW_UI/remix-of-roboflow-studio
       dockerfile: Dockerfile
     container_name: roboforge_frontend
     ports:
-      - "3000:5173"
+      - "3000:8080"
     environment:
       - VITE_ROS_BRIDGE_URL=ws://localhost:9090
+      - VITE_REST_API_URL=http://localhost:8765
     depends_on:
       - bridge
     networks:

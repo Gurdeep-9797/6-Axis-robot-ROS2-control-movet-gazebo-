@@ -23,6 +23,7 @@ setup(
             "encoder_interface_node = roboforge_bridge.encoder_interface_node:main",
             "motor_controller_node = roboforge_bridge.motor_controller_node:main",
             "gazebo_error_node = roboforge_bridge.gazebo_error_node:main",
+            "pseudo_hardware_node = roboforge_bridge.pseudo_hardware_node:main",
         ],
     },
 )
