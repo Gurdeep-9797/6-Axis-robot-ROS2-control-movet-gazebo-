@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   # ── ROS 2 Core / Robot Description ────────────────────────────────────
   ros_core:
     image: robotics_base:latest
     container_name: roboforge_core
     entrypoint: []
-    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_description display.launch.py"]
+    command: [ "bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_description display.launch.py" ]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
@@ -14,7 +12,7 @@ services:
     networks:
       - robot_net
     healthcheck:
-      test: ["CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 node list"]
+      test: [ "CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 node list" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,7 +25,7 @@ services:
       ros_core:
         condition: service_healthy
     entrypoint: []
-    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"]
+    command: [ "bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py" ]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
@@ -45,7 +43,7 @@ services:
       ros_core:
         condition: service_healthy
     entrypoint: []
-    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 run roboforge_bridge pseudo_hardware_node || sleep infinity"]
+    command: [ "bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 run roboforge_bridge pseudo_hardware_node || sleep infinity" ]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
@@ -62,7 +60,7 @@ services:
     depends_on:
       - moveit
     entrypoint: []
-    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"]
+    command: [ "bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py" ]
     environment:
       - ROS_DOMAIN_ID=42
     volumes:
@@ -78,10 +76,10 @@ services:
       - moveit
       - pseudo_hardware
     entrypoint: []
-    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 run roboforge_bridge roboforge_bridge || sleep infinity"]
+    command: [ "bash", "-c", "source /opt/ros/humble/setup.bash && cd /ros_ws && colcon build --symlink-install && source install/setup.bash && ros2 run roboforge_bridge roboforge_bridge || sleep infinity" ]
     ports:
-      - "9090:9090"   # rosbridge WebSocket — IK, FK, trajectory, subscriptions
-      - "8765:8765"   # REST API — /health, /api/hardware/ports
+      - "9090:9090" # rosbridge WebSocket — IK, FK, trajectory, subscriptions
+      - "8765:8765" # REST API — /health, /api/hardware/ports
     environment:
       - ROS_DOMAIN_ID=42
     volumes:

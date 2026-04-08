@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="robot_arm">
+<robot name="industrial_6dof">
     <!--GROUPS-->
     <group name="robot_arm">
         <chain base_link="base_link" tip_link="tool0" />

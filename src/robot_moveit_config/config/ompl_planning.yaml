@@ -1,6 +1,3 @@
-# OMPL Planning Configuration
-# Planner settings for motion planning (NON-REAL-TIME)
-
 planner_configs:
   RRTConnect:
     type: geometric::RRTConnect

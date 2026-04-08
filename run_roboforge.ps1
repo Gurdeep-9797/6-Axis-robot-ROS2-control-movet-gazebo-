@@ -21,7 +21,7 @@ docker compose up --build -d
 Write-Host "⏳ Waiting for UI to become alive..." -ForegroundColor Gray
 $maxRetries = 30
 $retryCount = 0
-$url = "http://localhost:3000"
+$url = "http://localhost:8080"
 
 while ($retryCount -lt $maxRetries) {
     try {

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir *)",
+      "Bash(docker ps *)",
+      "Bash(docker compose up *)",
+      "Bash(timeout *)",
+      "Bash(docker logs *)",
+      "Bash(powershell *)",
+      "Bash(docker exec *)",
+      "Bash(docker compose down)",
+      "Bash(docker cp *)",
+      "Bash(docker restart *)",
+      "Bash(docker compose build *)",
+      "Bash(dotnet *)",
+      "Bash(select-object *)",
+      "Bash(mkdir *)",
+      "Bash(npx *)",
+      "Bash(docker compose restart *)",
+      "Bash(docker compose stop *)",
+      "Bash(docker compose start *)",
+      "Bash(select-string *)",
+      "Bash(convertfrom-json)",
+      "Bash(convertto-json *)",
+      "Bash(findstr *)"
+    ]
+  },
+  "$version": 3
+}

@@ -1,7 +1,3 @@
-# MoveIt Controllers Configuration
-# These define how MoveIt sends trajectories to the Hardware Bridge
-# The Bridge relays to Controller which performs ACTUAL execution
-
 controller_names:
   - robot_arm_controller
 

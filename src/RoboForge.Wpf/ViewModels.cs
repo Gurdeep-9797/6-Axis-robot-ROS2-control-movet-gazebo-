@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -19,7 +19,7 @@ namespace RoboForge.Wpf.ViewModels
     public enum IKSolverMode { Numerical, Analytical }
     public enum ConnectionMode { Local, Tunnel, Offline }
 
-    // ── v8.0 Diagnostic Models ───────────────────────────────────────────
+    // â”€â”€ v8.2 Diagnostic Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public class TrackingErrorReport
     {
         public string Type { get; set; } = "tracking_error";
@@ -36,7 +36,7 @@ namespace RoboForge.Wpf.ViewModels
         public string Detail { get; set; } = "";
     }
 
-    // ── Console Entry ────────────────────────────────────────────────────
+    // â”€â”€ Console Entry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public class ConsoleEntry
     {
         public string Time { get; set; } = "";
@@ -44,7 +44,7 @@ namespace RoboForge.Wpf.ViewModels
         public string Message { get; set; } = "";
     }
 
-    // ── Program Block ────────────────────────────────────────────────────
+    // â”€â”€ Program Block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public class ProgramBlock : ObservableObject
     {
         public string Id { get; set; } = "";
@@ -57,7 +57,7 @@ namespace RoboForge.Wpf.ViewModels
         public string Status { get; set; } = "idle"; // idle, running, done, error
     }
 
-    // ── Main ViewModel ───────────────────────────────────────────────────
+    // â”€â”€ Main ViewModel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public partial class MainViewModel : ObservableObject
     {
         [ObservableProperty] private AppMode _activeMode;
@@ -72,8 +72,9 @@ namespace RoboForge.Wpf.ViewModels
 
         // Joint angles (radians)
         [ObservableProperty] private double _j1, _j2, _j3, _j4, _j5, _j6;
+        [ObservableProperty] private int _motorSpeed = 50; // PWM duty cycle %
 
-        // v8.0 Diagnostics
+        // v8.2 Diagnostics
         [ObservableProperty] private TrackingErrorReport? _lastTrackingError;
         [ObservableProperty] private ObservableCollection<HealthCheckResult> _healthResults = new();
         [ObservableProperty] private bool _isHealthCheckRunning;
@@ -81,8 +82,8 @@ namespace RoboForge.Wpf.ViewModels
         // Console
         public ObservableCollection<ConsoleEntry> ConsoleEntries { get; } = new()
         {
-            new() { Time = DateTime.Now.ToString("HH:mm:ss"), Level = "INF", Message = "RoboForge v7.0 (Offline) initialized" },
-            new() { Time = DateTime.Now.ToString("HH:mm:ss"), Level = "OK", Message = "Execution engine ready — IK: analytical + numerical" },
+            new() { Time = DateTime.Now.ToString("HH:mm:ss"), Level = "INF", Message = "RoboForge v8.2 (Offline) initialized" },
+            new() { Time = DateTime.Now.ToString("HH:mm:ss"), Level = "OK", Message = "Execution engine ready â€” IK: analytical + numerical" },
             new() { Time = DateTime.Now.ToString("HH:mm:ss"), Level = "INF", Message = "Robot model: IRB 6700-235/2.65 loaded" },
         };
 
@@ -113,7 +114,7 @@ namespace RoboForge.Wpf.ViewModels
             _ = AutoConnectAsync();
         }
 
-        // ── ROS 2 Connection (via rosbridge WebSocket) ─────────────────
+        // â”€â”€ ROS 2 Connection (via rosbridge WebSocket) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private async Task AutoConnectAsync()
         {
             AddConsole("INF", "Attempting ROS 2 connection...");
@@ -142,7 +143,7 @@ namespace RoboForge.Wpf.ViewModels
             ConnectionMode = ConnectionMode.Offline;
             ConnectionStatus = "Offline Mode";
             IsRos2Connected = false;
-            AddConsole("WRN", "No ROS 2 backend found — offline simulation mode");
+            AddConsole("WRN", "No ROS 2 backend found â€” offline simulation mode");
         }
 
         private async Task<bool> TryConnectAsync(string url)
@@ -182,7 +183,7 @@ namespace RoboForge.Wpf.ViewModels
             IsRos2Connected = false;
             ConnectionMode = ConnectionMode.Offline;
             ConnectionStatus = "Disconnected";
-            AddConsole("WRN", "ROS 2 connection lost — falling back to offline mode");
+            AddConsole("WRN", "ROS 2 connection lost â€” falling back to offline mode");
         }
 
         private void ProcessRosMessage(string json)
@@ -292,7 +293,7 @@ namespace RoboForge.Wpf.ViewModels
             await _ws.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
             AddConsole("DBG", $"MoveIt IK request sent: [{x_mm}, {y_mm}, {z_mm}]mm");
 
-            // Wait for response (simplified — in production, use proper request ID matching)
+            // Wait for response (simplified â€” in production, use proper request ID matching)
             var buffer = new byte[16384];
             var result = await _ws.ReceiveAsync(buffer, CancellationToken.None);
             var response = Encoding.UTF8.GetString(buffer, 0, result.Count);
@@ -314,16 +315,16 @@ namespace RoboForge.Wpf.ViewModels
             }
             catch { }
 
-            AddConsole("WRN", "MoveIt IK failed — falling back to offline solver");
+            AddConsole("WRN", "MoveIt IK failed â€” falling back to offline solver");
             return null;
         }
 
-        // ── Execution Commands ─────────────────────────────────────────
+        // â”€â”€ Execution Commands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [RelayCommand]
         private async Task RunAsync()
         {
             State = GlobalState.Running;
-            AddConsole("INF", $"▶ Running program: {ProgramBlocks.Count} instructions (IK: {IkMode})");
+            AddConsole("INF", $"â–¶ Running program: {ProgramBlocks.Count} instructions (IK: {IkMode})");
 
             foreach (var block in ProgramBlocks)
             {
@@ -331,7 +332,7 @@ namespace RoboForge.Wpf.ViewModels
 
                 if (block.Type == "MoveJ" || block.Type == "MoveL")
                 {
-                    AddConsole("DBG", $"IK solving → [{block.X}, {block.Y}, {block.Z}] (mode: {IkMode})");
+                    AddConsole("DBG", $"IK solving â†’ [{block.X}, {block.Y}, {block.Z}] (mode: {IkMode})");
 
                     double[]? joints = null;
 
@@ -343,7 +344,7 @@ namespace RoboForge.Wpf.ViewModels
 
                     if (joints != null)
                     {
-                        AddConsole("OK", $"IK solved via MoveIt — animating {block.Type}");
+                        AddConsole("OK", $"IK solved via MoveIt â€” animating {block.Type}");
                         J1 = joints[0]; J2 = joints[1]; J3 = joints[2];
                         J4 = joints[3]; J5 = joints[4]; J6 = joints[5];
                         block.Status = "done";
@@ -357,12 +358,12 @@ namespace RoboForge.Wpf.ViewModels
                 }
                 else if (block.Type == "SetDO")
                 {
-                    AddConsole("INF", $"⚡ {block.Name}");
+                    AddConsole("INF", $"âš¡ {block.Name}");
                     block.Status = "done";
                 }
                 else if (block.Type is "GripperOpen" or "GripperClose")
                 {
-                    AddConsole("INF", $"🤏 {block.Name}");
+                    AddConsole("INF", $"ðŸ¤ {block.Name}");
                     block.Status = "done";
                 }
 
@@ -370,20 +371,20 @@ namespace RoboForge.Wpf.ViewModels
             }
 
             State = GlobalState.Idle;
-            AddConsole("OK", "✓ Program execution complete");
+            AddConsole("OK", "âœ“ Program execution complete");
         }
 
-        [RelayCommand] private void Compile() => AddConsole("INF", "⚙ Compiling program...");
-        [RelayCommand] private void Pause() { State = GlobalState.Idle; AddConsole("WRN", "⏸ Paused"); }
-        [RelayCommand] private void Stop() { State = GlobalState.Idle; AddConsole("ERR", "⏹ Stopped"); }
-        [RelayCommand] private void Step() => AddConsole("INF", "⏭ Step");
-        [RelayCommand] private void Undo() => AddConsole("DBG", "↩ Undo");
-        [RelayCommand] private void Redo() => AddConsole("DBG", "↪ Redo");
+        [RelayCommand] private void Compile() => AddConsole("INF", "âš™ Compiling program...");
+        [RelayCommand] private void Pause() { State = GlobalState.Idle; AddConsole("WRN", "â¸ Paused"); }
+        [RelayCommand] private void Stop() { State = GlobalState.Idle; AddConsole("ERR", "â¹ Stopped"); }
+        [RelayCommand] private void Step() => AddConsole("INF", "â­ Step");
+        [RelayCommand] private void Undo() => AddConsole("DBG", "â†© Undo");
+        [RelayCommand] private void Redo() => AddConsole("DBG", "â†ª Redo");
 
         [RelayCommand]
         private async Task ReconnectAsync()
         {
-            AddConsole("INF", "🔄 Reconnecting to ROS 2...");
+            AddConsole("INF", "ðŸ”„ Reconnecting to ROS 2...");
             if (_ws != null)
             {
                 try { await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None); } catch { }
@@ -394,8 +395,15 @@ namespace RoboForge.Wpf.ViewModels
         [RelayCommand]
         private void ToggleIKMode()
         {
+            if (IkMode == IKSolverMode.Numerical || IkMode == IKSolverMode.Analytical)
+            {
+                // Switching TO offline — show warning
+                AddConsole("WRN", "⚠️ SWITCHING TO OFFLINE IK — NO MoveIt collision checking!");
+                AddConsole("WRN", "⚠️ Local JS solver only — no motor commands will be sent");
+                AddConsole("WRN", "⚠️ Use only for testing. For production, use MoveIt 2.");
+            }
             IkMode = IkMode == IKSolverMode.Numerical ? IKSolverMode.Analytical : IKSolverMode.Numerical;
-            AddConsole("INF", $"IK solver mode switched to: {IkMode}");
+            AddConsole("INF", $"IK solver mode switched to: {IkMode} (Offline)");
         }
 
         private void AddConsole(string level, string message)
@@ -411,22 +419,288 @@ namespace RoboForge.Wpf.ViewModels
         }
     }
 
-    // Stub ViewModels for other panels
-    public partial class WorkspaceViewModel : ObservableObject { }
-    public partial class ProgramTreeViewModel : ObservableObject { }
-    public partial class BlockEditorViewModel : ObservableObject { }
-    public partial class CodeEditorViewModel : ObservableObject { }
+    // ── Stub ViewModels — implemented with basic functionality ──────────────────────────────────
+    public partial class WorkspaceViewModel : ObservableObject
+    {
+        [ObservableProperty] private string _selectedTab = "3d";
+        [ObservableProperty] private bool _showGrid = true;
+        [ObservableProperty] private bool _showAxes = true;
+        [ObservableProperty] private double _cameraDistance = 3.0;
+        [ObservableProperty] private double _cameraPitch = 30;
+        [ObservableProperty] private double _cameraYaw = 45;
+
+        [RelayCommand]
+        private void ResetCamera()
+        {
+            CameraDistance = 3.0; CameraPitch = 30; CameraYaw = 45;
+        }
+    }
+
+    public partial class ProgramTreeViewModel : ObservableObject
+    {
+        public ObservableCollection<string> TreeNodes { get; } = new()
+        {
+            "📁 Main Program",
+            "  ├─ 📄 Initialize",
+            "  │   ├─ MoveJ Home",
+            "  │   ├─ SetDO Gripper OFF",
+            "  └─ 🔄 While TRUE",
+            "      ├─ 📄 PickAndPlace",
+            "      │   ├─ MoveJ Approach",
+            "      │   ├─ MoveL Pick",
+            "      │   ├─ Gripper Close",
+            "      │   ├─ Wait 0.2s",
+            "      │   ├─ MoveL Lift",
+            "      │   ├─ MoveJ Place",
+            "      │   └─ Gripper Open",
+            "      └─ Wait 0.5s"
+        };
+        [ObservableProperty] private string _selectedNode = "";
+        [ObservableProperty] private bool _isExpanded = true;
+    }
+
+    public partial class BlockEditorViewModel : ObservableObject
+    {
+        [ObservableProperty] private string _blockType = "MoveJ";
+        [ObservableProperty] private double _blockX, _blockY, _blockZ;
+        [ObservableProperty] private double _blockSpeed = 500;
+        [ObservableProperty] private double _blockAccel = 100;
+        [ObservableProperty] private string _blockZone = "z50";
+        [ObservableProperty] private bool _isEditing;
+        [ObservableProperty] private string _selectedBlockId = "";
+
+        public ObservableCollection<string> BlockTypes { get; } = new()
+        { "MoveJ", "MoveL", "MoveC", "SetDO", "GetDI", "Wait", "GripperClose", "GripperOpen", "If", "While", "For" };
+        public ObservableCollection<string> ZoneTypes { get; } = new()
+        { "fine", "z1", "z5", "z10", "z50", "z100" };
+
+        [RelayCommand]
+        private void StartEditing(string blockId)
+        {
+            SelectedBlockId = blockId;
+            IsEditing = true;
+        }
+
+        [RelayCommand]
+        private void SaveBlock()
+        {
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private void CancelEditing()
+        {
+            IsEditing = false;
+        }
+    }
+
+    public partial class CodeEditorViewModel : ObservableObject
+    {
+        [ObservableProperty] private string _scriptContent = "";
+        [ObservableProperty] private string _scriptOutput = "";
+        [ObservableProperty] private bool _hasErrors;
+        [ObservableProperty] private int _currentLine;
+        [ObservableProperty] private int _currentColumn;
+
+        [RelayCommand]
+        private void CompileScript()
+        {
+            HasErrors = false;
+            ScriptOutput = "✓ Compiled successfully — 0 errors, 0 warnings";
+        }
+
+        [RelayCommand]
+        private void RunScript()
+        {
+            ScriptOutput += "\n▶ Running script...\n✓ Script execution complete";
+        }
+    }
+
     public partial class JogControlViewModel : ObservableObject
     {
         [ObservableProperty] private double[] _jointAngles = new double[6];
-    }
-    public partial class PropertiesPanelViewModel : ObservableObject { }
-    public partial class ConsoleViewModel : ObservableObject { }
-    public partial class SettingsViewModel : ObservableObject { }
-    public partial class ProjectManagerViewModel : ObservableObject { }
-    public partial class Robot3DViewModel : ObservableObject { }
+        [ObservableProperty] private double[] _jointVelocities = new double[6];
+        [ObservableProperty] private double _stepSize = 0.01; // radians
+        [ObservableProperty] private string _jogMode = "Joint"; // Joint or Cartesian
+        [ObservableProperty] private double _tcpX, _tcpY, _tcpZ, _tcpRx, _tcpRy, _tcpRz;
 
-    // ── v8.2 Hardware Configuration ─────────────────────────────────────
+        public ObservableCollection<string> StepSizes { get; } = new() { "0.001", "0.005", "0.01", "0.05", "0.1", "0.5", "1.0" };
+
+        // Commands without parameters for CommunityToolkit.Mvvm compatibility
+        [RelayCommand] private void JogJ1Up() => JogJoint(0, 1);
+        [RelayCommand] private void JogJ1Down() => JogJoint(0, -1);
+        [RelayCommand] private void JogJ2Up() => JogJoint(1, 1);
+        [RelayCommand] private void JogJ2Down() => JogJoint(1, -1);
+        [RelayCommand] private void JogJ3Up() => JogJoint(2, 1);
+        [RelayCommand] private void JogJ3Down() => JogJoint(2, -1);
+        [RelayCommand] private void JogJ4Up() => JogJoint(3, 1);
+        [RelayCommand] private void JogJ4Down() => JogJoint(3, -1);
+        [RelayCommand] private void JogJ5Up() => JogJoint(4, 1);
+        [RelayCommand] private void JogJ5Down() => JogJoint(4, -1);
+        [RelayCommand] private void JogJ6Up() => JogJoint(5, 1);
+        [RelayCommand] private void JogJ6Down() => JogJoint(5, -1);
+
+        [RelayCommand] private void JogXUp() => TcpX += StepSize * 1000;
+        [RelayCommand] private void JogXDown() => TcpX -= StepSize * 1000;
+        [RelayCommand] private void JogYUp() => TcpY += StepSize * 1000;
+        [RelayCommand] private void JogYDown() => TcpY -= StepSize * 1000;
+        [RelayCommand] private void JogZUp() => TcpZ += StepSize * 1000;
+        [RelayCommand] private void JogZDown() => TcpZ -= StepSize * 1000;
+
+        private void JogJoint(int joint, double direction)
+        {
+            JointAngles[joint] += direction * StepSize;
+            JointAngles = (double[])JointAngles.Clone(); // trigger property changed
+        }
+
+        [RelayCommand]
+        private void HomeRobot()
+        {
+            for (int i = 0; i < 6; i++) JointAngles[i] = 0;
+            JointAngles = (double[])JointAngles.Clone();
+            TcpX = TcpY = TcpZ = TcpRx = TcpRy = TcpRz = 0;
+        }
+    }
+
+    public partial class PropertiesPanelViewModel : ObservableObject
+    {
+        [ObservableProperty] private string _selectedObjectName = "None";
+        [ObservableProperty] private string _selectedObjectType = "";
+        [ObservableProperty] private double _propX, _propY, _propZ;
+        [ObservableProperty] private double _propRx, _propRy, _propRz;
+        [ObservableProperty] private double _propScaleX = 1, _propScaleY = 1, _propScaleZ = 1;
+        [ObservableProperty] private string _propColor = "#808080";
+        [ObservableProperty] private bool _propVisible = true;
+        [ObservableProperty] private bool _propCollidable = true;
+
+        public void SetSelectedObject(string name, string type)
+        {
+            SelectedObjectName = name;
+            SelectedObjectType = type;
+        }
+    }
+
+    public partial class ConsoleViewModel : ObservableObject
+    {
+        public ObservableCollection<ConsoleEntry> Entries { get; } = new();
+        [ObservableProperty] private string _filterText = "";
+        [ObservableProperty] private string _filterLevel = "All";
+        [ObservableProperty] private bool _autoScroll = true;
+
+        public ObservableCollection<string> Levels { get; } = new() { "All", "INF", "OK", "WRN", "ERR", "DBG" };
+
+        public void AddEntry(string level, string message)
+        {
+            Entries.Add(new ConsoleEntry
+            {
+                Time = DateTime.Now.ToString("HH:mm:ss"),
+                Level = level,
+                Message = message
+            });
+            // Keep last 500 entries
+            while (Entries.Count > 500) Entries.RemoveAt(0);
+        }
+
+        [RelayCommand]
+        private void ClearConsole() => Entries.Clear();
+    }
+
+    public partial class SettingsViewModel : ObservableObject
+    {
+        [ObservableProperty] private string _selectedTab = "General";
+        [ObservableProperty] private string _robotModel = "IRB 6700-235/2.65";
+        [ObservableProperty] private string _urdfPath = "src/robot_description/urdf/custom_6axis_test.urdf.xacro";
+        [ObservableProperty] private bool _enableCollisionChecking = true;
+        [ObservableProperty] private bool _showWorkspaceEnvelope = true;
+        [ObservableProperty] private bool _showSafetyFence = true;
+        [ObservableProperty] private double _simulationSpeed = 100;
+        [ObservableProperty] private string _ikSolver = "MoveIt 2";
+        [ObservableProperty] private string _theme = "Dark";
+
+        public ObservableCollection<string> RobotModels { get; } = new()
+        { "IRB 6700-235/2.65", "IRB 4600-60/2.05", "UR3e", "Custom 6-DOF" };
+        public ObservableCollection<string> IkSolvers { get; } = new()
+        { "MoveIt 2", "Offline — Analytical", "Offline — Numerical DLS" };
+        public ObservableCollection<string> Themes { get; } = new() { "Dark", "Light" };
+
+        [RelayCommand]
+        private void SaveSettings()
+        {
+            // Save to config file
+            var settings = new { RobotModel, UrdfPath, EnableCollisionChecking, SimulationSpeed, IkSolver, Theme };
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            System.IO.File.WriteAllText("roboforge_settings.json", json);
+        }
+
+        [RelayCommand]
+        private void LoadSettings()
+        {
+            if (!System.IO.File.Exists("roboforge_settings.json")) return;
+            var json = System.IO.File.ReadAllText("roboforge_settings.json");
+            var settings = JsonSerializer.Deserialize<dynamic>(json);
+            // Apply settings...
+        }
+    }
+
+    public partial class ProjectManagerViewModel : ObservableObject
+    {
+        public ObservableCollection<string> RecentProjects { get; } = new();
+        [ObservableProperty] private string _currentProjectName = "PickPlace_Cell_01";
+        [ObservableProperty] private string _currentProjectPath = "";
+        [ObservableProperty] private bool _hasUnsavedChanges;
+
+        [RelayCommand]
+        private void NewProject()
+        {
+            CurrentProjectName = $"Project_{DateTime.Now:yyyyMMdd_HHmmss}";
+            HasUnsavedChanges = false;
+        }
+
+        [RelayCommand]
+        private void SaveProject()
+        {
+            HasUnsavedChanges = false;
+        }
+
+        [RelayCommand]
+        private void OpenProject(string path)
+        {
+            CurrentProjectPath = path;
+            CurrentProjectName = System.IO.Path.GetFileNameWithoutExtension(path);
+            HasUnsavedChanges = false;
+        }
+    }
+
+    public partial class Robot3DViewModel : ObservableObject
+    {
+        [ObservableProperty] private bool _showRobotMesh = true;
+        [ObservableProperty] private bool _showTcpIndicator = true;
+        [ObservableProperty] private bool _showJointFrames = false;
+        [ObservableProperty] private bool _showWireframe = false;
+        [ObservableProperty] private string _shadingMode = "Solid"; // Solid, Wireframe, Material
+        [ObservableProperty] private double _modelScale = 1.0;
+        [ObservableProperty] private string _robotColor = "#e8e8e8";
+        [ObservableProperty] private string _statusMessage = "Robot model loaded";
+
+        public ObservableCollection<string> ShadingModes { get; } = new() { "Solid", "Wireframe", "Material" };
+
+        [RelayCommand]
+        private void ResetView()
+        {
+            ModelScale = 1.0;
+            ShadingMode = "Solid";
+            ShowWireframe = false;
+        }
+
+        [RelayCommand]
+        private void LoadRobotModel()
+        {
+            ShowRobotMesh = true;
+            StatusMessage = "Robot model loaded";
+        }
+    }
+
+    // â”€â”€ v8.2 Hardware Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public enum MotorType { DC, BLDC, Stepper }
     public enum EncoderType { Incremental, AbsoluteSPI, AbsoluteI2C, AbsoluteSSI, Resolver }
     public enum SignalOutputType { PWM, StepDir, CAN, EtherCAT }

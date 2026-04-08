@@ -5,21 +5,60 @@
 import numpy as np
 from urdf_parser_py.urdf import URDF
 from typing import List
+import subprocess
+import os
+import tempfile
 
 class URDFKinematics:
     """
     Denavit-Hartenberg forward kinematics from a parsed URDF.
     Supports revolute joints only (sufficient for 6-DOF arm).
+    Handles both .urdf and .urdf.xacro files (processes xacro if needed).
     """
 
     def __init__(self, urdf_path: str, base_link: str, tip_link: str):
-        robot = URDF.from_xml_file(urdf_path)
+        # If it's a .xacro file, try to process it first
+        actual_path = urdf_path
+        if urdf_path.endswith('.xacro'):
+            actual_path = self._process_xacro(urdf_path)
+        
+        robot = URDF.from_xml_file(actual_path)
         self._chain = robot.get_chain(base_link, tip_link, joints=True, links=False)
         self._joints = [
             j for j in robot.joints
             if j.name in self._chain and j.type == 'revolute'
         ]
         self._num_joints = len(self._joints)
+
+    def _process_xacro(self, xacro_path: str) -> str:
+        """Process a .xacro file into a temporary .urdf file."""
+        # Try xacro command-line tool first
+        try:
+            result = subprocess.run(
+                ['xacro', xacro_path],
+                capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.urdf', delete=False)
+                tmp.write(result.stdout)
+                tmp.close()
+                return tmp.name
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+        
+        # Fallback: try python xacro module
+        try:
+            import xacro
+            doc = xacro.process_file(xacro_path)
+            tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.urdf', delete=False)
+            doc.writexml(tmp)
+            tmp.close()
+            return tmp.name
+        except ImportError:
+            pass
+        
+        # No xacro processor available — return original path and hope it's simple
+        return xacro_path
 
     def fk(self, q: List[float]) -> np.ndarray:
         """Returns 4×4 homogeneous transform of TCP given joint angles q (rad)."""

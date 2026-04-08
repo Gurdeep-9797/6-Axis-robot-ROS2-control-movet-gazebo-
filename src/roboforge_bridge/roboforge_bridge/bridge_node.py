@@ -72,11 +72,22 @@ class RoboForgeBridge(Node):
         # Determine paths for kinematics (Section 2/4.1)
         self._config = {'encoder_serial_port': '/dev/ttyUSB0', 'motor_serial_port': '/dev/ttyUSB1'}
         try:
-            # We prioritize the local robot.urdf if available for dev speed, else use share dir
-            root_urdf = os.path.join(os.getcwd(), 'robot.urdf')
-            urdf_path = root_urdf if os.path.exists(root_urdf) else \
-                        os.path.join(get_package_share_directory('robot_description'), 'urdf', 'robot.urdf')
-            
+            # Try multiple paths in order: prefer processed .urdf over .xacro
+            candidates = [
+                os.path.join(os.getcwd(), 'robot.urdf'),
+                os.path.join(os.getcwd(), 'urdf', 'robot.urdf'),
+                os.path.join(get_package_share_directory('robot_description'), 'urdf', 'robot.urdf'),
+                os.path.join(get_package_share_directory('robot_description'), 'urdf', 'robot.urdf.xacro'),
+                os.path.join(get_package_share_directory('robot_description'), 'urdf', 'custom_6axis_test.urdf.xacro'),
+            ]
+            urdf_path = None
+            for c in candidates:
+                if os.path.exists(c):
+                    urdf_path = c
+                    break
+            if urdf_path is None:
+                raise FileNotFoundError(f"No URDF found in candidates: {candidates}")
+
             self.get_logger().info(f"Loading Analytical Kinematics from: {urdf_path}")
             self._kinematics = URDFKinematics(urdf_path, 'base_link', 'link_6')
         except Exception as e:
@@ -199,26 +210,36 @@ class RoboForgeBridge(Node):
         def run_loop():
             self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
-            
+
             async def ws_handler(ws, path):
                 self._ws_clients.add(ws)
                 self._state_ws_clients.add(ws)
+                self.get_logger().info(f'WebSocket client connected: {ws.remote_address}')
                 try:
                     async for raw in ws:
                         try:
                             msg = json.loads(raw)
                             await self._handle_message(ws, msg)
-                        except: pass
+                        except Exception as e:
+                            self.get_logger().warn(f'WebSocket message error: {e}')
+                except websockets.exceptions.ConnectionClosed:
+                    pass
                 finally:
                     self._ws_clients.discard(ws)
                     self._state_ws_clients.discard(ws)
+                    self.get_logger().info('WebSocket client disconnected')
 
             async def main():
                 import websockets
-                async with websockets.serve(ws_handler, "0.0.0.0", 9090):
-                    await asyncio.Future()
+                server = await websockets.serve(ws_handler, "0.0.0.0", 9090)
+                self.get_logger().info('WebSocket server started on ws://0.0.0.0:9090')
+                await asyncio.Future()
 
-            self._loop.run_until_complete(main())
+            try:
+                self._loop.run_until_complete(main())
+            except Exception as e:
+                self.get_logger().error(f'WebSocket server failed: {e}')
+
         threading.Thread(target=run_loop, daemon=True).start()
 
     async def _handle_message(self, ws, msg: dict):

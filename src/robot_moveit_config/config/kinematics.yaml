@@ -1,6 +1,3 @@
-# TRAC-IK Kinematics Configuration
-# Alternative solver with higher success rate on difficult poses
-
 robot_arm:
   kinematics_solver: trac_ik_kinematics_plugin/TRAC_IKKinematicsPlugin
   kinematics_solver_search_resolution: 0.005

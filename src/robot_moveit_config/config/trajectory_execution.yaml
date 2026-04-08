@@ -1,6 +1,3 @@
-# Trajectory Execution Configuration
-# Time parameterization and execution settings
-
 trajectory_execution:
   allowed_execution_duration_scaling: 1.2
   allowed_goal_duration_margin: 0.5
