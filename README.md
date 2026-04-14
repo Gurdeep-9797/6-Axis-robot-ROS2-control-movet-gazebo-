@@ -6,18 +6,50 @@ A professional full-stack industrial robot control system with **React Online We
 
 ---
 
-## Quick Start
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [🌐 Online System Guide](ONLINE_SYSTEM.md) | React IDE + ROS2 backend setup |
+| [🖥️ Offline System Guide](OFFLINE_SYSTEM.md) | WPF desktop client architecture |
+| [📁 System Organization](SYSTEM_ORGANIZATION.md) | Complete directory structure |
+| [⚡ Quick Access](QUICK_ACCESS.md) | Quick reference commands |
+| [🔧 API Reference](API_AND_CONNECTIONS.md) | Technical API documentation |
+
+---
+
+## 🚀 Quick Start
+
+### Online System (Browser-Based)
 
 ```powershell
-# 1. Start all services (Docker + React UI)
-docker compose up -d
+# Start all services (Docker + React UI + Gazebo)
+docker compose up -d --profile sim
 
-# 2. Open the online IDE
-start http://localhost:3000
+# Open interfaces
+start http://localhost:3000          # React Online IDE
+start http://localhost:6080/vnc.html # Gazebo 3D GUI (VNC)
+```
 
-# 3. Build and launch the offline WPF client
+### Offline System (Desktop WPF)
+
+```powershell
+# Build
 dotnet build src/RoboForge.Wpf/RoboForge.Wpf.csproj --configuration Debug
-start src/RoboForge.Wpf\bin\x64\Debug\net8.0-windows\RoboForge.Wpf.exe
+
+# Run
+dotnet run --project src/RoboForge.Wpf/RoboForge.Wpf.csproj
+```
+
+### Portable Deployment
+
+```powershell
+# Create deployment package
+.\CREATE_DEPLOY_PACKAGE.ps1
+
+# On another PC, run package
+cd deploy_package
+.\LAUNCH.ps1
 ```
 
 ---

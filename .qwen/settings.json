@@ -37,7 +37,9 @@
       "Bash(explorer *)",
       "Bash(npm run *)",
       "Bash(del *)",
-      "Bash(rmdir *)"
+      "Bash(rmdir *)",
+      "Bash(echo.)",
+      "Bash(git add *)"
     ]
   },
   "$version": 3
