@@ -176,8 +176,8 @@
                 <!-- Right: Project name + status -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="PickPlace_Cell_01" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                    <Ellipse Width="8" Height="8" Fill="#484F58" Margin="0,0,4,0"/>
-                    <TextBlock Text="STOPPED" Foreground="#8B949E" FontSize="10" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#484F58" Margin="0,0,4,0"/>
+                    <TextBlock x:Name="StatusText" Text="STOPPED" Foreground="#8B949E" FontSize="10" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Ellipse Width="8" Height="8" Fill="#238636" Margin="0,0,4,0"/>
                     <TextBlock Text="BRIDGE" Foreground="#238636" FontSize="10" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -198,34 +198,34 @@
 
                 <!-- File Operations -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="New Project" Content="📄"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Open Project" Content="📂"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Save" Content="💾"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Export" Content="⬇"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="New Project" Content="📄" Click="NewProject_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Open Project" Content="📂" Click="OpenProject_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Save" Content="💾" Click="SaveProject_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Export" Content="⬇" Click="ExportProject_Click"/>
                 </StackPanel>
 
                 <!-- Navigation -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Go Home" Content="🏠"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Undo" Content="↩"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Redo" Content="↪"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Go Home" Content="🏠" Click="GoHome_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Undo" Content="↩" Click="Undo_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Redo" Content="↪" Click="Redo_Click"/>
                 </StackPanel>
 
                 <!-- Execution Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Compile" Content="⚡"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Run Program" Content="▶" Foreground="#238636"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Pause" Content="⏸"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Stop" Content="⏹" Foreground="#F85149"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Step" Content="⏭"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Compile" Content="⚡" Click="Compile_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Run Program" Content="▶" Foreground="#238636" Click="Run_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Pause" Content="⏸" Click="Pause_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Stop" Content="⏹" Foreground="#F85149" Click="Stop_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Step" Content="⏭" Click="Step_Click"/>
                 </StackPanel>
 
                 <!-- Operation Mode -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
                     <TextBlock Text="MODE" Foreground="#484F58" FontSize="9" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource ModeButton}" Tag="True" Content="Edit"/>
-                    <Button Style="{StaticResource ModeButton}" Content="Simulate"/>
-                    <Button Style="{StaticResource ModeButton}" Content="Live"/>
+                    <Button Style="{StaticResource ModeButton}" Tag="True" Content="Edit" Click="EditMode_Click"/>
+                    <Button Style="{StaticResource ModeButton}" Content="Simulate" Click="SimulateMode_Click"/>
+                    <Button Style="{StaticResource ModeButton}" Content="Live" Click="LiveMode_Click"/>
                 </StackPanel>
 
                 <!-- Spacer -->
@@ -242,16 +242,16 @@
                     </Border>
 
                     <TextBlock Text="MOTOR PWM" Foreground="#484F58" FontSize="9" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Slider Width="60" Value="50" Minimum="0" Maximum="100" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBlock Text="50%" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Slider x:Name="MotorPwmSlider" Width="60" Value="50" Minimum="0" Maximum="100" VerticalAlignment="Center" Margin="0,0,4,0" ValueChanged="MotorPwm_ValueChanged"/>
+                    <TextBlock x:Name="MotorPwmText" Text="50%" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
 
-                    <Border Background="#238636" Padding="8,4" CornerRadius="4" Margin="0,0,8,0">
+                    <Border Background="#238636" Padding="8,4" CornerRadius="4" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonDown="BridgeToggle_Click">
                         <TextBlock Text="● Live" Foreground="White" FontSize="11"/>
                     </Border>
 
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Debug" Content="🐛"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="I/O" Content="(io)"/>
-                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Settings" Content="⚙"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Debug" Content="🐛" Click="DebugTab_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="I/O" Content="(io)" Click="IoTab_Click"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Settings" Content="⚙" Click="SidebarButton_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -268,17 +268,17 @@
             <!-- ICON RAIL -->
             <Border Grid.Column="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,1,0">
                 <StackPanel VerticalAlignment="Top" Margin="0,8,0,0">
-                    <Button Style="{StaticResource SidebarIcon}" Tag="True" ToolTip="Program" Content="📋"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Blocks" Content="🧱"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Scene" Content="🎬"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="3D View" Content="🎥"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Motion" Content=""/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="I/O" Content="📡"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Debug" Content="🐛"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Config" Content="⚙"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="ROS 2" Content="🔗"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Settings" Content="🔧"/>
-                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Project" Content="📁"/>
+                    <Button Style="{StaticResource SidebarIcon}" Tag="True" ToolTip="Program" Content="📋" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Blocks" Content="🧱" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Scene" Content="🎬" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="3D View" Content="🎥" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Motion" Content="🏃" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="I/O" Content="📡" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Debug" Content="🐛" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Config" Content="⚙" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="ROS 2" Content="🔗" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Settings" Content="🔧" Click="SidebarButton_Click"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Project" Content="📁" Click="SidebarButton_Click"/>
                 </StackPanel>
             </Border>
 
@@ -292,7 +292,7 @@
 
                     <!-- Tree -->
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="4">
-                        <TreeView Background="Transparent" BorderThickness="0" Foreground="#C9D1D9" FontSize="11">
+                        <TreeView x:Name="SceneTree" Background="Transparent" BorderThickness="0" Foreground="#C9D1D9" FontSize="11">
                             <TreeView.Resources>
                                 <Style TargetType="TreeViewItem">
                                     <Setter Property="Padding" Value="4,2"/>
@@ -462,11 +462,11 @@
 
                             <!-- Right tabs -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                <Button Style="{StaticResource TabButton}" Content="Inspect" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource TabButton}" Tag="True" Content="Properties"/>
-                                <Button Style="{StaticResource TabButton}" Content="I/O" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource TabButton}" Content="Debug"/>
-                                <Button Style="{StaticResource TabButton}" Content="ROS 2"/>
+                                <Button Style="{StaticResource TabButton}" Content="Inspect" Margin="0,0,4,0" Click="InspectTab_Click"/>
+                                <Button Style="{StaticResource TabButton}" Tag="True" Content="Properties" Click="PropertiesTab_Click"/>
+                                <Button Style="{StaticResource TabButton}" Content="I/O" Margin="0,0,4,0" Click="IoTab_Click"/>
+                                <Button Style="{StaticResource TabButton}" Content="Debug" Click="DebugTab_Click"/>
+                                <Button Style="{StaticResource TabButton}" Content="ROS 2" Click="Ros2Tab_Click"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -494,8 +494,8 @@
 
                                         <!-- Script/Blocks Toggle -->
                                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                            <Button Style="{StaticResource ModeButton}" Content="Script" Margin="0,0,4,0"/>
-                                            <Button Style="{StaticResource ModeButton}" Tag="True" Content="Blocks"/>
+                                            <Button Style="{StaticResource ModeButton}" Content="Script" Margin="0,0,4,0" Click="ScriptTab_Click"/>
+                                            <Button Style="{StaticResource ModeButton}" Tag="True" Content="Blocks" Click="BlocksTab_Click"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -767,25 +767,25 @@
                                 <!-- Viewport Toolbar -->
                                 <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="4">
                                     <StackPanel Orientation="Horizontal">
-                                        <Button Style="{StaticResource ToolbarButton}" Content="↺" Width="28" Height="28" ToolTip="Reset View"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="👁" Width="28" Height="28" ToolTip="Show/Hide"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="🚫" Width="28" Height="28" ToolTip="Collision View"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="🖱" Width="28" Height="28" ToolTip="Select"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="⊞" Width="28" Height="28" ToolTip="Grid"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="↻" Width="28" Height="28" ToolTip="Rotate"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="⤢" Width="28" Height="28" ToolTip="Expand"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="📷" Width="28" Height="28" ToolTip="Screenshot"/>
-                                        <Button Style="{StaticResource ToolbarButton}" Content="☷" Width="28" Height="28" ToolTip="Layers"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="↺" Width="28" Height="28" ToolTip="Reset View" Click="ResetView_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="👁" Width="28" Height="28" ToolTip="Show/Hide" Click="ToggleGrid_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="🚫" Width="28" Height="28" ToolTip="Collision View" Click="CollisionView_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="🖱" Width="28" Height="28" ToolTip="Select" Click="SelectTool_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="⊞" Width="28" Height="28" ToolTip="Grid" Click="ToggleGrid_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="↻" Width="28" Height="28" ToolTip="Rotate" Click="SidebarButton_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="⤢" Width="28" Height="28" ToolTip="Expand" Click="SidebarButton_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="📷" Width="28" Height="28" ToolTip="Screenshot" Click="SidebarButton_Click"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="☷" Width="28" Height="28" ToolTip="Layers" Click="SidebarButton_Click"/>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Robot Selector -->
                                 <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="8">
                                     <StackPanel>
-                                        <Border Background="#1F6FEB" Padding="8,4" CornerRadius="4" Margin="0,0,0,4">
+                                        <Border Background="#1F6FEB" Padding="8,4" CornerRadius="4" Margin="0,0,0,4" Cursor="Hand" MouseLeftButtonDown="RobotSelector_Click">
                                             <TextBlock Text="IRB 6700" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
                                         </Border>
-                                        <Border Background="#21262D" Padding="8,4" CornerRadius="4">
+                                        <Border Background="#21262D" Padding="8,4" CornerRadius="4" Cursor="Hand" MouseLeftButtonDown="RobotSelector_Click">
                                             <TextBlock Text="IRB 4600" Foreground="#8B949E" FontSize="11"/>
                                         </Border>
                                     </StackPanel>
@@ -820,8 +820,8 @@
                                 <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,8">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="Speed" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <Slider Width="80" Value="100" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
-                                        <TextBlock Text="100%" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        <Slider x:Name="SpeedSlider" Width="80" Value="100" Minimum="0" Maximum="100" VerticalAlignment="Center" ValueChanged="SpeedSlider_ValueChanged"/>
+                                        <TextBlock x:Name="SpeedText" Text="100%" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -836,9 +836,9 @@
                     <!-- Header Tabs -->
                     <Border DockPanel.Dock="Top" Background="#161B22" Padding="8,0" BorderBrush="#30363D" BorderThickness="0,0,0,1">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Style="{StaticResource TabButton}" Tag="True" Content="PROPS" Padding="16,8"/>
-                            <Button Style="{StaticResource TabButton}" Content="JOG" Padding="16,8" Margin="4,0,0,0"/>
-                            <Button Style="{StaticResource TabButton}" Content="OBJECT" Padding="16,8" Margin="4,0,0,0"/>
+                            <Button Style="{StaticResource TabButton}" Tag="True" Content="PROPS" Padding="16,8" Click="PropsTab_Click"/>
+                            <Button Style="{StaticResource TabButton}" Content="JOG" Padding="16,8" Margin="4,0,0,0" Click="JogTab_Click"/>
+                            <Button Style="{StaticResource TabButton}" Content="OBJECT" Padding="16,8" Margin="4,0,0,0" Click="ObjectTab_Click"/>
                         </StackPanel>
                     </Border>
 
@@ -871,8 +871,8 @@
                     <TextBlock Text="DIAGNOSTICS &amp; DEBUG" Foreground="#8B949E" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Style="{StaticResource ToolbarButton}" Background="#1F6FEB" Foreground="White" Content="Run Check" Padding="12,4" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource ToolbarButton}" Content="🗑" Width="24" Height="24"/>
+                        <Button Style="{StaticResource ToolbarButton}" Background="#1F6FEB" Foreground="White" Content="Run Check" Padding="12,4" Margin="0,0,4,0" Click="RunCheck_Click"/>
+                        <Button Style="{StaticResource ToolbarButton}" Content="🗑" Width="24" Height="24" Click="ClearDiagnostics_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -880,12 +880,22 @@
             <!-- Content -->
             <Border Grid.Row="1" Background="#0D1117">
                 <Grid>
-                    <TextBlock Text="Waiting for tracking data... (Live Mode only)" Foreground="#484F58" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <ListBox x:Name="DiagnosticsList" Background="Transparent" BorderThickness="0" Foreground="#C9D1D9" FontSize="11" VirtualizingStackPanel.IsVirtualizing="True">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="12,2">
+                                    <TextBlock Text="{Binding Time}" Foreground="#484F58" Width="60"/>
+                                    <TextBlock Text="{Binding Level}" Foreground="{Binding LevelColor}" Width="50" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
 
                     <!-- Bottom toolbar -->
                     <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,8">
                         <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource ToolbarButton}" Content="▶ Step" Margin="0,0,12,0"/>
+                            <Button Style="{StaticResource ToolbarButton}" Content="▶ Step" Margin="0,0,12,0" Click="Step_Click"/>
                             <TextBlock Text="Breakpoints: 1" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
