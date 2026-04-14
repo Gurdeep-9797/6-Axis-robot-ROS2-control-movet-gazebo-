@@ -14,7 +14,8 @@ namespace RoboForge.Wpf.AST
         SetDO, PulseDO, GetDI, WaitDI, SetAO, GetAI,
         Wait, If, Else, While, For, Break, Return,
         RoutineDef, CallRoutine,
-        GripperOpen, GripperClose, ToolChange, ResetError, Stop
+        GripperOpen, GripperClose, ToolChange, ResetError, Stop,
+        LoopEnd  // Internal instruction type for loop-end jump (separate from Break)
     }
 
     /// <summary>Base class for all AST nodes</summary>

@@ -74,11 +74,11 @@ namespace RoboForge.Wpf.Core
                         // Compile body
                         foreach (var child in node.Children)
                             CompileNode(child, instructions);
-                        // Jump back to condition check
+                        // Jump back to condition check (use LoopEnd, not Break)
                         instructions.Add(new Instruction
                         {
                             SourceNodeId = node.NodeId + "_loopend",
-                            InstructionType = NodeType.Break, // Reuse as jump marker
+                            InstructionType = NodeType.LoopEnd,
                             Parameters = new Dictionary<string, object> { ["jumpTo"] = checkIdx },
                         });
                         // Update condition check with jump target (end of loop)
@@ -106,7 +106,7 @@ namespace RoboForge.Wpf.Core
                         instructions.Add(new Instruction
                         {
                             SourceNodeId = node.NodeId + "_endif",
-                            InstructionType = NodeType.Break,
+                            InstructionType = NodeType.LoopEnd, // Reuse for jump (not a loop)
                             Parameters = new Dictionary<string, object> { ["jumpTo"] = 0 },
                         });
                         // Update if with else jump target
