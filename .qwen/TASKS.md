@@ -1,48 +1,53 @@
 # Qwen Tasks — Complete Status
 
-> Last updated: 2026-04-08 18:30 IST
+> Last updated: 2026-04-09 01:05 IST
 
 ---
 
-## ✅ COMPLETED (11 tasks)
+## ✅ COMPLETED (17 tasks)
 
 | # | Task | Details | Status |
 |---|------|---------|--------|
-| C1 | Full codebase audit | Read every file across the entire repo (78 .cs, 17 .xaml, 30+ React components, 8 ROS2 packages, firmware, tools) | ✅ Done |
-| C2 | Docker services verified | All 5 containers running: core(healthy), moveit, pseudo_hw, bridge, frontend | ✅ Done |
-| C3 | Online pipeline tested | React UI → Bridge → ROS2 → Pseudo-HW: joint_states flowing at 250Hz | ✅ Done |
-| C4 | Offline client verified | WPF builds with 0 errors, executable exists | ✅ Done |
-| C5 | Data flow loops verified | End-to-end: UI → WS → Bridge → /joint_states → UI confirmed | ✅ Done |
-| C6 | Bridge URDF loading fix | Added processed `robot.urdf`, fixed path priority, added xacro fallback | ✅ Done |
-| C7 | MoveIt launch fix (4 issues) | Fixed YAML parsing, SRDF loading, robot name mismatch, xacro processing | ✅ Done |
-| C8 | React UI title fix | Changed "Lovable App" → "RoboForge v8.2 — Robot Programming IDE" | ✅ Done |
-| C9 | WPF EnumToBoolConverter fix | Added converter class, declared in XAML resources, updated bindings | ✅ Done |
-| C10 | WPF version string fix | Console "v7.0" → "v8.2" | ✅ Done |
-| C11 | Firmware preprocessor bug fix | Added missing `#ifdef MOTOR_TYPE_DC_ENCODER` in serial_control | ✅ Done |
+| C1 | Full codebase audit | Read every file across entire repo | ✅ Done |
+| C2 | Docker services verified | All 5 containers running | ✅ Done |
+| C3 | Online pipeline tested | React UI → Bridge → ROS2 → Pseudo-HW | ✅ Done |
+| C4 | Offline client verified | WPF builds 0 errors, executable exists | ✅ Done |
+| C5 | Data flow loops verified | End-to-end: UI → WS → Bridge → /joint_states → UI | ✅ Done |
+| C6 | Bridge URDF loading fix | Added processed robot.urdf, fixed path priority | ✅ Done |
+| C7 | MoveIt YAML parsing fix | Inline Python dicts instead of --params-file | ✅ Done |
+| C8 | MoveIt SRDF loading fix | Command(['cat ', srdf_path]) for XML content | ✅ Done |
+| C9 | MoveIt SRDF robot name fix | Changed to industrial_6dof match | ✅ Done |
+| C10 | MoveIt IK timeout increase | 0.05s → 1.0s, attempts 3 → 5, TRAC-IK configured | ✅ Done |
+| C11 | Websockets version fix | 9.1 → 10.4 for Python 3.10 compatibility | ✅ Done |
+| C12 | React UI title fix | "Lovable App" → "RoboForge v8.2" | ✅ Done |
+| C13 | React IK warning modal | Full-screen red modal for offline IK switch | ✅ Done |
+| C14 | React motor PWM slider | 5-100% slider in ribbon, publishes to all joints | ✅ Done |
+| C15 | React connection status | Live/Connect/Offline indicator | ✅ Done |
+| C16 | WPF EnumToBoolConverter fix | Added class, declared in XAML, updated bindings | ✅ Done |
+| C17 | WPF version v7.0→v8.2 | Console message updated | ✅ Done |
+| C18 | WPF 4-pane layout rewrite | Program Tree, 3D Viewport, Scene Outliner, Console | ✅ Done |
+| C19 | WPF motor speed slider | 5-100% PWM slider in toolbar | ✅ Done |
+| C20 | WPF 10 ViewModels implemented | All stubs → functional with commands | ✅ Done |
+| C21 | Firmware preprocessor bug fix | Added #ifdef MOTOR_TYPE_DC_ENCODER | ✅ Done |
+| C22 | safety_watchdog.py created | Real-time safety monitoring for physical robot | ✅ Done |
+| C23 | Pipeline verification test | tools/test_pipeline.py — confirms not ghosting | ✅ Done |
+| C24 | Documentation updated | API_AND_CONNECTIONS.md, PHYSICAL_READ_MODE.md | ✅ Done |
+| C25 | Combined workflow doc | .qwen/COMBINED_WORKFLOW.md — task division | ✅ Done |
 
 ---
 
 ## 📋 REMAINING (8 tasks)
 
-### High Priority
-| # | Task | Details | Effort |
-|---|------|---------|--------|
-| R1 | WPF ViewModels stubbed | 10 of 11 ViewModels are empty classes (Workspace, ProgramTree, BlockEditor, CodeEditor, Robot3D, PropertiesPanel, Console, Settings, ProjectManager) | 2-4 hrs |
-| R2 | WPF 3D viewport empty | HelixToolkit Viewport3DX has no robot mesh, lights, or models loaded | 30 min |
-| R3 | WPF SignalR not connected | `RobotStateHub` and SignalR client referenced in csproj but never wired | 1 hr |
-
-### Medium Priority
-| # | Task | Details | Effort |
-|---|------|---------|--------|
-| R4 | Orphaned root directories | `robot_description/`, `robot_gazebo/`, `robot_moveit_config/` at project root are duplicates of `src/` versions | 5 min |
-| R5 | Missing safety_watchdog.py | Referenced in `robot_hardware_bridge/real_backend/` but file doesn't exist | 30 min |
-| R6 | Deprecated docker-compose version | `version: '3.8'` generates warnings | 2 min |
-
-### Low Priority
-| # | Task | Details | Effort |
-|---|------|---------|--------|
-| R7 | MoveIt IK tuning | KDL solver returns error_code -15 for test poses; may need TRAC-IK or seed adjustment | 30 min |
-| R8 | WPF OkToBrushConverter hardcoded colors | Uses `#FF00FF00`/`#FFFF0000` instead of theme `SuccessGreen`/`ErrorRed` | 5 min |
+| # | Task | Owner | Effort | Priority |
+|---|------|-------|--------|----------|
+| R1 | WPF ViewModels fully wired to XAML panels | Qwen | 1 hr | P1 |
+| R2 | WPF 3D viewport — load actual robot mesh (STL/DAE) | Qwen | 30 min | P1 |
+| R3 | React UI — path smoothing toggle in viewport | Antigravity | 30 min | P1 |
+| R4 | React UI — end-to-end simulation test with edge cases | Antigravity | 1 hr | P1 |
+| R5 | MoveIt IK — get actual solutions (currently -31) | Both | 30 min | P1 |
+| R6 | WPF — SignalR client connection to RobotStateHub | Qwen | 1 hr | P2 |
+| R7 | Version strings synchronized to v8.2 everywhere | Both | 5 min | P3 |
+| R8 | Comprehensive integration test suite | Both | 2 hrs | P2 |
 
 ---
 
@@ -50,13 +55,12 @@
 
 | Component | Status | Verified |
 |-----------|--------|----------|
-| Docker Containers | ✅ All 5 running | 2026-04-08 18:30 |
-| ROS2 Topics | ✅ 11 active | 2026-04-08 18:30 |
-| ROS2 Services | ✅ /compute_ik, /compute_fk, /roboforge/health_check | 2026-04-08 18:30 |
-| WebSocket Bridge | ✅ Port 9090, kinematics loaded | 2026-04-08 18:30 |
-| REST API | ✅ Port 8765, `{"moveit_ready":true}` | 2026-04-08 18:30 |
-| React UI | ✅ Port 3000, TypeScript 0 errors | 2026-04-08 18:30 |
-| WPF Client | ✅ Builds 0 errors, EnumToBool fixed | 2026-04-08 18:30 |
-| Pseudo Hardware | ✅ 250Hz loop, home position stable | 2026-04-08 18:30 |
-| MoveIt | ✅ MoveGroup initialized, IK service responding | 2026-04-08 18:30 |
-| URDF/Kinematics | ✅ Processed URDF loaded, FK working | 2026-04-08 18:30 |
+| Docker Containers | ✅ All 5 running | 2026-04-09 01:05 |
+| ROS2 Topics | ✅ 20 active | 2026-04-09 01:05 |
+| ROS2 Services | ✅ 3 key services | 2026-04-09 01:05 |
+| WebSocket Bridge | ✅ Port 9090 | 2026-04-09 01:05 |
+| REST API | ✅ Port 8765 | 2026-04-09 01:05 |
+| React UI | ✅ Port 3000, 0 TS errors | 2026-04-09 01:05 |
+| WPF Client | ✅ Builds 0 errors | 2026-04-09 01:05 |
+| MoveIt | ✅ MoveGroup initialized | 2026-04-09 01:05 |
+| Pseudo HW | ✅ 250Hz loop | 2026-04-09 01:05 |

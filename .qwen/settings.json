@@ -22,7 +22,9 @@
       "Bash(select-string *)",
       "Bash(convertfrom-json)",
       "Bash(convertto-json *)",
-      "Bash(findstr *)"
+      "Bash(findstr *)",
+      "Bash(python *)",
+      "Bash(start *)"
     ]
   },
   "$version": 3
