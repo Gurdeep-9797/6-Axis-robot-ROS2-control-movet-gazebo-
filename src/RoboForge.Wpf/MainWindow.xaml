@@ -3,276 +3,898 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:hx="http://helix-toolkit.org/wpf"
         xmlns:local="clr-namespace:RoboForge.Wpf"
-        Title="RoboForge IDE"
+        Title="RoboForge v8.2"
         Width="1600" Height="1000"
-        Background="#0E0E10"
+        Background="#0D1117"
         WindowStyle="None"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <!-- Button Styles -->
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#21262D"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#30363D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="IconRailButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#21262D"/>
+                                <Setter Property="Foreground" Value="#C9D1D9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SidebarIcon" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="#30363D" BorderThickness="2,0,0,0" CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#C9D1D9"/>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="True">
+                                <Setter Property="BorderBrush" Value="#58A6FF"/>
+                                <Setter Property="Foreground" Value="#58A6FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TabButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6,6,0,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="True">
+                                <Setter Property="Background" Value="#161B22"/>
+                                <Setter Property="Foreground" Value="#C9D1D9"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#21262D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModeButton" TargetType="Button">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="True">
+                                <Setter Property="Background" Value="#1F6FEB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#30363D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>   <!-- Custom Title Bar -->
+            <RowDefinition Height="32"/>   <!-- Top Menu Bar -->
+            <RowDefinition Height="44"/>   <!-- Toolbar -->
             <RowDefinition Height="*"/>    <!-- Main Content -->
+            <RowDefinition Height="Auto"/> <!-- Diagnostics Panel -->
             <RowDefinition Height="28"/>   <!-- Status Bar -->
         </Grid.RowDefinitions>
 
-        <!-- ═══ CUSTOM TITLE BAR ═══ -->
-        <Border Grid.Row="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="0,0,0,1">
+        <!-- ═══ TOP MENU BAR ═══ -->
+        <Border Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1">
             <Grid Margin="12,0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
+                <!-- Left: Logo + Menus -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="⚙ RoboForge IDE" Foreground="#A1A1AA" FontSize="13" FontWeight="SemiBold"/>
-                    <TextBlock Text="— Untitled.rfproj" Foreground="#52525B" FontSize="12" Margin="8,0,0,0"/>
-                    <TextBlock Text="●" Foreground="#22C55E" FontSize="10" Margin="16,0,0,0" ToolTip="Connected"/>
+                    <TextBlock Text="RoboForge" Foreground="#C9D1D9" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="v8.2" Foreground="#484F58" FontSize="10" VerticalAlignment="Center" Margin="4,0,16,0"/>
+                    
+                    <Menu Background="Transparent" Foreground="#C9D1D9" VerticalAlignment="Center">
+                        <MenuItem Header="File" Padding="8,4"/>
+                        <MenuItem Header="Edit" Padding="8,4"/>
+                        <MenuItem Header="Simulation" Padding="8,4"/>
+                        <MenuItem Header="Deploy" Padding="8,4"/>
+                        <MenuItem Header="View" Padding="8,4"/>
+                    </Menu>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="─" Width="36" Height="28" Background="Transparent" Foreground="#A1A1AA" BorderThickness="0" Click="Minimize_Click"/>
-                    <Button Content="□" Width="36" Height="28" Background="Transparent" Foreground="#A1A1AA" BorderThickness="0" Click="Maximize_Click"/>
-                    <Button Content="✕" Width="36" Height="28" Background="Transparent" Foreground="#A1A1AA" BorderThickness="0" Click="Close_Click"/>
+
+                <!-- Right: Project name + status -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="PickPlace_Cell_01" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <Ellipse Width="8" Height="8" Fill="#484F58" Margin="0,0,4,0"/>
+                    <TextBlock Text="STOPPED" Foreground="#8B949E" FontSize="10" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Ellipse Width="8" Height="8" Fill="#238636" Margin="0,0,4,0"/>
+                    <TextBlock Text="BRIDGE" Foreground="#238636" FontSize="10" VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ═══ MAIN 3-COLUMN LAYOUT ═══ -->
-        <Grid Grid.Row="1">
+        <!-- ═══ TOOLBAR ═══ -->
+        <Border Grid.Row="1" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+            <Grid Margin="8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>  <!-- File ops -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Navigation -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Execution -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Mode -->
+                    <ColumnDefinition Width="*"/>     <!-- Spacer -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Right tools -->
+                </Grid.ColumnDefinitions>
+
+                <!-- File Operations -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="New Project" Content="📄"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Open Project" Content="📂"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Save" Content="💾"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Export" Content="⬇"/>
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Go Home" Content="🏠"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Undo" Content="↩"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Redo" Content="↪"/>
+                </StackPanel>
+
+                <!-- Execution Controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Compile" Content="⚡"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Run Program" Content="▶" Foreground="#238636"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Pause" Content="⏸"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Stop" Content="⏹" Foreground="#F85149"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Step" Content="⏭"/>
+                </StackPanel>
+
+                <!-- Operation Mode -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+                    <TextBlock Text="MODE" Foreground="#484F58" FontSize="9" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource ModeButton}" Tag="True" Content="Edit"/>
+                    <Button Style="{StaticResource ModeButton}" Content="Simulate"/>
+                    <Button Style="{StaticResource ModeButton}" Content="Live"/>
+                </StackPanel>
+
+                <!-- Spacer -->
+                <Grid Grid.Column="4"/>
+
+                <!-- Right Tools -->
+                <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="IK SOLVER" Foreground="#484F58" FontSize="9" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Border Background="#21262D" Padding="8,4" CornerRadius="4" Margin="0,0,12,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚠" Foreground="#D29922" FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBlock Text="OFFLINE" Foreground="#D29922" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="MOTOR PWM" Foreground="#484F58" FontSize="9" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Slider Width="60" Value="50" Minimum="0" Maximum="100" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBlock Text="50%" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                    <Border Background="#238636" Padding="8,4" CornerRadius="4" Margin="0,0,8,0">
+                        <TextBlock Text="● Live" Foreground="White" FontSize="11"/>
+                    </Border>
+
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Debug" Content="🐛"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="I/O" Content="(io)"/>
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Settings" Content="⚙"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══ MAIN CONTENT ═══ -->
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="360" MinWidth="280"/>  <!-- Column 1: Scene Tree + 3D Viewport -->
-                <ColumnDefinition Width="6"/>                   <!-- Column 2: Draggable Splitter -->
-                <ColumnDefinition Width="*"/>                   <!-- Column 3: Program Editor -->
+                <ColumnDefinition Width="48"/>   <!-- Icon Rail -->
+                <ColumnDefinition Width="260"/>  <!-- Left Panel -->
+                <ColumnDefinition Width="*"/>    <!-- Center: Editor + Viewport -->
+                <ColumnDefinition Width="300"/>  <!-- Right Panel -->
             </Grid.ColumnDefinitions>
 
-            <!-- ═══ COLUMN 1: LEFT PANEL — Scene Tree + 3D Viewport ═══ -->
-            <Grid Grid.Column="0" Background="#121214">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="45*"/>  <!-- 45%: Scene Tree -->
-                    <RowDefinition Height="55*"/>  <!-- 55%: 3D Viewport -->
-                </Grid.RowDefinitions>
+            <!-- ICON RAIL -->
+            <Border Grid.Column="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,1,0">
+                <StackPanel VerticalAlignment="Top" Margin="0,8,0,0">
+                    <Button Style="{StaticResource SidebarIcon}" Tag="True" ToolTip="Program" Content="📋"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Blocks" Content="🧱"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Scene" Content="🎬"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="3D View" Content="🎥"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Motion" Content=""/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="I/O" Content="📡"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Debug" Content="🐛"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Config" Content="⚙"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="ROS 2" Content="🔗"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Settings" Content="🔧"/>
+                    <Button Style="{StaticResource SidebarIcon}" ToolTip="Project" Content="📁"/>
+                </StackPanel>
+            </Border>
 
-                <!-- SCENE TREE -->
-                <Border Grid.Row="0" BorderBrush="#27272A" BorderThickness="0,0,0,1">
-                    <DockPanel>
-                        <!-- Tree Header -->
-                        <Border DockPanel.Dock="Top" Background="#1A1A1E" Padding="12,8" BorderBrush="#27272A" BorderThickness="0,0,0,1">
-                            <Grid>
-                                <TextBlock Text="SCENE HIERARCHY" Foreground="#71717A" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <Button Content="＋" Width="20" Height="20" Background="Transparent" Foreground="#52525B" BorderThickness="0" FontSize="14" ToolTip="Add Node"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+            <!-- LEFT PANEL: PROGRAM TREE -->
+            <Border Grid.Column="1" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <!-- Header -->
+                    <Border DockPanel.Dock="Top" Background="#161B22" Padding="12,8" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+                        <TextBlock Text="PROGRAM TREE" Foreground="#8B949E" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </Border>
 
-                        <!-- Tree View -->
-                        <TreeView x:Name="SceneTree" Background="#121214" BorderThickness="0" Foreground="#D4D4D8" FontSize="11"
-                                  SelectedItemChanged="SceneTree_SelectedItemChanged"
-                                  VirtualizingStackPanel.IsVirtualizing="True">
+                    <!-- Tree -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="4">
+                        <TreeView Background="Transparent" BorderThickness="0" Foreground="#C9D1D9" FontSize="11">
                             <TreeView.Resources>
-                                <!-- Robot Root Node Template -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:RobotTreeNode}" ItemsSource="{Binding Children}">
-                                    <StackPanel Orientation="Horizontal" Margin="0,2">
-                                        <TextBlock Text="🤖" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                        <Ellipse Width="6" Height="6" Fill="#22C55E" Margin="8,0,0,0" ToolTip="Healthy"/>
-                                    </StackPanel>
-                                </HierarchicalDataTemplate>
-                                <!-- Link Node Template -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:LinkTreeNode}" ItemsSource="{Binding Children}">
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
-                                        <TextBlock Text="🔩" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding Name}" Foreground="#A1A1AA"/>
-                                        <Ellipse Width="6" Height="6" Fill="#22C55E" Margin="8,0,0,0"/>
-                                        <Button Content="👁" Width="16" Height="16" Background="Transparent" Foreground="#52525B" BorderThickness="0" Margin="4,0,0,0" FontSize="9"/>
-                                    </StackPanel>
-                                </HierarchicalDataTemplate>
-                                <!-- Joint Node Template -->
-                                <DataTemplate DataType="{x:Type local:JointTreeNode}">
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
-                                        <TextBlock Text="⚙" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding Name}" Foreground="#71717A"/>
-                                        <TextBlock Text=" — " Foreground="#3F3F46"/>
-                                        <TextBlock Text="{Binding JointType}" Foreground="#52525B" FontSize="10"/>
-                                    </StackPanel>
-                                </DataTemplate>
+                                <Style TargetType="TreeViewItem">
+                                    <Setter Property="Padding" Value="4,2"/>
+                                    <Setter Property="Margin" Value="0,1"/>
+                                </Style>
                             </TreeView.Resources>
+
+                            <!-- Main Program -->
+                            <TreeViewItem Header="📁 Main Program" IsExpanded="True">
+                                <TreeViewItem Header="🟢 Initialize" IsExpanded="True" Padding="20,2,4,2">
+                                    <TreeViewItem Header="J MoveJ Home" Padding="36,2,4,2" Foreground="#79C0FF">
+                                        <TreeViewItem.HeaderTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="#1F6FEB" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                        <TextBlock Text="J" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </TreeViewItem.HeaderTemplate>
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="🔧 SetDO Gripper OFF" Padding="36,2,4,2">
+                                        <TreeViewItem.HeaderTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="#D29922" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                        <TextBlock Text="⚡" Foreground="White" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </TreeViewItem.HeaderTemplate>
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="📊 Set counter = 0" Padding="36,2,4,2" Foreground="#8B949E"/>
+                                </TreeViewItem>
+
+                                <TreeViewItem Header="🔴 While TRUE" IsExpanded="True" Padding="20,2,4,2">
+                                    <TreeViewItem Header="🟢 PickAndPlace" IsExpanded="True" Padding="36,2,4,2">
+                                        <TreeViewItem Header="J MoveJ Approach" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#1F6FEB" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="J" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="L MoveL Pick" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#238636" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="L" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="🤏 Gripper Close" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#A371F7" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="G" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="⏱ Wait 0.2s" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#A371F7" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="W" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="L MoveL Lift" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#238636" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="L" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="J MoveJ Place" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#1F6FEB" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="J" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="🤏 Gripper Open" Padding="52,2,4,2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#A371F7" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                            <TextBlock Text="G" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="🔢 Increment counter" Padding="52,2,4,2" Foreground="#8B949E"/>
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="⏱ Wait 0.5s" Padding="36,2,4,2">
+                                        <TreeViewItem.HeaderTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="#A371F7" Width="16" Height="16" CornerRadius="8" Margin="0,0,6,0">
+                                                        <TextBlock Text="W" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding}" Foreground="#C9D1D9"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </TreeViewItem.HeaderTemplate>
+                                    </TreeViewItem>
+                                </TreeViewItem>
+                            </TreeViewItem>
                         </TreeView>
-                    </DockPanel>
-                </Border>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
 
-                <!-- 3D VIEWPORT -->
-                <Border Grid.Row="1" Background="#0E0E10" BorderBrush="#27272A" BorderThickness="0,1,0,0">
-                    <Grid>
-                        <hx:HelixViewport3D x:Name="RobotViewport" ShowViewCube="True" ShowCoordinateSystem="True" ZoomExtentsWhenLoaded="True"
-                                            Background="#0E0E10">
-                            <hx:HelixViewport3D.Camera>
-                                <PerspectiveCamera Position="3,2.5,3" LookDirection="-3,-2.5,-3" UpDirection="0,1,0" FieldOfView="45"/>
-                            </hx:HelixViewport3D.Camera>
-                            <ModelVisual3D>
-                                <ModelVisual3D.Content>
-                                    <DirectionalLight Direction="-1,-1,-1" Color="#FFFFFF"/>
-                                </ModelVisual3D.Content>
-                            </ModelVisual3D>
-                            <ModelVisual3D>
-                                <ModelVisual3D.Content>
-                                    <DirectionalLight Direction="1,0.5,0.5" Color="#6090C0"/>
-                                </ModelVisual3D.Content>
-                            </ModelVisual3D>
-                            <ModelVisual3D>
-                                <ModelVisual3D.Content>
-                                    <AmbientLight Color="#303030"/>
-                                </ModelVisual3D.Content>
-                            </ModelVisual3D>
-                        </hx:HelixViewport3D>
+            <!-- CENTER: EDITOR + VIEWPORT -->
+            <Border Grid.Column="2" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="36"/>  <!-- Tab bar -->
+                        <RowDefinition Height="*"/>   <!-- Content -->
+                    </Grid.RowDefinitions>
 
-                        <!-- Startup & Homing Button (bottom-left of viewport) -->
-                        <Button HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12"
-                                Background="#007ACC" Foreground="White" BorderThickness="0"
-                                Padding="12,8" FontSize="12" FontWeight="SemiBold"
-                                Click="HomingButton_Click">
+                    <!-- Tab Bar -->
+                    <Border Grid.Row="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+                        <Grid Margin="8,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left tabs -->
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🏠"/>
-                                <TextBlock Text="Startup &amp; Homing" Margin="6,0,0,0"/>
+                                <Button Style="{StaticResource TabButton}" Tag="True" Content="📝 Code Editor"/>
+                                <Button Style="{StaticResource TabButton}" Content="🎥 3D Viewport"/>
                             </StackPanel>
-                        </Button>
-                    </Grid>
-                </Border>
-            </Grid>
 
-            <!-- ═══ COLUMN 2: DRAGGABLE SPLITTER ═══ -->
-            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="#18181B"
-                          ShowsPreview="False" Cursor="SizeWE">
-                <GridSplitter.Style>
-                    <Style TargetType="GridSplitter">
-                        <Setter Property="Background" Value="#18181B"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#27272A"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </GridSplitter.Style>
-            </GridSplitter>
+                            <!-- Right tabs -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button Style="{StaticResource TabButton}" Content="Inspect" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource TabButton}" Tag="True" Content="Properties"/>
+                                <Button Style="{StaticResource TabButton}" Content="I/O" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource TabButton}" Content="Debug"/>
+                                <Button Style="{StaticResource TabButton}" Content="ROS 2"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-            <!-- ═══ COLUMN 3: RIGHT PANEL — Program Editor ═══ -->
-            <Grid Grid.Column="2" Background="#121214">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="36"/>   <!-- Tab Bar -->
-                    <RowDefinition Height="*"/>    <!-- Editor Area -->
-                    <RowDefinition Height="Auto" MinHeight="100" MaxHeight="300"/> <!-- Diagnostics Panel -->
-                </Grid.RowDefinitions>
+                    <!-- Content Area -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>   <!-- Script/Blocks -->
+                            <ColumnDefinition Width="*"/>   <!-- 3D Viewport -->
+                        </Grid.ColumnDefinitions>
 
-                <!-- TAB BAR -->
-                <Border Grid.Row="0" Background="#1A1A1E" BorderBrush="#27272A" BorderThickness="0,0,0,1">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
-                        <Button x:Name="TabBlocks" Content="🧱 Blocks" Background="#27272A" Foreground="#E4E4E7" BorderThickness="0"
-                                Padding="16,8" FontSize="12" Click="TabBlocks_Click"/>
-                        <Button x:Name="TabScript" Content="📝 Script" Background="Transparent" Foreground="#71717A" BorderThickness="0"
-                                Padding="16,8" FontSize="12" Margin="4,0,0,0" Click="TabScript_Click"/>
-                        <Button Content="📡 IO" Background="Transparent" Foreground="#71717A" BorderThickness="0"
-                                Padding="16,8" FontSize="12" Margin="4,0,0,0"/>
-                        <Button Content="⚙ Config" Background="Transparent" Foreground="#71717A" BorderThickness="0"
-                                Padding="16,8" FontSize="12" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- BLOCK EDITOR (shown when Blocks tab active) -->
-                <Border Grid.Row="1" x:Name="BlockEditorPanel" Background="#121214" BorderBrush="#27272A" BorderThickness="0,0,0,1">
-                    <Grid>
-                        <!-- Block Library (left side of editor) -->
-                        <Border Width="180" HorizontalAlignment="Left" Background="#1A1A1E" BorderBrush="#27272A" BorderThickness="0,0,1,0">
+                        <!-- LEFT: Script/Blocks Editor -->
+                        <Border Grid.Column="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,1,0">
                             <DockPanel>
-                                <Border DockPanel.Dock="Top" Padding="12,8" BorderBrush="#27272A" BorderThickness="0,0,0,1">
-                                    <TextBlock Text="BLOCK LIBRARY" Foreground="#71717A" FontSize="10" FontWeight="SemiBold"/>
+                                <!-- Editor Header -->
+                                <Border DockPanel.Dock="Top" Background="#161B22" Padding="12,8" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Text="PickPlace_Main.mod" Foreground="#C9D1D9" FontSize="12" VerticalAlignment="Center"/>
+
+                                        <!-- Script/Blocks Toggle -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button Style="{StaticResource ModeButton}" Content="Script" Margin="0,0,4,0"/>
+                                            <Button Style="{StaticResource ModeButton}" Tag="True" Content="Blocks"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </Border>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <StackPanel Margin="8">
-                                        <!-- Motion Blocks -->
-                                        <TextBlock Text="MOTION" Foreground="#52525B" FontSize="9" FontWeight="SemiBold" Margin="0,4,0,2"/>
-                                        <Button Content="MoveJ" Background="#4A90D9" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="MoveL" Background="#4A90D9" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="MoveC" Background="#4A90D9" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="MoveAbsJ" Background="#4A90D9" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <!-- IO Blocks -->
-                                        <TextBlock Text="I/O" Foreground="#52525B" FontSize="9" FontWeight="SemiBold" Margin="0,12,0,2"/>
-                                        <Button Content="SetDO" Background="#E8A020" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="PulseDO" Background="#E8A020" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="WaitDI" Background="#E8A020" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <!-- Flow Control -->
-                                        <TextBlock Text="FLOW" Foreground="#52525B" FontSize="9" FontWeight="SemiBold" Margin="0,12,0,2"/>
-                                        <Button Content="Wait" Background="#8B5CF6" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="If/Else" Background="#8B5CF6" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="While" Background="#8B5CF6" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="For" Background="#8B5CF6" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <!-- Robot Specific -->
-                                        <TextBlock Text="ROBOT" Foreground="#52525B" FontSize="9" FontWeight="SemiBold" Margin="0,12,0,2"/>
-                                        <Button Content="GripperOpen" Background="#22C55E" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="GripperClose" Background="#22C55E" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="ToolChange" Background="#22C55E" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <!-- Structure -->
-                                        <TextBlock Text="STRUCTURE" Foreground="#52525B" FontSize="9" FontWeight="SemiBold" Margin="0,12,0,2"/>
-                                        <Button Content="Routine" Background="#F43F5E" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
-                                        <Button Content="CallRoutine" Background="#F43F5E" Foreground="White" BorderThickness="0" Padding="8,4" Margin="0,1" FontSize="10" HorizontalContentAlignment="Left"/>
+
+                                <!-- Block Editor -->
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="12">
+                                    <StackPanel>
+                                        <!-- Main Program -->
+                                        <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                    <Border Background="#238636" Width="20" Height="20" CornerRadius="10" Margin="0,0,8,0">
+                                                        <TextBlock Text="fn" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="Main Program" Foreground="#C9D1D9" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="3 instr" Foreground="#484F58" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- MoveJ Home -->
+                                                <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Background="#1F6FEB" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                            <TextBlock Text="J" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="MoveJ Home" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="(0,0,1500) v500" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- SetDO Gripper OFF -->
+                                                <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Background="#D29922" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                            <TextBlock Text="⚡" Foreground="White" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="SetDO Gripper OFF" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="DO_Gripper=0" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Set counter -->
+                                                <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Background="#484F58" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                            <TextBlock Text="=" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="Set counter = 0" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="counter=0" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- While TRUE Loop -->
+                                        <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                    <Border Background="#F85149" Width="20" Height="20" CornerRadius="10" Margin="0,0,8,0">
+                                                        <TextBlock Text="∞" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="While TRUE" Foreground="#C9D1D9" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="= loop" Foreground="#484F58" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- PickAndPlace Function -->
+                                                <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,4">
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                            <Border Background="#238636" Width="20" Height="20" CornerRadius="10" Margin="0,0,8,0">
+                                                                <TextBlock Text="fn" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <TextBlock Text="PickAndPlace" Foreground="#C9D1D9" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="8 instr" Foreground="#484F58" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                        </StackPanel>
+
+                                                        <!-- MoveJ Approach -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#1F6FEB" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="J" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="MoveJ Approach" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="(500,0,1200) v500" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- MoveL Pick -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#238636" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="L" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="MoveL Pick" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="(500,0,900) v200" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- Gripper Close -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#A371F7" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="G" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="Gripper Close" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="w=40mm f=50N" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- Wait 0.2s -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#A371F7" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="W" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="Wait 0.2s" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="0.20s" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- MoveL Lift -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#238636" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="L" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="MoveL Lift" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="(500,0,1200) v500" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- MoveJ Place -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#1F6FEB" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="J" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="MoveJ Place" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="(-400,300,1000) v500" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- Gripper Open -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#A371F7" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="G" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="Gripper Open" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="w=80mm" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+
+                                                        <!-- Increment Counter -->
+                                                        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Background="#484F58" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                                    <TextBlock Text="+1" Foreground="White" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="1" Text="Increment counter" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="counter+=1" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <!-- Wait 0.5s -->
+                                                <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Background="#A371F7" Width="18" Height="18" CornerRadius="9" Margin="0,0,8,0">
+                                                            <TextBlock Text="W" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="Wait 0.5s" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="0.50s" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </ScrollViewer>
                             </DockPanel>
                         </Border>
 
-                        <!-- Block Canvas (main editor area) -->
-                        <ScrollViewer x:Name="BlockScrollViewer" Margin="180,0,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="BlockCanvas" Margin="16"/>
-                        </ScrollViewer>
+                        <!-- RIGHT: 3D Viewport -->
+                        <Border Grid.Column="1" Background="#0D1117">
+                            <Grid>
+                                <!-- 3D Viewport -->
+                                <hx:HelixViewport3D x:Name="RobotViewport" ShowViewCube="True" ShowCoordinateSystem="True" ZoomExtentsWhenLoaded="True"
+                                                    Background="#0D1117">
+                                    <hx:HelixViewport3D.Camera>
+                                        <PerspectiveCamera Position="3,2.5,3" LookDirection="-3,-2.5,-3" UpDirection="0,1,0" FieldOfView="45"/>
+                                    </hx:HelixViewport3D.Camera>
+                                    <ModelVisual3D>
+                                        <ModelVisual3D.Content>
+                                            <DirectionalLight Direction="-1,-1,-1" Color="#FFFFFF"/>
+                                        </ModelVisual3D.Content>
+                                    </ModelVisual3D>
+                                    <ModelVisual3D>
+                                        <ModelVisual3D.Content>
+                                            <DirectionalLight Direction="1,0.5,0.5" Color="#6090C0"/>
+                                        </ModelVisual3D.Content>
+                                    </ModelVisual3D>
+                                    <ModelVisual3D>
+                                        <ModelVisual3D.Content>
+                                            <AmbientLight Color="#303030"/>
+                                        </ModelVisual3D.Content>
+                                    </ModelVisual3D>
+                                </hx:HelixViewport3D>
+
+                                <!-- Viewport Toolbar -->
+                                <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="4">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource ToolbarButton}" Content="↺" Width="28" Height="28" ToolTip="Reset View"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="👁" Width="28" Height="28" ToolTip="Show/Hide"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="🚫" Width="28" Height="28" ToolTip="Collision View"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="🖱" Width="28" Height="28" ToolTip="Select"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="⊞" Width="28" Height="28" ToolTip="Grid"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="↻" Width="28" Height="28" ToolTip="Rotate"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="⤢" Width="28" Height="28" ToolTip="Expand"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="📷" Width="28" Height="28" ToolTip="Screenshot"/>
+                                        <Button Style="{StaticResource ToolbarButton}" Content="☷" Width="28" Height="28" ToolTip="Layers"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Robot Selector -->
+                                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="8">
+                                    <StackPanel>
+                                        <Border Background="#1F6FEB" Padding="8,4" CornerRadius="4" Margin="0,0,0,4">
+                                            <TextBlock Text="IRB 6700" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                        </Border>
+                                        <Border Background="#21262D" Padding="8,4" CornerRadius="4">
+                                            <TextBlock Text="IRB 4600" Foreground="#8B949E" FontSize="11"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Axis Gizmo -->
+                                <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="8">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <Ellipse Width="16" Height="16" Fill="#F85149" Margin="0,0,4,0"/>
+                                            <TextBlock Text="X" Foreground="#F85149" FontSize="10" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <Ellipse Width="16" Height="16" Fill="#3FB950" Margin="0,0,4,0"/>
+                                            <TextBlock Text="Y" Foreground="#3FB950" FontSize="10" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <Ellipse Width="16" Height="16" Fill="#58A6FF" Margin="0,0,4,0"/>
+                                            <TextBlock Text="Z" Foreground="#58A6FF" FontSize="10" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="RMB = Orbit" Foreground="#484F58" FontSize="9" Margin="0,4,0,0"/>
+                                        <TextBlock Text="Ctrl+RMB = Pan" Foreground="#484F58" FontSize="9"/>
+                                        <TextBlock Text="Scroll = Zoom" Foreground="#484F58" FontSize="9"/>
+                                        <TextBlock Text="G = Move" Foreground="#484F58" FontSize="9" Margin="0,4,0,0"/>
+                                        <TextBlock Text="R = Rotate" Foreground="#484F58" FontSize="9"/>
+                                        <TextBlock Text="S = Scale" Foreground="#484F58" FontSize="9"/>
+                                        <TextBlock Text="Esc = Deselect" Foreground="#484F58" FontSize="9"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Speed Slider -->
+                                <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Speed" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <Slider Width="80" Value="100" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
+                                        <TextBlock Text="100%" Foreground="#C9D1D9" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
                     </Grid>
-                </Border>
+                </Grid>
+            </Border>
 
-                <!-- SCRIPT EDITOR (hidden by default) -->
-                <Border Grid.Row="1" x:Name="ScriptEditorPanel" Background="#121214" Visibility="Collapsed">
-                    <TextBox Background="#0E0E10" Foreground="#D4D4D8" BorderThickness="0" Padding="16"
-                             FontFamily="JetBrains Mono, Consolas" FontSize="13"
-                             AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap"
-                             Text="MODULE main&#10;  PROC&#10;    ! Program code here&#10;  ENDPROC&#10;ENDMODULE"/>
-                </Border>
-
-                <!-- DIAGNOSTICS PANEL (collapsible) -->
-                <Grid Grid.Row="2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Diagnostics Header -->
-                    <Border Grid.Row="0" Background="#1A1A1E" BorderBrush="#27272A" BorderThickness="0,1,0,0" Padding="12,6">
-                        <Grid>
-                            <TextBlock Text="DIAGNOSTICS" Foreground="#71717A" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Content="▶ Run" Background="#22C55E" Foreground="White" BorderThickness="0" Padding="12,4" FontSize="10" FontWeight="SemiBold" Margin="0,0,4,0" Click="RunProgram_Click"/>
-                                <Button Content="⏸ Pause" Background="#E8A020" Foreground="White" BorderThickness="0" Padding="12,4" FontSize="10" Margin="0,0,4,0"/>
-                                <Button Content="⏹ Stop" Background="#EF4444" Foreground="White" BorderThickness="0" Padding="12,4" FontSize="10" Margin="0,0,8,0" Click="StopProgram_Click"/>
-                                <Button Content="▲" Width="20" Height="20" Background="Transparent" Foreground="#52525B" BorderThickness="0" FontSize="10" Click="CollapseDiagnostics_Click"/>
-                            </StackPanel>
-                        </Grid>
+            <!-- RIGHT PANEL: PROPERTIES -->
+            <Border Grid.Column="3" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,0">
+                <DockPanel>
+                    <!-- Header Tabs -->
+                    <Border DockPanel.Dock="Top" Background="#161B22" Padding="8,0" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource TabButton}" Tag="True" Content="PROPS" Padding="16,8"/>
+                            <Button Style="{StaticResource TabButton}" Content="JOG" Padding="16,8" Margin="4,0,0,0"/>
+                            <Button Style="{StaticResource TabButton}" Content="OBJECT" Padding="16,8" Margin="4,0,0,0"/>
+                        </StackPanel>
                     </Border>
 
-                    <!-- Diagnostics Messages -->
-                    <ListBox Grid.Row="1" x:Name="DiagnosticsList" Background="#0E0E10" BorderThickness="0" Foreground="#A1A1AA" FontSize="11"
-                             VirtualizingStackPanel.IsVirtualizing="True">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="4,2">
-                                    <TextBlock Text="{Binding Time}" Foreground="#52525B" Width="60"/>
-                                    <TextBlock Text="{Binding Level}" Foreground="{Binding LevelColor}" Width="50" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <!-- Properties Content -->
+                    <Border Background="#0D1117">
+                        <Grid>
+                            <TextBlock Text="Select a block to edit" Foreground="#484F58" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══ DIAGNOSTICS PANEL ═══ -->
+        <Grid Grid.Row="3" MinHeight="120" MaxHeight="300">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#161B22" Padding="12,6" BorderBrush="#30363D" BorderThickness="0,1,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="DIAGNOSTICS &amp; DEBUG" Foreground="#8B949E" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource ToolbarButton}" Background="#1F6FEB" Foreground="White" Content="Run Check" Padding="12,4" Margin="0,0,4,0"/>
+                        <Button Style="{StaticResource ToolbarButton}" Content="🗑" Width="24" Height="24"/>
+                    </StackPanel>
                 </Grid>
-            </Grid>
+            </Border>
+
+            <!-- Content -->
+            <Border Grid.Row="1" Background="#0D1117">
+                <Grid>
+                    <TextBlock Text="Waiting for tracking data... (Live Mode only)" Foreground="#484F58" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                    <!-- Bottom toolbar -->
+                    <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource ToolbarButton}" Content="▶ Step" Margin="0,0,12,0"/>
+                            <TextBlock Text="Breakpoints: 1" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- ═══ STATUS BAR ═══ -->
-        <Border Grid.Row="2" Background="#007ACC">
+        <Border Grid.Row="4" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,1,0,0">
             <Grid Margin="12,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -282,21 +904,21 @@
 
                 <!-- Left: Connection + Device -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Fill="#22C55E" Margin="0,0,6,0"/>
-                    <TextBlock Text="Connected" Foreground="White" FontSize="11" Margin="0,0,16,0"/>
-                    <TextBlock Text="Device: None" Foreground="White" FontSize="11" Opacity="0.8"/>
+                    <Ellipse Width="8" Height="8" Fill="#484F58" Margin="0,0,6,0"/>
+                    <TextBlock Text="Disconnected" Foreground="#8B949E" FontSize="11" Margin="0,0,16,0"/>
+                    <TextBlock Text="Device: None" Foreground="#8B949E" FontSize="11" Opacity="0.8"/>
                 </StackPanel>
 
                 <!-- Center: Mode + Speed -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="MODE:" Foreground="White" FontSize="10" Opacity="0.7" Margin="0,0,6,0"/>
-                    <Button Content="SIM" Background="#E8A020" Foreground="White" BorderThickness="0" Padding="8,2" FontSize="10" FontWeight="SemiBold"/>
+                    <TextBlock Text="MODE:" Foreground="#484F58" FontSize="10" Opacity="0.7" Margin="0,0,6,0"/>
+                    <Button Content="Edit" Background="#1F6FEB" Foreground="White" BorderThickness="0" Padding="8,2" FontSize="10" FontWeight="SemiBold" Margin="0,0,4,0"/>
                     <Slider Width="80" Value="50" Minimum="0" Maximum="100" Margin="16,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Speed: 50%" Foreground="White" FontSize="10"/>
+                    <TextBlock Text="Speed: 50%" Foreground="#C9D1D9" FontSize="10"/>
                 </StackPanel>
 
                 <!-- Right: Save timestamp -->
-                <TextBlock Grid.Column="2" Text="Saved: --:--:--" Foreground="White" FontSize="10" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="Saved: --:--:--" Foreground="#484F58" FontSize="10" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>
