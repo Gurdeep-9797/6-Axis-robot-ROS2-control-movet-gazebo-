@@ -39,7 +39,10 @@
       "Bash(del *)",
       "Bash(rmdir *)",
       "Bash(echo.)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(@if *)",
+      "Bash(echo *)"
     ]
   },
   "$version": 3
