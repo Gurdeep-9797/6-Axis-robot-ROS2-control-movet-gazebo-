@@ -143,45 +143,86 @@ All communication flows through the **State Bus** (Rx.NET `BehaviorSubject`):
 
 ## 🎯 Features Implemented
 
-### Scene Graph (TRS Hierarchy)
-- ✅ 6 articulated links with Scale → Rotate → Translate transforms
-- ✅ `GetLinkTransform(int)` method for gizmo access
-- ✅ `GetLinkWorldPosition(int)` for world-space calculations
-- ✅ Selection highlighting (cyan #00D4FF)
+### Section 1: Layout Redesign ✅
+- ✅ 3-column layout (360px | 6px splitter | * remaining)
+- ✅ Custom title bar (WindowStyle=None, AllowsTransparency=True)
+- ✅ Left panel: Scene tree (45%) + 3D viewport (55%)
+- ✅ Right panel: Tab bar (Blocks/Script/IO/Config) + editor + diagnostics
+- ✅ Persistent status bar (28px): connection, device, mode, speed, save timestamp
+- ✅ "Startup & Homing" button (bottom-left, always visible)
 
-### Program AST
-- ✅ 18 block types defined
-- ✅ Depth-first tree traversal
-- ✅ Parent-child relationships
-- ✅ Node ID system (UUID)
+### Section 2: 3D Scene Tree ✅
+- ✅ Custom TreeView with type icons (🤖🔩⚙)
+- ✅ Node types: Robot, Link, Joint, Sensor, EndEffector, Coordinate Frame
+- ✅ Status indicators (green=healthy, yellow=warning, red=error)
+- ✅ Visibility toggle (eye icon)
+- ✅ Joint properties: type, axis, limits, velocity, torque, motor/encoder, PID gains
 
-### Compiler
-- ✅ AST → flat InstructionList
-- ✅ Control flow with jump instructions (While, If/Else)
-- ✅ Duration estimation per instruction
+### Section 3: File System (.rfproj) ✅
+- ✅ ZIP-based project format with 7 internal files
+- ✅ Atomic write (temp file + rename) prevents corruption on crash
+- ✅ robot.json — Scene tree serialization
+- ✅ program/main.mod — AST to RAPID-like text format
+- ✅ io_config.json — IO device configuration
+- ✅ settings.json — Editor preferences, camera state, UI layout
+- ✅ thumbnail.png — 256×256 viewport screenshot
+- ✅ Auto-save every 5 minutes (configurable, silent)
+- ✅ Recent projects list (max 10, stored in ~/.roboforge/settings.json)
+- ✅ HasNewerAutosave detection with restore dialog
 
-### Ghost Execution Engine
-- ✅ 60Hz state updates (16ms intervals)
-- ✅ Cubic ease-in-out interpolation for smooth motion
-- ✅ Virtual IO state simulation
-- ✅ Block highlight publishing to StateBus
-- ✅ 10x speed for Wait blocks in simulation
+### Section 4: IO Detection & Auto-Configuration ✅
+- ✅ Device fingerprint database (16 known devices)
+  * Arduino: Uno R3, Mega 2560, Nano, Leonardo, Due (5V/3.3V warning)
+  * ESP32: CP2102, CH340, ESP32-S3 (WiFi+BLE)
+  * ESP8266: NodeMCU CP2102/CH340
+  * Raspberry Pi Pico / Pico W
+  * STM32 (ST-Link V2), Teensy 4.0/4.1
+- ✅ USB enumeration: WMI on Windows (Win32_PnPEntity), /dev/tty* on Linux/macOS
+- ✅ VID/PID extraction from Windows registry
+- ✅ Handshake protocol: ROBOFORGE_HELLO/ACK with firmware version detection
+- ✅ IO configuration JSON serialization for EEPROM storage
+- ✅ Pin mapping system (MotorDir, MotorPWM, EncoderA/B, HallSensor, etc.)
+- ✅ IoLink system for inter-device synchronization (up to 4 devices)
 
-### State Bus
-- ✅ Rx.NET `BehaviorSubject<ExecutionStateUpdate>`
-- ✅ Subscription with disposal support
-- ✅ Helper methods: `UpdateJointAngles()`, `UpdateActiveNode()`, `UpdateProgramState()`
+### Section 5: Panel Docking System ✅
+- ✅ DockablePanel with 4 states: Docked, AutoHide, Floating, TabGroup
+- ✅ Toggle float (detach to independent ToolWindow)
+- ✅ Toggle pin (auto-hide with slide-in animation)
+- ✅ Header bar with pin/float/close buttons
+- ✅ TabGroup for merging panels into tab strip
+- ✅ Drag-to-reorder tabs, tear-out to float
+- ✅ DockManager: centralized panel management
+- ✅ Keyboard shortcuts: Ctrl+W (close), Ctrl+Shift+P (reset), F11 (fullscreen)
+- ✅ Settings persistence: remembers panel sizes and positions
 
-### UI
-- ✅ 3-column layout (360px | 6px splitter | *)
-- ✅ Custom title bar (frameless window)
-- ✅ Scene tree with hierarchical nodes
-- ✅ 3D viewport (HelixToolkit.Wpf)
-- ✅ Block editor with library sidebar
-- ✅ Script editor tab
-- ✅ Collapsible diagnostics panel
-- ✅ Persistent status bar
-- ✅ "Startup & Homing" button
+### Section 6: All Program Blocks ✅
+- ✅ 18 block types defined with full properties
+- ✅ Motion: MoveJ, MoveL, MoveC, MoveAbsJ, SearchL
+- ✅ IO: SetDO, PulseDO, WaitDI
+- ✅ Flow: Wait, If/Else, While, For, Break
+- ✅ Robot-specific: GripperOpen, GripperClose, ToolChange, Stop
+- ✅ Semantic colors: Motion=#4A90D9, IO=#E8A020, Flow=#8B5CF6, Robot=#22C55E
+
+### Section 8: Startup & Homing Sequence ✅
+- ✅ 3-phase homing: Pre-flight → Joint Homing → Post-Home Verification
+- ✅ Phase 1: 5 pre-flight checks with live status updates
+  * Controllers responding, E-Stop healthy, Limits OK, Power nominal, Firmware compatible
+- ✅ Phase 2: Per-joint homing with Hall sensor + PID settle
+  * Move toward sensor at 5% max velocity
+  * Hall effect trigger detection (sub-ms accuracy)
+  * Back off at half speed, set encoder zero to midpoint
+  * PID settle loop: error < 0.1° for 100 consecutive cycles at 1000Hz
+- ✅ Phase 3: Post-home verification (all joints within ±0.5° tolerance)
+- ✅ Simulation mode: purely visual with fake triggers and perfect convergence
+- ✅ Real-time PID error convergence graph (20Hz, 120-point ring buffer)
+- ✅ Cancel support via CancellationTokenSource
+
+### Section 9: Data Flow Architecture ✅
+- ✅ State Bus: Rx.NET BehaviorSubject<ExecutionStateUpdate>
+- ✅ AST: ProgramNode tree with GetBlocks(), FindById()
+- ✅ Compiler: AST → flat InstructionList with jump instructions
+- ✅ GhostExecutionEngine: 60Hz simulation with cubic ease-in-out interpolation
+- ✅ RealExecutionEngine: stub ready for serial communication
 
 ---
 
