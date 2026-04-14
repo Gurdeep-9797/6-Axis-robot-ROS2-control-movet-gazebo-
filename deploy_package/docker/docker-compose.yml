@@ -1,0 +1,95 @@
+# Robot System Docker Compose - Base Configuration
+# This file contains shared services. Use with mode-specific overrides.
+
+services:
+  # ROS 2 Core - Message routing and node management
+  ros_core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros
+    container_name: robot_ros_core
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - LOG_LEVEL=${LOG_LEVEL}
+    volumes:
+      - ./src:/ros_ws/src:ro
+      - ./config:/ros_ws/config:ro
+      - ./scripts:/ros_ws/scripts:ro
+      - ./logs/ros:/ros_ws/logs
+    networks:
+      - robot_net
+    restart: unless-stopped
+
+  # MoveIt 2 - Motion planning (NON-REAL-TIME, REQUEST ONLY)
+  moveit:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros
+    container_name: robot_moveit
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+    volumes:
+      - ./src:/ros_ws/src:ro
+      - ./config:/ros_ws/config:ro
+    command: ros2 launch robot_moveit_config move_group.launch.py
+    depends_on:
+      - ros_core
+    networks:
+      - robot_net
+    restart: unless-stopped
+
+  # Hardware Bridge - Protocol translation (RELAY ONLY, NO AUTHORITY)
+  bridge:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros
+    container_name: robot_bridge
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ROBOT_MODE=${ROBOT_MODE}
+      - CONTROLLER_TYPE=${CONTROLLER_TYPE}
+      - CONTROLLER_IP=${CONTROLLER_IP}
+      - CONTROLLER_PORT=${CONTROLLER_PORT}
+      - CONTROLLER_PROTO=${CONTROLLER_PROTO}
+    volumes:
+      - ./src:/ros_ws/src:ro
+      - ./config:/ros_ws/config:ro
+      - ./scripts:/ros_ws/scripts:ro
+      - ./logs/ros:/ros_ws/logs
+    command: ros2 launch robot_hardware_bridge bridge.launch.py
+    depends_on:
+      - ros_core
+    networks:
+      - robot_net
+    restart: unless-stopped
+
+  # MoveIt Adapter - Action Server Wrapper
+  adapter:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros
+    container_name: robot_adapter
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+    volumes:
+      - ./src:/ros_ws/src:ro
+      - ./config:/ros_ws/config:ro
+      - ./logs/ros:/ros_ws/logs
+    command: ros2 run robot_hardware_bridge moveit_adapter
+    depends_on:
+      - ros_core
+      - bridge
+    networks:
+      - robot_net
+    restart: unless-stopped
+
+networks:
+  robot_net:
+    driver: bridge
+
+volumes:
+  ros_logs:

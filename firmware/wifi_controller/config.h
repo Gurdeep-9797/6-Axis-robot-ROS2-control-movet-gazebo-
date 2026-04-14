@@ -37,17 +37,6 @@ struct JointConfig {
 
 #include "hardware_config.h"
 
-// --- Joint Mapping (Matches hardware_map.yaml) ---
-struct JointConfig {
-    uint8_t servo_channel;
-    bool servo_inverted;
-    int8_t enc_pin_a;
-    int8_t enc_pin_b;
-    uint16_t ppr; // Pulses per revolution
-    bool enc_inverted;
-    double min_rad;
-    double max_rad;
-};
 
 const JointConfig JOINTS[6] = {
     {0, false, J1_ENC_A, J1_ENC_B, J1_PPR, false, -3.14159, 3.14159}, // Joint 1

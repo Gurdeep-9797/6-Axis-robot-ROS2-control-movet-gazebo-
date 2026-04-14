@@ -1,0 +1,56 @@
+# STEP 2: DOCKER-FIRST ROBOTICS BASE IMAGE
+FROM osrf/ros:humble-desktop-full
+
+# Env setup
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-c"]
+
+# 1. Install system core dependencies & Python scientific stack
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-pip \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-vcstool \
+    python3-numpy \
+    python3-scipy \
+    python3-matplotlib \
+    python3-pandas \
+    wget \
+    curl \
+    git \
+    nano \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Initialize rosdep (if not already done in base, but good to ensure)
+RUN rosdep init || echo "rosdep already initialized" && \
+    rosdep update
+
+# 3. Install ROS 2 Robotics Stack (MoveIt, Gazebo, Control)
+# explicitly installing these ensures they are cached in this layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-moveit \
+    ros-humble-moveit-planners-ompl \
+    ros-humble-moveit-ros-visualization \
+    ros-humble-moveit-setup-assistant \
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
+    ros-humble-gazebo-ros \
+    ros-humble-gazebo-ros2-control \
+    ros-humble-joint-state-publisher-gui \
+    ros-humble-xacro \
+    ros-humble-robot-state-publisher \
+    ros-humble-controller-manager \
+    && rm -rf /var/lib/apt/lists/*
+
+# 4. Setup Workspace
+WORKDIR /ros_ws
+RUN mkdir -p src
+
+# 5. Add any custom dependencies or scripts if needed
+# (none for base image)
+
+# 6. Sourcing
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+CMD ["bash"]

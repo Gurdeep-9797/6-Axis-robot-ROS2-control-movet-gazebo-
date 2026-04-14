@@ -24,7 +24,20 @@
       "Bash(convertto-json *)",
       "Bash(findstr *)",
       "Bash(python *)",
-      "Bash(start *)"
+      "Bash(start *)",
+      "Bash(set *)",
+      "Bash(ping *)",
+      "Bash(docker stop *)",
+      "Bash(docker rm *)",
+      "Bash(docker run *)",
+      "Bash(ipconfig)",
+      "Bash(wsl *)",
+      "Bash(docker build *)",
+      "Bash(copy *)",
+      "Bash(explorer *)",
+      "Bash(npm run *)",
+      "Bash(del *)",
+      "Bash(rmdir *)"
     ]
   },
   "$version": 3

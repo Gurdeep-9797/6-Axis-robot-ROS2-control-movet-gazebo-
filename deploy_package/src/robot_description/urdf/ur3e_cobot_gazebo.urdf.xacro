@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ur3e_cobot_gazebo">
+
+  <!-- ======================== MATERIALS ======================== -->
+  <material name="UR_Silver">
+    <color rgba="0.85 0.85 0.85 1.0"/>
+  </material>
+  <material name="UR_Blue">
+    <color rgba="0.0 0.45 0.7 1.0"/>
+  </material>
+
+  <!-- Dummy root link -->
+  <link name="world"/>
+
+  <joint name="fixed_base_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Base -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.05"/>
+      </geometry>
+      <material name="UR_Silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0"/>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <inertia ixx="0.005" ixy="0.0" ixz="0.0" iyy="0.005" iyz="0.0" izz="0.005"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 1: Base/Shoulder Pan -->
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="shoulder_link"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.28" upper="6.28" effort="330.0" velocity="2.16"/>
+    <dynamics damping="5.0" friction="2.0"/>
+  </joint>
+
+  <!-- Shoulder -->
+  <link name="shoulder_link">
+    <visual>
+      <origin xyz="0 0 0.076" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.152"/>
+      </geometry>
+      <material name="UR_Blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.076" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.152"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="3.0"/>
+      <origin xyz="0 0 0.076" rpy="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.005"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 2: Shoulder Lift -->
+  <joint name="joint_2" type="revolute">
+    <parent link="shoulder_link"/>
+    <child link="upper_arm_link"/>
+    <origin xyz="0 0.12 0.076" rpy="0 1.5708 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-6.28" upper="6.28" effort="330.0" velocity="2.16"/>
+    <dynamics damping="5.0" friction="2.0"/>
+  </joint>
+
+  <!-- Upper Arm -->
+  <link name="upper_arm_link">
+    <visual>
+      <origin xyz="-0.122 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.24365"/>
+      </geometry>
+      <material name="UR_Silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.122 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.24365"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="4.0"/>
+      <origin xyz="-0.122 0 0" rpy="0 1.5708 0"/>
+      <inertia ixx="0.02" ixy="0.0" ixz="0.0" iyy="0.02" iyz="0.0" izz="0.005"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 3: Elbow -->
+  <joint name="joint_3" type="revolute">
+    <parent link="upper_arm_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="-0.24365 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" effort="150.0" velocity="3.15"/>
+    <dynamics damping="3.0" friction="1.0"/>
+  </joint>
+
+  <!-- Forearm -->
+  <link name="forearm_link">
+    <visual>
+      <origin xyz="-0.1065 0 0.0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.213"/>
+      </geometry>
+      <material name="UR_Silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.1065 0 0.0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.213"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0"/>
+      <origin xyz="-0.1065 0 0.0" rpy="0 1.5708 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.002"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 4: Wrist 1 -->
+  <joint name="joint_4" type="revolute">
+    <parent link="forearm_link"/>
+    <child link="wrist_1_link"/>
+    <origin xyz="-0.213 0 0.112" rpy="0 1.5708 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-6.28" upper="6.28" effort="54.0" velocity="3.2"/>
+    <dynamics damping="1.0" friction="0.5"/>
+  </joint>
+
+  <!-- Wrist 1 -->
+  <link name="wrist_1_link">
+    <visual>
+      <origin xyz="0 0.0425 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.085"/>
+      </geometry>
+      <material name="UR_Blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0.0425 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.085"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0.0425 0" rpy="1.5708 0 0"/>
+      <inertia ixx="0.002" ixy="0.0" ixz="0.0" iyy="0.002" iyz="0.0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 5: Wrist 2 -->
+  <joint name="joint_5" type="revolute">
+    <parent link="wrist_1_link"/>
+    <child link="wrist_2_link"/>
+    <origin xyz="0 0.085 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.28" upper="6.28" effort="54.0" velocity="3.2"/>
+    <dynamics damping="1.0" friction="0.5"/>
+  </joint>
+
+  <!-- Wrist 2 -->
+  <link name="wrist_2_link">
+    <visual>
+      <origin xyz="0 0 0.0425" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.085"/>
+      </geometry>
+      <material name="UR_Silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0425" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.085"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0.0425" rpy="0 0 0"/>
+      <inertia ixx="0.002" ixy="0.0" ixz="0.0" iyy="0.002" iyz="0.0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 6: Wrist 3 -->
+  <joint name="joint_6" type="revolute">
+    <parent link="wrist_2_link"/>
+    <child link="wrist_3_link"/>
+    <origin xyz="0 0 0.085" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-6.28" upper="6.28" effort="54.0" velocity="3.2"/>
+    <dynamics damping="1.0" friction="0.5"/>
+  </joint>
+
+  <!-- Wrist 3 / End Effector -->
+  <link name="wrist_3_link">
+    <visual>
+      <origin xyz="0 0.04 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.08"/>
+      </geometry>
+      <material name="UR_Blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0.04 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.08"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0 0.04 0" rpy="1.5708 0 0"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.0005"/>
+    </inertial>
+  </link>
+
+  <!-- ======================== GAZEBO COLORS ======================== -->
+  <gazebo reference="base_link"><material>Gazebo/Silver</material></gazebo>
+  <gazebo reference="shoulder_link"><material>Gazebo/Blue</material></gazebo>
+  <gazebo reference="upper_arm_link"><material>Gazebo/Silver</material></gazebo>
+  <gazebo reference="forearm_link"><material>Gazebo/Silver</material></gazebo>
+  <gazebo reference="wrist_1_link"><material>Gazebo/Blue</material></gazebo>
+  <gazebo reference="wrist_2_link"><material>Gazebo/Silver</material></gazebo>
+  <gazebo reference="wrist_3_link"><material>Gazebo/Blue</material></gazebo>
+
+  <!-- ======================== ROS 2 CONTROL ======================== -->
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="joint_1">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint_2">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint_3">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint_4">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint_5">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint_6">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <gazebo>
+    <plugin filename="libgz-sim-joint-trajectory-controller-system.so" name="gz::sim::systems::JointTrajectoryController">
+      <topic>/gazebo/joint_trajectory</topic>
+    </plugin>
+    <plugin filename="libgz-sim-joint-state-publisher-system.so" name="gz::sim::systems::JointStatePublisher">
+      <topic>/gazebo/joint_states</topic>
+      <joint_name>joint_1</joint_name>
+      <joint_name>joint_2</joint_name>
+      <joint_name>joint_3</joint_name>
+      <joint_name>joint_4</joint_name>
+      <joint_name>joint_5</joint_name>
+      <joint_name>joint_6</joint_name>
+    </plugin>
+  </gazebo>
+
+</robot>

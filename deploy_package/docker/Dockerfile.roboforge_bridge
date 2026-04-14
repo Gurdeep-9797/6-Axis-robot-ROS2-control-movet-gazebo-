@@ -1,0 +1,40 @@
+# RoboForge Bridge Dockerfile
+FROM osrf/ros:humble-desktop-full
+
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-c"]
+
+# Install Python dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip \
+    python3-websockets \
+    python3-numpy \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install via pip (versions pinned for reproducibility)
+RUN pip3 install --no-cache-dir \
+    websockets>=11.0 \
+    aiohttp>=3.9 \
+    pyserial>=3.5 \
+    numpy>=1.24
+
+# Install ROS dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-moveit \
+    ros-humble-moveit-ros-planning-interface \
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up workspace
+WORKDIR /ros_ws
+RUN mkdir -p src
+
+# Source ROS
+SHELL ["/bin/bash", "-c"]
+RUN source /opt/ros/humble/setup.bash && \
+    cd /ros_ws && \
+    colcon build --symlink-install
+
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 run roboforge_bridge roboforge_bridge"]

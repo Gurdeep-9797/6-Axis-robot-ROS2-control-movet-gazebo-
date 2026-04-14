@@ -520,7 +520,7 @@
       </visual>
     </link>
     <plugin name='ign_ros2_control::IgnitionROS2ControlPlugin' filename='gz_ros2_control-system'>
-      <parameters>/mnt/d/Projects/ROBOT/6-Axis-robot-ROS2-control-movet-gazebo-/install/robot_gazebo/share/robot_gazebo/config/gazebo_controllers.yaml</parameters>
+      <parameters>$(find robot_gazebo)/config/gazebo_controllers.yaml</parameters>
     </plugin>
     <frame name='joint_6-tool0' attached_to='link_6'>
       <pose>0 0 0.02 0 0 0</pose>

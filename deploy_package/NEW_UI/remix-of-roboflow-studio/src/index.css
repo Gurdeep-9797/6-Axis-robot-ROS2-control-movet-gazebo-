@@ -1,0 +1,465 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 16% 8%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 16% 11%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 16% 13%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 210 100% 58%;
+    --primary-foreground: 220 16% 4%;
+
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 210 20% 88%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 14% 50%;
+
+    --accent: 220 14% 20%;
+    --accent-foreground: 210 20% 92%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 210 100% 58%;
+
+    --radius: 0.625rem;
+
+    /* Industrial status colors */
+    --status-ok: 142 71% 45%;
+    --status-warning: 38 92% 50%;
+    --status-error: 0 72% 51%;
+    --status-info: 210 100% 58%;
+
+    /* Viewport */
+    --viewport-bg: 222 25% 5%;
+    --viewport-grid: 220 16% 12%;
+
+    /* Ribbon */
+    --ribbon-bg: 220 16% 10%;
+    --ribbon-border: 220 14% 16%;
+    --ribbon-hover: 220 16% 18%;
+    --ribbon-active: 210 100% 58%;
+
+    /* Console */
+    --console-bg: 222 25% 4%;
+    --console-text: 142 50% 65%;
+    --console-error: 0 72% 62%;
+    --console-warning: 38 85% 62%;
+
+    /* Panel */
+    --panel-bg: 220 16% 9%;
+    --panel-header: 220 16% 12%;
+    --panel-hover: 220 16% 14%;
+
+    /* Glass — macOS-style */
+    --glass-bg: 220 20% 12% / 0.55;
+    --glass-border: 0 0% 100% / 0.08;
+    --glass-highlight: 0 0% 100% / 0.07;
+    --glass-glow: 210 100% 58% / 0.08;
+
+    /* Tree */
+    --tree-selected: 210 100% 58% / 0.12;
+    --tree-hover: 220 16% 16%;
+
+    /* LED */
+    --led-on: 142 71% 45%;
+    --led-off: 220 14% 22%;
+
+    /* Code editor */
+    --code-bg: 222 25% 5%;
+    --code-keyword: 210 100% 68%;
+    --code-string: 142 60% 58%;
+    --code-comment: 220 12% 38%;
+    --code-number: 38 85% 62%;
+    --code-function: 280 65% 68%;
+    --code-line-number: 220 12% 28%;
+    --code-line-active: 220 16% 12%;
+
+    /* Block editor */
+    --block-move: 210 85% 48%;
+    --block-logic: 38 85% 52%;
+    --block-io: 142 65% 42%;
+    --block-wait: 280 55% 52%;
+    --block-loop: 340 65% 52%;
+
+    /* Scrollbar */
+    --scrollbar-track: 220 16% 8%;
+    --scrollbar-thumb: 220 14% 20%;
+
+    --sidebar-background: 220 16% 9%;
+    --sidebar-foreground: 210 20% 88%;
+    --sidebar-primary: 210 100% 58%;
+    --sidebar-primary-foreground: 220 16% 4%;
+    --sidebar-accent: 220 16% 16%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 14% 16%;
+    --sidebar-ring: 210 100% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--scrollbar-thumb));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  /* ===== GLASS COMPONENTS — macOS Vibrancy ===== */
+  .glass-panel {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow:
+      0 0 0 0.5px hsl(var(--glass-highlight)),
+      0 12px 40px -12px rgba(0, 0, 0, 0.5),
+      0 4px 12px -4px rgba(0, 0, 0, 0.3),
+      inset 0 0.5px 0 hsl(var(--glass-highlight));
+  }
+
+  .glass-surface {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: inset 0 0.5px 0 hsl(var(--glass-highlight));
+  }
+
+  .glass-btn {
+    @apply px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer;
+    background: hsl(220 20% 14% / 0.5);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+    box-shadow:
+      inset 0 0.5px 0 hsl(0 0% 100% / 0.08),
+      0 1px 2px rgba(0, 0, 0, 0.2);
+    color: hsl(var(--foreground));
+  }
+  .glass-btn:hover {
+    background: hsl(220 18% 18% / 0.65);
+    border-color: hsl(0 0% 100% / 0.1);
+    box-shadow:
+      inset 0 0.5px 0 hsl(0 0% 100% / 0.12),
+      0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(-0.5px);
+  }
+  .glass-btn:active {
+    transform: translateY(0);
+    background: hsl(220 18% 12% / 0.7);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  .glass-btn.active {
+    background: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--primary));
+    box-shadow:
+      inset 0 0.5px 0 hsl(var(--primary) / 0.1),
+      0 0 16px hsl(var(--primary) / 0.1);
+  }
+  .glass-btn:disabled {
+    @apply opacity-25 pointer-events-none;
+  }
+
+  .glass-btn-primary {
+    @apply glass-btn;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--primary) / 0.2));
+    border-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--primary));
+  }
+  .glass-btn-primary:hover {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--primary) / 0.25));
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+
+  .glass-btn-success {
+    @apply glass-btn;
+    background: linear-gradient(135deg, hsl(var(--status-ok) / 0.25), hsl(var(--status-ok) / 0.15));
+    border-color: hsl(var(--status-ok) / 0.3);
+    color: hsl(var(--status-ok));
+  }
+  .glass-btn-success:hover {
+    background: linear-gradient(135deg, hsl(var(--status-ok) / 0.35), hsl(var(--status-ok) / 0.2));
+    box-shadow: 0 0 16px hsl(var(--status-ok) / 0.15);
+  }
+
+  .glass-input {
+    @apply text-xs px-2.5 py-1.5 rounded-lg outline-none transition-all duration-200;
+    background: hsl(220 20% 8% / 0.6);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+    color: hsl(var(--foreground));
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  }
+  .glass-input:focus {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.2),
+      0 0 0 3px hsl(var(--primary) / 0.1),
+      0 0 12px hsl(var(--primary) / 0.08);
+  }
+
+  .glass-toggle {
+    @apply relative w-9 h-5 rounded-full transition-all duration-300 cursor-pointer;
+    background: hsl(220 16% 16% / 0.8);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  .glass-toggle.on {
+    background: hsl(var(--status-ok) / 0.35);
+    border-color: hsl(var(--status-ok) / 0.45);
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.2),
+      0 0 10px hsl(var(--status-ok) / 0.2);
+  }
+  .glass-toggle-thumb {
+    @apply absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300;
+    background: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 82%));
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ===== RIBBON ===== */
+  .ribbon-btn {
+    @apply flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-200;
+    @apply text-secondary-foreground;
+    background: transparent;
+  }
+  .ribbon-btn:hover {
+    background: hsl(0 0% 100% / 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    transform: translateY(-0.5px);
+  }
+  .ribbon-btn:active {
+    transform: translateY(0);
+  }
+  .ribbon-btn.active {
+    background: hsl(var(--primary) / 0.15);
+    color: hsl(var(--primary));
+    box-shadow: 0 0 14px hsl(var(--primary) / 0.12);
+  }
+  .ribbon-btn:disabled {
+    @apply opacity-25 pointer-events-none;
+  }
+
+  .panel-header {
+    @apply flex items-center justify-between px-3 py-2.5 text-[11px] font-semibold uppercase tracking-widest;
+    background: hsl(var(--panel-header) / 0.6);
+    backdrop-filter: blur(16px);
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--glass-border));
+  }
+
+  .tree-node {
+    @apply flex items-center gap-1.5 px-2 py-1.5 text-sm cursor-pointer rounded-lg transition-all duration-150;
+    @apply hover:bg-accent/40;
+  }
+  .tree-node.selected {
+    background: hsl(var(--tree-selected));
+    @apply text-primary;
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.12);
+  }
+
+  .status-led {
+    @apply w-2 h-2 rounded-full transition-all duration-300;
+  }
+  .status-led.on {
+    background: hsl(var(--led-on));
+    box-shadow: 0 0 8px hsl(var(--led-on) / 0.6), 0 0 2px hsl(var(--led-on) / 0.8);
+  }
+  .status-led.off {
+    background: hsl(var(--led-off));
+  }
+
+  .console-line {
+    @apply font-mono text-[11px] py-0.5 px-3;
+  }
+
+  .mode-toggle {
+    @apply flex rounded-xl overflow-hidden;
+    background: hsl(220 20% 8% / 0.5);
+    border: 1px solid hsl(0 0% 100% / 0.05);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  }
+  .mode-toggle-btn {
+    @apply px-3 py-1 text-xs font-medium transition-all duration-200;
+    @apply text-muted-foreground hover:text-foreground;
+  }
+  .mode-toggle-btn.active {
+    background: hsl(var(--primary) / 0.2);
+    color: hsl(var(--primary));
+    box-shadow:
+      inset 0 0.5px 0 hsl(var(--primary) / 0.08),
+      0 0 10px hsl(var(--primary) / 0.08);
+  }
+
+  .block-item {
+    @apply flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-all duration-200;
+    background: hsl(220 18% 14% / 0.4);
+    border: 1px solid hsl(0 0% 100% / 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  .block-item:hover {
+    background: hsl(220 18% 18% / 0.5);
+    border-color: hsl(0 0% 100% / 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Block library card */
+  .block-card {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200;
+    background: hsl(220 18% 10% / 0.6);
+    border: 1px solid hsl(0 0% 100% / 0.05);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.2),
+      inset 0 0.5px 0 hsl(0 0% 100% / 0.04);
+  }
+  .block-card:hover {
+    background: hsl(220 18% 14% / 0.7);
+    border-color: hsl(0 0% 100% / 0.1);
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.35),
+      inset 0 0.5px 0 hsl(0 0% 100% / 0.06);
+  }
+  .block-card:active {
+    transform: scale(0.98) translateY(0);
+  }
+
+  /* Tree node executing state */
+  .tree-node-executing {
+    border-left: 3px solid hsl(var(--destructive));
+    animation: pulse-border 0.8s ease-in-out infinite;
+    background: hsl(var(--destructive) / 0.06);
+  }
+  @keyframes pulse-border {
+    0%, 100% { border-left-color: hsl(var(--destructive)); }
+    50% { border-left-color: hsl(var(--destructive) / 0.4); }
+  }
+
+  .property-field {
+    @apply flex items-center justify-between py-1.5 border-b;
+    border-color: hsl(0 0% 100% / 0.03);
+  }
+  .property-label {
+    @apply text-xs text-muted-foreground;
+  }
+  .property-value {
+    @apply glass-input w-20;
+  }
+
+  .viewport-toolbar-btn {
+    @apply p-1.5 rounded-lg transition-all duration-200;
+    @apply text-muted-foreground hover:text-foreground;
+  }
+  .viewport-toolbar-btn:hover {
+    background: hsl(0 0% 100% / 0.05);
+  }
+  .viewport-toolbar-btn.active {
+    @apply text-primary;
+    background: hsl(var(--primary) / 0.12);
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.1);
+  }
+
+  /* JOG button styles */
+  .jog-btn {
+    @apply flex items-center justify-center w-8 h-8 rounded-xl text-xs font-bold transition-all duration-150;
+    background: hsl(220 18% 14% / 0.5);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+    color: hsl(var(--foreground));
+    box-shadow:
+      inset 0 0.5px 0 hsl(0 0% 100% / 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  .jog-btn:hover {
+    background: hsl(220 18% 20% / 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  }
+  .jog-btn:active {
+    transform: translateY(0);
+    background: hsl(var(--primary) / 0.25);
+    border-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--primary));
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Run button */
+  .cell-run-btn {
+    @apply w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-200;
+    background: hsl(var(--status-ok) / 0.12);
+    border: 1px solid hsl(var(--status-ok) / 0.25);
+    color: hsl(var(--status-ok));
+  }
+  .cell-run-btn:hover {
+    background: hsl(var(--status-ok) / 0.25);
+    box-shadow: 0 0 12px hsl(var(--status-ok) / 0.2);
+    transform: scale(1.1);
+  }
+
+  /* Context menu item */
+  .ctx-item {
+    @apply w-full flex items-center gap-2 px-3 py-1.5 text-[11px] transition-colors hover:bg-accent/30 rounded-lg;
+    width: calc(100% - 4px);
+    margin-left: 2px;
+  }
+
+  /* Pulse LED */
+  @keyframes pulse-led {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .animate-pulse-led {
+    animation: pulse-led 1.5s ease-in-out infinite;
+  }
+
+  /* Slide in */
+  @keyframes slide-in-right {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .animate-slide-in-right {
+    animation: slide-in-right 0.2s ease-out;
+  }
+
+  /* Section card */
+  .section-card {
+    @apply rounded-xl p-3;
+    background: hsl(220 18% 12% / 0.35);
+    border: 1px solid hsl(0 0% 100% / 0.04);
+    box-shadow: inset 0 0.5px 0 hsl(0 0% 100% / 0.05);
+  }
+}

@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  ros_core:
+    image: robotics_base:latest
+    container_name: ros_core
+    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 launch robot_description display.launch.py"
+    environment:
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - ../src:/ros_ws/src
+      - ../robot_description:/ros_ws/src/robot_description
+      - ../robot_gazebo:/ros_ws/src/robot_gazebo
+      - ../robot_moveit_config:/ros_ws/src/robot_moveit_config
+    networks:
+      - robot_net
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 node list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  moveit:
+    image: robotics_base:latest
+    container_name: moveit
+    depends_on:
+      ros_core:
+        condition: service_healthy
+    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 launch robot_moveit_config move_group.launch.py"
+    environment:
+      - ROS_DOMAIN_ID=42
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - ../src:/ros_ws/src
+      - ../robot_description:/ros_ws/src/robot_description
+      - ../robot_moveit_config:/ros_ws/src/robot_moveit_config
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    networks:
+      - robot_net
+
+  gazebo:
+    image: robotics_base:latest
+    container_name: gazebo
+    depends_on:
+      - moveit
+    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 launch robot_gazebo gazebo.launch.py"
+    environment:
+      - ROS_DOMAIN_ID=42
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - ../src:/ros_ws/src
+      - ../robot_description:/ros_ws/src/robot_description
+      - ../robot_gazebo:/ros_ws/src/robot_gazebo
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    networks:
+      - robot_net
+
+  hardware_bridge:
+    image: robotics_base:latest
+    container_name: bridge
+    depends_on:
+      - gazebo
+    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 run robot_hardware_bridge bridge_node"
+    environment:
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - ../src:/ros_ws/src
+    networks:
+      - robot_net
+
+  roboforge_bridge:
+    image: robotics_base:latest
+    container_name: roboforge_bridge
+    depends_on:
+      - moveit
+      - gazebo
+    command: bash -c "source /opt/ros/humble/setup.bash && source /ros_ws/install/setup.bash && ros2 run roboforge_bridge roboforge_bridge"
+    ports:
+      - "9090:9090"
+    environment:
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - ../src:/ros_ws/src
+    networks:
+      - robot_net
+
+networks:
+  robot_net:
+    driver: bridge
