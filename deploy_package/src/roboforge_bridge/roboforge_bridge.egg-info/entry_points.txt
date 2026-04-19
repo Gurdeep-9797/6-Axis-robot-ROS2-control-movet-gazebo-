@@ -1,6 +1,0 @@
-[console_scripts]
-encoder_interface_node = roboforge_bridge.encoder_interface_node:main
-gazebo_error_node = roboforge_bridge.gazebo_error_node:main
-motor_controller_node = roboforge_bridge.motor_controller_node:main
-roboforge_bridge = roboforge_bridge.bridge_node:main
-
