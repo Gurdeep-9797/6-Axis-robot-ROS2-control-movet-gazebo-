@@ -5,33 +5,20 @@
 │                     RoboForge Project Root                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                   │
-│  📂 src/                      ← Source Code                      │
-│  ├── 📂 RoboForge.Wpf/        ← Offline Desktop Client (.NET 8)  │
-│  │   ├── 📂 AST/              ← Program AST nodes                │
-│  │   ├── 📂 Bridge/           ← ROS2 WebSocket client            │
-│  │   ├── 📂 Core/             ← Execution engines, state bus     │
-│  │   ├── 📂 Docking/          ← Panel docking system             │
-│  │   ├── 📂 FileSystem/       ← .rfproj save/load                │
-│  │   ├── 📂 Homing/           ← Robot homing sequence            │
-│  │   ├── 📂 IO/               ← Device detection, handshake      │
-│  │   ├── 📂 Models/           ← Robot structure models           │
-│  │   ├── 📂 Themes/           ← XAML styles & colors             │
-│  │   ├── MainWindow.xaml      ← Main UI layout                   │
-│  │   └── RoboForge.Wpf.csproj ← Project file                    │
-│  │                                                                 │
-│  ├── 📂 robot_description/    ← URDF robot model (xacro)         │
+│  📂 src/                      ← ROS 2 Workspace Source           │
+│  ├── 📂 robot_description/    ← URDF robot model                 │
 │  ├── 📂 robot_moveit_config/  ← MoveIt 2 motion planning         │
 │  ├── 📂 robot_gazebo/         ← Gazebo simulation launch         │
-│  ├── 📂 roboforge_bridge/     ← WebSocket + REST bridge          │
-│  ├── 📂 robot_msgs/           ← Custom ROS2 messages             │
-│  └── 📂 robot_hardware_bridge/← Hardware integration              │
+│  ├── 📂 roboforge_bridge/     ← WebSocket + ROS 2 bridge (Python)│
+│  ├── 📂 robot_msgs/           ← Custom ROS 2 messages            │
+│  └── 📂 robot_hardware_bridge/← Hardware integration             │
 │                                                                   │
-│  📂 NEW_UI/                   ← Online System                    │
-│  └── 📂 remix-of-roboflow-studio/ ← React Online IDE             │
-│      ├── 📂 src/              ← React components                 │
+│  📂 NEW_UI/                   ← Frontend Application             │
+│  └── 📂 remix-of-roboflow-studio/ ← React/Vite IDE               │
+│      ├── 📂 src/              ← React components & engine        │
 │      ├── 📂 public/           ← Static assets                    │
 │      ├── Dockerfile           ← Container definition             │
-│      └── package.json       ← Dependencies                      │
+│      └── package.json         ← Dependencies                     │
 │                                                                   │
 │  📂 docker/                   ← Docker configurations            │
 │  ├── Dockerfile.gazebo_vnc    ← Gazebo VNC container             │

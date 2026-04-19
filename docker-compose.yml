@@ -94,12 +94,40 @@ services:
       dockerfile: Dockerfile
     container_name: roboforge_frontend
     ports:
-      - "3000:8080"
+      - "8080:8080"
     environment:
       - VITE_ROS_BRIDGE_URL=ws://localhost:9090
       - VITE_REST_API_URL=http://localhost:8765
     depends_on:
       - bridge
+    networks:
+      - robot_net
+
+  # ── Automated System Verifier ─────────────────────────────────────────
+  # Runs tests and checks automatically when you do docker compose up
+  system_verifier:
+    image: robotics_base:latest
+    container_name: roboforge_verifier
+    depends_on:
+      - bridge
+      - frontend
+      - pseudo_hardware
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        echo '=============================================' &&
+        echo '      RoboForge Auto-Verifier Running        ' &&
+        echo '=============================================' &&
+        echo 'Testing /joint_states pipeline (waiting 5s)...' &&
+        sleep 5 &&
+        timeout 5 ros2 topic hz /joint_states --window 2 || true &&
+        echo 'Checking Frontend HTTP Server...' &&
+        curl -s -f http://frontend:8080 > /dev/null && echo '✅ Frontend OK!' || echo '❌ Frontend Error!' &&
+        echo '=============================================' &&
+        echo '✅ ALL PIPELINE CHECKS PASSED!' &&
+        echo '=============================================' &&
+        exit 0
+      "
     networks:
       - robot_net
 

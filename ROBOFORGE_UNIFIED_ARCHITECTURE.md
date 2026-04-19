@@ -474,17 +474,14 @@ joint_trajectory_controller:
 │  │         │ DDS/FastDDS    │                     │             │   │
 │  │  ┌──────▼──────────────────────────────────────▼──────────┐  │   │
 │  │  │              roboforge_bridge node                       │  │   │
-│  │  │  • rosbridge_server (WebSocket :9090)                    │  │   │
 │  │  │  • REST API server   (:8765)                             │  │   │
-│  │  │  • gRPC server       (:50051)                            │  │   │
 │  │  │  • State broadcaster (WebSocket :9091) — push-only       │  │   │
-│  │  └──────┬────────────────────────────────────────┬─────────┘  │   │
 │  │         │                                        │             │   │
-│  │  ┌──────▼──────┐                      ┌─────────▼─────────┐  │   │
-│  │  │  ONLINE UI  │                      │   OFFLINE UI       │  │   │
-│  │  │  (Browser)  │                      │   (.NET/WPF)       │  │   │
-│  │  │  Vite+React │                      │   WinUI 3          │  │   │
-│  │  └─────────────┘                      └───────────────────┘  │   │
+│  │  ┌──────▼──────┐                                           │   │
+│  │  │  ONLINE UI  │                                           │   │
+│  │  │  (Browser)  │                                           │   │
+│  │  │  Vite+React │                                           │   │
+│  │  └─────────────┘                                           │   │
 │  └───────────────────────────────────────────────────────────────┘   │
 │                                                                        │
 │  OPTIONAL: Remote Access via Secure Tunnel                            │
@@ -739,7 +736,6 @@ services:
       - "9090:9090"    # WebSocket (rosbridge-compatible)
       - "9091:9091"    # WebSocket (state push, read-only)
       - "8765:8765"    # REST API
-      - "50051:50051"  # gRPC (for .NET offline client)
     environment:
       - ROS_DOMAIN_ID=42
     networks:

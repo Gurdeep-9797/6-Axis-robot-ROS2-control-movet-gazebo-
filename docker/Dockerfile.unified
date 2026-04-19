@@ -1,0 +1,39 @@
+FROM osrf/ros:humble-desktop
+
+# Install basic system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg2 \
+    lsb-release \
+    build-essential \
+    python3-pip \
+    python3-colcon-common-extensions \
+    git \
+    wget \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Gazebo Fortress
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y ignition-fortress \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MoveIt 2 & ROS 2 dependencies
+RUN apt-get update && apt-get install -y \
+    ros-humble-moveit \
+    ros-humble-moveit-setup-assistant \
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
+    ros-humble-gazebo-ros2-control \
+    ros-humble-ign-ros2-control \
+    ros-humble-rosbridge-suite \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Python requirements for custom Bridge node
+RUN pip install websockets aiohttp grpcio protobuf requests
+
+# Auto-source ROS 2 on bash entry
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+WORKDIR /ros_ws

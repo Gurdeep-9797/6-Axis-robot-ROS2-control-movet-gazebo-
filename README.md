@@ -2,7 +2,7 @@
 
 [![Build & Release](https://github.com/Gurdeep-9797/6-Axis-robot-ROS2-control-movet-gazebo-/actions/workflows/build.yml/badge.svg)](https://github.com/Gurdeep-9797/6-Axis-robot-ROS2-control-movet-gazebo-/actions/workflows/build.yml)
 
-A professional full-stack industrial robot control system with **React Online Web IDE**, **C# WPF Offline Client**, backed by **ROS 2 Humble / MoveIt 2 Planning**, and **ESP32 Real-Time Hardware Bridge**.
+A professional full-stack industrial robot control system with **React Online Web IDE** built on Vite, backed by **ROS 2 Humble / MoveIt 2 Planning**, and **ESP32 Real-Time Hardware Bridge**.
 
 ---
 
@@ -10,8 +10,7 @@ A professional full-stack industrial robot control system with **React Online We
 
 | Document | Purpose |
 |----------|---------|
-| [🌐 Online System Guide](ONLINE_SYSTEM.md) | React IDE + ROS2 backend setup |
-| [🖥️ Offline System Guide](OFFLINE_SYSTEM.md) | WPF desktop client architecture |
+| [🌐 Online System Guide](ONLINE_SYSTEM.md) | React IDE + ROS 2 backend setup |
 | [📁 System Organization](SYSTEM_ORGANIZATION.md) | Complete directory structure |
 | [⚡ Quick Access](QUICK_ACCESS.md) | Quick reference commands |
 | [🔧 API Reference](API_AND_CONNECTIONS.md) | Technical API documentation |
@@ -20,36 +19,13 @@ A professional full-stack industrial robot control system with **React Online We
 
 ## 🚀 Quick Start
 
-### Online System (Browser-Based)
+```bash
+# Start the full stack (ROS 2 Backend, MoveIt, Bridge, React UI)
+# Includes an automated 'system_verifier' service that checks the pipeline health.
+docker compose up -d
 
-```powershell
-# Start all services (Docker + React UI + Gazebo)
-docker compose up -d --profile sim
-
-# Open interfaces
-start http://localhost:3000          # React Online IDE
-start http://localhost:6080/vnc.html # Gazebo 3D GUI (VNC)
-```
-
-### Offline System (Desktop WPF)
-
-```powershell
-# Build
-dotnet build src/RoboForge.Wpf/RoboForge.Wpf.csproj --configuration Debug
-
-# Run
-dotnet run --project src/RoboForge.Wpf/RoboForge.Wpf.csproj
-```
-
-### Portable Deployment
-
-```powershell
-# Create deployment package
-.\CREATE_DEPLOY_PACKAGE.ps1
-
-# On another PC, run package
-cd deploy_package
-.\LAUNCH.ps1
+# Open the UI in your browser
+start http://localhost:8080
 ```
 
 ---
@@ -60,13 +36,9 @@ cd deploy_package
 ┌──────────────────────────────────────────────────────────────────────┐
 │                        FRONTEND LAYER                                 │
 │                                                                        │
-│  React Online IDE (Vite + React 18 + Three.js)                      │
+│  React Online IDE (Vite + React 18 + Three.js + Glassmorphism UI)   │
 │    → ws://localhost:9090 (BackendConnector.ts)                      │
 │    → http://localhost:8765 (REST health checks)                     │
-│                                                                        │
-│  WPF Offline Client (.NET 8 WPF + HelixToolkit)                     │
-│    → ws://localhost:9090 (ClientWebSocket)                          │
-│    → /joint_states parsed → J1-J6 properties                        │
 └────────────────────────┬─────────────────────────────────────────────┘
                          │
                          ▼
@@ -114,8 +86,7 @@ cd deploy_package
 | **ROS2 Services** | ✅ 3 key | — | /compute_ik, /compute_fk, /roboforge/health_check |
 | **Bridge: WebSocket** | ✅ Working | 9090 | rosbridge-compatible, kinematics loaded |
 | **Bridge: REST API** | ✅ Working | 8765 | `{"moveit_ready":true,"kinematics_loaded":true}` |
-| **React Online IDE** | ✅ Working | 3000 | Full IDE, TypeScript 0 errors, IK warning modal, motor PWM |
-| **WPF Offline Client** | ✅ Builds | .exe | 0 errors, EnumToBool fixed, motor slider, 3D viewport |
+| **React Online IDE** | ✅ Working | 5173 | Full IDE, TypeScript 0 errors, IK warning modal, motor PWM |
 | **MoveIt** | ✅ Running | — | MoveGroup initialized, IK service responding |
 | **Pseudo Hardware** | ✅ 250Hz | — | Home position: `[0, -0.3, 0.2, 0, -0.5, 0]` |
 
@@ -126,16 +97,10 @@ cd deploy_package
 ```
 Project Root/
 ├── NEW_UI/remix-of-roboflow-studio/     # React Online IDE
-│   ├── src/components/robot/            # 29 robot-specific components
-│   ├── src/store/AppState.tsx           # 739-line React Context (full state management)
-│   ├── src/services/BackendConnector.ts # rosbridge connection manager
-│   └── src/engine/IKSolver.ts           # Local JS IK solver (analytical + numerical DLS)
-│
-├── src/RoboForge.Wpf/                   # WPF Offline Client (.NET 8)
-│   ├── MainWindow.xaml                  # 4-pane layout (Program Tree, 3D Viewport, Scene Outliner, Console)
-│   ├── ViewModels.cs                    # 11 ViewModels (all implemented with commands)
-│   ├── Converters.cs                    # 6 value converters (EnumToBool, OkToBrush, etc.)
-│   └── bin/x64/Debug/net8.0-windows/   # Compiled executable
+│   ├── src/components/robot/            # Robot-specific components
+│   ├── src/store/AppState.tsx           # React Context (state management)
+│   ├── src/services/BackendConnector.ts # websocket connection manager
+│   └── src/engine/IKSolver.ts           # Local JS IK solver
 │
 ├── src/roboforge_bridge/                # Backend Bridge (Python ROS2 node)
 │   └── roboforge_bridge/bridge_node.py  # WebSocket (9090) + REST API (8765) server
@@ -186,15 +151,6 @@ Project Root/
 - **Health Check Modal** — Pre-flight validation before switching to Live mode
 - **Offline IK Warning** — Red modal with explicit confirmation when switching to offline solver
 
-### Offline Client (WPF)
-- **4-Pane Layout** — Program Tree, 3D Viewport (HelixToolkit), Scene Outliner, Console
-- **Joint Angle Sliders** — J1-J6 interactive controls with real-time updates
-- **Execution Controls** — Run, Pause, Stop, Step commands
-- **Mode Toggles** — Edit / Simulate / Live
-- **IK Solver Selection** — Numerical / Analytical
-- **Motor Speed** — PWM duty cycle slider (5-100%)
-- **Health Check Overlay** — Pre-flight validation display
-
 ### Backend (ROS2 + MoveIt)
 - **MoveIt 2 IK Service** — KDL kinematics plugin, 5 attempts, 1.0s timeout
 - **Trajectory Planning** — OMPL planners (RRTConnect, RRTstar, PRM)
@@ -220,14 +176,9 @@ Project Root/
 
 | # | Issue | Priority | Effort |
 |---|-------|----------|--------|
-| R1 | WPF ViewModels fully wired to XAML panels | P1 | 1 hr |
-| R2 | WPF 3D viewport — load actual robot mesh | P1 | 30 min |
-| R3 | MoveIt IK — get actual solutions (currently -31) | P1 | 30 min |
-| R4 | React UI — end-to-end simulation test | P1 | 1 hr |
-| R5 | WPF SignalR client connection | P2 | 1 hr |
-| R6 | safety_watchdog.py — tracking error comparison fix | P2 | 30 min |
-
-Full task list: `.qwen/TASKS.md`
+| R1 | MoveIt IK — real solutions verify | P1 | 30 min |
+| R2 | React UI — end-to-end integration | P1 | 1 hr |
+| R3 | safety_watchdog.py checking | P2 | 30 min |
 
 ---
 
@@ -247,4 +198,4 @@ docker compose up -d
 
 ---
 
-*Built with ROS 2 Humble, React Three Fiber, MoveIt 2, .NET 8, and Gazebo Harmonic.*
+*Built with ROS 2 Humble, React Three Fiber, MoveIt 2, and Gazebo Harmonic.*
