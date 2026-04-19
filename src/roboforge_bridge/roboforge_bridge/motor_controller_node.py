@@ -23,6 +23,7 @@ import time
 import math
 import yaml
 import struct
+import json
 
 class TrajectorySegment:
     def __init__(self, q_start, q_end, duration, t_start):

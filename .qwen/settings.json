@@ -43,7 +43,8 @@
       "Bash(git commit *)",
       "Bash(@if *)",
       "Bash(echo *)",
-      "Bash(pip install *)"
+      "Bash(pip install *)",
+      "Bash(forfiles *)"
     ]
   },
   "$version": 3

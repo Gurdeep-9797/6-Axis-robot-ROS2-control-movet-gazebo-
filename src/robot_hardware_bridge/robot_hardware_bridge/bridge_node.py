@@ -28,6 +28,9 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from robot_msgs.msg import TrajectoryAck, ExecutionState
+import json
+import datetime
+import os
 
 # Import backends
 from .sim_backend import SimulationBackend
@@ -132,8 +135,33 @@ class HardwareBridgeNode(Node):
         # Timer for state publishing
         self.create_timer(0.01, self.publish_state_callback)  # 100 Hz
         
+        self._init_api_interceptor()
         self.get_logger().info('Hardware Bridge initialized')
     
+    def _init_api_interceptor(self):
+        self.intercept_log_path = os.path.join(os.getcwd(), 'pipeline_intercept.json')
+        # Create empty array if not exists
+        if not os.path.exists(self.intercept_log_path):
+            with open(self.intercept_log_path, 'w') as f:
+                json.dump([], f)
+    
+    def _log_intercept(self, event_type, payload):
+        """Append an intercepted API event to the local log for verification."""
+        try:
+            entry = {
+                "timestamp": datetime.datetime.now().isoformat(),
+                "event": event_type,
+                "payload": payload
+            }
+            # Simple append (could be optimized)
+            with open(self.intercept_log_path, 'r+') as f:
+                data = json.load(f)
+                data.append(entry)
+                f.seek(0)
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            self.get_logger().error(f"Failed to write intercept log: {e}")
+
     def trajectory_callback(self, msg: JointTrajectory):
         """
         Handle incoming trajectory from MoveIt.
@@ -181,6 +209,14 @@ class HardwareBridgeNode(Node):
         # Schema validation passed - relay to backend
         # NOTE: Semantic validation (limits, velocities) is done by Controller
         self.get_logger().debug('Schema validation passed, relaying to backend')
+        
+        # Intercept and log
+        self._log_intercept("TRAJECTORY_COMMAND_RECEIVED", {
+            "joint_names": msg.joint_names,
+            "num_points": len(msg.points),
+            "target_positions": list(msg.points[-1].positions) if len(msg.points) > 0 else []
+        })
+
         self.backend.send_trajectory(msg)
     
     def _publish_rejection(self, msg: JointTrajectory, reason: str):

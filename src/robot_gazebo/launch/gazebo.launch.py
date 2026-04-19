@@ -73,6 +73,7 @@ def generate_launch_description():
         parameters=[{
             'robot_description': ParameterValue(robot_description, value_type=str),
             'use_sim_time': use_sim_time,
+            'publish_frequency': 30.0,
         }]
     )
     

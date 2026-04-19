@@ -57,9 +57,16 @@ class SimulationBackend:
         self.logger = node.get_logger()
         self.controller_type = controller_type
         
-        # Current state
         self.current_positions = [0.0] * 6
         self.current_velocities = [0.0] * 6
+        self.current_efforts = [0.0] * 6  # Mock PWM/Current output
+
+        # Cascaded PID states
+        self.integral_error_pos = [0.0] * 6
+        self.integral_error_vel = [0.0] * 6
+        self.prev_error_pos = [0.0] * 6
+        self.prev_error_vel = [0.0] * 6
+
         self.execution_state = ExecutionState.STATE_IDLE
         self.execution_progress = 0.0
         self.fault_code = 0
@@ -260,10 +267,44 @@ class SimulationBackend:
                 t = (elapsed - prev_time) / (target_time - prev_time) if target_time > prev_time else 1.0
                 t = max(0.0, min(1.0, t))
                 
+                dt = 0.001  # dt mapped to sim loop rate
+                
                 for i in range(6):
                     prev_pos = prev_point.positions[i]
                     target_pos = target_point.positions[i]
-                    self.current_positions[i] = prev_pos + t * (target_pos - prev_pos)
+                    desired_pos = prev_pos + t * (target_pos - prev_pos)
+                    
+                    # Industry Standard Cascaded PID Approximation for BLDC
+                    # Level 1: Position Loop
+                    kp_p = 50.0  # Proportional gain for position
+                    error_pos = desired_pos - self.current_positions[i]
+                    desired_vel = kp_p * error_pos
+                    
+                    # Level 2: Velocity Loop
+                    kp_v = 10.0
+                    ki_v = 0.1
+                    kd_v = 0.01
+                    
+                    actual_vel = self.current_velocities[i]
+                    error_vel = desired_vel - actual_vel
+                    self.integral_error_vel[i] += error_vel * dt
+                    
+                    # Anti-windup
+                    self.integral_error_vel[i] = max(-50.0, min(50.0, self.integral_error_vel[i]))
+                    
+                    derivative_vel = (error_vel - self.prev_error_vel[i]) / dt
+                    self.prev_error_vel[i] = error_vel
+                    
+                    # Output Effort (Approximate Current A or PWM Duty Cycle)
+                    effort_cmd = (kp_v * error_vel) + (ki_v * self.integral_error_vel[i]) + (kd_v * derivative_vel)
+                    
+                    # Scale to a mock PWM percentage (-100 to 100) or Amps
+                    max_effort = 100.0
+                    self.current_efforts[i] = max(-max_effort, min(max_effort, effort_cmd))
+                    
+                    # Assume ideal torque tracking -> update velocity and position
+                    self.current_velocities[i] += (self.current_efforts[i] * 0.01) * dt
+                    self.current_positions[i] += self.current_velocities[i] * dt
     
     def get_joint_state(self) -> JointState:
         """Get current joint state."""
@@ -278,7 +319,7 @@ class SimulationBackend:
             msg.name = list(self.JOINT_NAMES)
             msg.position = list(self.current_positions)
             msg.velocity = list(self.current_velocities)
-            msg.effort = [0.0] * 6  # Not simulated
+            msg.effort = list(self.current_efforts)  # Output cascaded PID effort
         
         return msg
     

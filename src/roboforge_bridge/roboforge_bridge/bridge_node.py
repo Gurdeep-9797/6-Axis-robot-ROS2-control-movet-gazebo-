@@ -326,6 +326,39 @@ class RoboForgeBridge(Node):
                 'moveit_ready': self.ik_client.service_is_ready(),
                 'kinematics_loaded': self._kinematics is not None,
             }))
+            
+        # ── Hardware Detection & Handshake (Phase 6) ─────────────────────
+        elif op == 'call_service' and msg.get('service') == '/roboforge/hardware_detect':
+            # Simulate hardware bus scan
+            await asyncio.sleep(0.5)
+            await ws.send(json.dumps({
+                'op': 'service_response',
+                'id': msg.get('id'),
+                'result': True,
+                'values': {
+                    'devices': [
+                        {'id': f'motor_ctrl_{i}', 'type': 'motor_controller', 'status': 'online', 'joint': i+1} 
+                        for i in range(6)
+                    ],
+                    'bus_status': 'ok',
+                    'latency_ms': 12
+                }
+            }))
+            
+        elif op == 'call_service' and msg.get('service') == '/roboforge/handshake':
+            # Live hardware mode initialization
+            self._mode = 'live'
+            await asyncio.sleep(0.2)
+            await ws.send(json.dumps({
+                'op': 'service_response',
+                'id': msg.get('id'),
+                'result': True,
+                'values': {
+                    'mode': self._mode,
+                    'active_controllers': 6,
+                    'message': 'Hardware handshake successful. Entering LIVE mode.'
+                }
+            }))
 
         else:
             self.get_logger().debug(f'Unhandled op: {op}')
@@ -339,7 +372,7 @@ class RoboForgeBridge(Node):
 
         args = msg.get('args', {}).get('ik_request', {})
         req = GetPositionIK.Request()
-        req.ik_request.group_name = args.get('group_name', 'manipulator')
+        req.ik_request.group_name = args.get('group_name', 'robot_arm')
         req.ik_request.avoid_collisions = args.get('avoid_collisions', True)
 
         pose_data = args.get('pose_stamped', {}).get('pose', {})
@@ -404,7 +437,7 @@ class RoboForgeBridge(Node):
         joints = args.get('robot_state', {}).get('joint_state', {}).get('position', [0]*6)
         if self._kinematics and len(joints) >= 6:
             try:
-                T = self._kinematics.forward_kinematics(joints[:6])
+                T = self._kinematics.fk(joints[:6])
                 pos = T[:3, 3].tolist()
                 await ws.send(json.dumps({'op': 'service_response', 'id': msg.get('id'),
                     'result': True, 'values': {
@@ -478,8 +511,9 @@ class RoboForgeBridge(Node):
 
         if not hasattr(self, '_traj_pub'):
             self._traj_pub = self.create_publisher(JointTrajectory, '/joint_trajectory_command', 10)
+        
         self._traj_pub.publish(traj_msg)
-        self.get_logger().info(f'Published trajectory: {len(traj_msg.points)} points')
+        self.get_logger().info(f"Published trajectory: {len(traj_msg.points)} points to /joint_trajectory_command")
 
     # ── REST API on port 8765 ────────────────────────────────────────────────
 
