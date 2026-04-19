@@ -95,3 +95,7 @@ dist/
 dist-ssr/
 *.local
 .eslintcache
+
+# --- AI Tool Artifacts ---
+.qwen/
+.gemini/
